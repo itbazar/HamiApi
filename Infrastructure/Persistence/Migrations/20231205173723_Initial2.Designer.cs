@@ -4,6 +4,7 @@ using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231205173723_Initial2")]
+    partial class Initial2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -418,28 +421,7 @@ namespace Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UserId");
 
-                    b.OwnsOne("Domain.Models.ComplaintAggregate.Password", "CitizenPassword", b1 =>
-                        {
-                            b1.Property<Guid>("ComplaintId")
-                                .HasColumnType("uniqueidentifier");
-
-                            b1.Property<byte[]>("Hash")
-                                .IsRequired()
-                                .HasColumnType("varbinary(max)");
-
-                            b1.Property<byte[]>("Salt")
-                                .IsRequired()
-                                .HasColumnType("varbinary(max)");
-
-                            b1.HasKey("ComplaintId");
-
-                            b1.ToTable("Complaint");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ComplaintId");
-                        });
-
-                    b.OwnsOne("Domain.Models.ComplaintAggregate.Password", "EncryptionKeyPassword", b1 =>
+                    b.OwnsOne("Domain.Models.ComplaintAggregate.Password", "Password", b1 =>
                         {
                             b1.Property<Guid>("ComplaintId")
                                 .HasColumnType("uniqueidentifier");
@@ -462,10 +444,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Navigation("Category");
 
-                    b.Navigation("CitizenPassword")
-                        .IsRequired();
-
-                    b.Navigation("EncryptionKeyPassword")
+                    b.Navigation("Password")
                         .IsRequired();
 
                     b.Navigation("User");

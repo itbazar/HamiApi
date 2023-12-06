@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231201140211_Initial")]
+    [Migration("20231204180117_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,51 +25,20 @@ namespace Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Models.Common.MediaCitizen", b =>
+            modelBuilder.Entity("Domain.Models.Common.Media", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ComplaintContentCitizenId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("Data")
+                    b.Property<byte[]>("Cipher")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<int>("MediaType")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("SymmetricCipher")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ComplaintContentCitizenId");
-
-                    b.ToTable("MediaCitizen");
-                });
-
-            modelBuilder.Entity("Domain.Models.Common.MediaInspector", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<Guid?>("ComplaintContentId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<byte[]>("AsymmetricCipher")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<Guid?>("ComplaintContentInspectorId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("Data")
+                    b.Property<byte[]>("IntegrityHash")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
@@ -82,9 +51,9 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ComplaintContentInspectorId");
+                    b.HasIndex("ComplaintContentId");
 
-                    b.ToTable("MediaInspector");
+                    b.ToTable("Media");
                 });
 
             modelBuilder.Entity("Domain.Models.ComplaintAggregate.Complaint", b =>
@@ -95,6 +64,29 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("CipherKeyCitizen")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("CipherKeyInspector")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<byte[]>("EncryptionIv")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("EncryptionIvCitizen")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("ServerPassword")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -138,46 +130,13 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("ComplaintCategory");
                 });
 
-            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContentCitizen", b =>
+            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ComplaintId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsEncrypted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Sender")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("SymmetricCipher")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ComplaintId");
-
-                    b.ToTable("ComplaintContentCitizen");
-                });
-
-            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContentInspector", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<byte[]>("AsymmetricCipher")
+                    b.Property<byte[]>("Cipher")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
@@ -187,21 +146,21 @@ namespace Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<byte[]>("IntegrityHash")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<bool>("IsEncrypted")
                         .HasColumnType("bit");
 
                     b.Property<int>("Sender")
                         .HasColumnType("int");
 
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ComplaintId");
 
-                    b.ToTable("ComplaintContentInspector");
+                    b.ToTable("ComplaintContent");
                 });
 
             modelBuilder.Entity("Domain.Models.IdentityAggregate.ApplicationRole", b =>
@@ -437,18 +396,11 @@ namespace Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Models.Common.MediaCitizen", b =>
+            modelBuilder.Entity("Domain.Models.Common.Media", b =>
                 {
-                    b.HasOne("Domain.Models.ComplaintAggregate.ComplaintContentCitizen", null)
-                        .WithMany("MediaCitizen")
-                        .HasForeignKey("ComplaintContentCitizenId");
-                });
-
-            modelBuilder.Entity("Domain.Models.Common.MediaInspector", b =>
-                {
-                    b.HasOne("Domain.Models.ComplaintAggregate.ComplaintContentInspector", null)
-                        .WithMany("MediaInspector")
-                        .HasForeignKey("ComplaintContentInspectorId");
+                    b.HasOne("Domain.Models.ComplaintAggregate.ComplaintContent", null)
+                        .WithMany("Media")
+                        .HasForeignKey("ComplaintContentId");
                 });
 
             modelBuilder.Entity("Domain.Models.ComplaintAggregate.Complaint", b =>
@@ -468,13 +420,13 @@ namespace Infrastructure.Persistence.Migrations
                             b1.Property<Guid>("ComplaintId")
                                 .HasColumnType("uniqueidentifier");
 
-                            b1.Property<string>("Hash")
+                            b1.Property<byte[]>("Hash")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("varbinary(max)");
 
-                            b1.Property<string>("Salt")
+                            b1.Property<byte[]>("Salt")
                                 .IsRequired()
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("varbinary(max)");
 
                             b1.HasKey("ComplaintId");
 
@@ -492,17 +444,10 @@ namespace Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContentCitizen", b =>
+            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContent", b =>
                 {
                     b.HasOne("Domain.Models.ComplaintAggregate.Complaint", null)
-                        .WithMany("ContentsCitizen")
-                        .HasForeignKey("ComplaintId");
-                });
-
-            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContentInspector", b =>
-                {
-                    b.HasOne("Domain.Models.ComplaintAggregate.Complaint", null)
-                        .WithMany("ContentsInspector")
+                        .WithMany("Contents")
                         .HasForeignKey("ComplaintId");
                 });
 
@@ -559,19 +504,12 @@ namespace Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Domain.Models.ComplaintAggregate.Complaint", b =>
                 {
-                    b.Navigation("ContentsCitizen");
-
-                    b.Navigation("ContentsInspector");
+                    b.Navigation("Contents");
                 });
 
-            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContentCitizen", b =>
+            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContent", b =>
                 {
-                    b.Navigation("MediaCitizen");
-                });
-
-            modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContentInspector", b =>
-                {
-                    b.Navigation("MediaInspector");
+                    b.Navigation("Media");
                 });
 #pragma warning restore 612, 618
         }

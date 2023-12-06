@@ -184,12 +184,18 @@ namespace Infrastructure.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TrackingNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password_Hash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password_Salt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ServerPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Password_Hash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    Password_Salt = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    EncryptionIv = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    CipherKeyCitizen = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    EncryptionIvCitizen = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    CipherKeyInspector = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Status = table.Column<int>(type: "int", nullable: false)
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    DateTime = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -208,88 +214,45 @@ namespace Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ComplaintContentCitizen",
+                name: "ComplaintContent",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SymmetricCipher = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    ComplaintId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Cipher = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    IntegrityHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     Sender = table.Column<int>(type: "int", nullable: false),
                     DateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsEncrypted = table.Column<bool>(type: "bit", nullable: false)
+                    IsEncrypted = table.Column<bool>(type: "bit", nullable: false),
+                    ComplaintId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ComplaintContentCitizen", x => x.Id);
+                    table.PrimaryKey("PK_ComplaintContent", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ComplaintContentCitizen_Complaint_ComplaintId",
+                        name: "FK_ComplaintContent_Complaint_ComplaintId",
                         column: x => x.ComplaintId,
                         principalTable: "Complaint",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "ComplaintContentInspector",
+                name: "Media",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AsymmetricCipher = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    ComplaintId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Text = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Sender = table.Column<int>(type: "int", nullable: false),
-                    DateTime = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsEncrypted = table.Column<bool>(type: "bit", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ComplaintContentInspector", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ComplaintContentInspector_Complaint_ComplaintId",
-                        column: x => x.ComplaintId,
-                        principalTable: "Complaint",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MediaCitizen",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SymmetricCipher = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    ComplaintContentCitizenId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Data = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    Cipher = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    IntegrityHash = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MediaType = table.Column<int>(type: "int", nullable: false)
+                    MediaType = table.Column<int>(type: "int", nullable: false),
+                    ComplaintContentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MediaCitizen", x => x.Id);
+                    table.PrimaryKey("PK_Media", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_MediaCitizen_ComplaintContentCitizen_ComplaintContentCitizenId",
-                        column: x => x.ComplaintContentCitizenId,
-                        principalTable: "ComplaintContentCitizen",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MediaInspector",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    AsymmetricCipher = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    ComplaintContentInspectorId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Data = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MediaType = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MediaInspector", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MediaInspector_ComplaintContentInspector_ComplaintContentInspectorId",
-                        column: x => x.ComplaintContentInspectorId,
-                        principalTable: "ComplaintContentInspector",
+                        name: "FK_Media_ComplaintContent_ComplaintContentId",
+                        column: x => x.ComplaintContentId,
+                        principalTable: "ComplaintContent",
                         principalColumn: "Id");
                 });
 
@@ -343,24 +306,14 @@ namespace Infrastructure.Persistence.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ComplaintContentCitizen_ComplaintId",
-                table: "ComplaintContentCitizen",
+                name: "IX_ComplaintContent_ComplaintId",
+                table: "ComplaintContent",
                 column: "ComplaintId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ComplaintContentInspector_ComplaintId",
-                table: "ComplaintContentInspector",
-                column: "ComplaintId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MediaCitizen_ComplaintContentCitizenId",
-                table: "MediaCitizen",
-                column: "ComplaintContentCitizenId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MediaInspector_ComplaintContentInspectorId",
-                table: "MediaInspector",
-                column: "ComplaintContentInspectorId");
+                name: "IX_Media_ComplaintContentId",
+                table: "Media",
+                column: "ComplaintContentId");
         }
 
         /// <inheritdoc />
@@ -382,19 +335,13 @@ namespace Infrastructure.Persistence.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "MediaCitizen");
-
-            migrationBuilder.DropTable(
-                name: "MediaInspector");
+                name: "Media");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "ComplaintContentCitizen");
-
-            migrationBuilder.DropTable(
-                name: "ComplaintContentInspector");
+                name: "ComplaintContent");
 
             migrationBuilder.DropTable(
                 name: "Complaint");

@@ -1,10 +1,11 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Domain.Models.ComplaintAggregate;
+using Application.Complaints.Queries.Common;
+using Mapster;
 using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintCitizenQuery;
 
-internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCitizenQuery, Complaint>
+internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCitizenQuery, ComplaintResponse>
 {
     private readonly IComplaintRepository _complaintRepository;
 
@@ -13,9 +14,9 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
         _complaintRepository = complaintRepository;
     }
 
-    public async Task<Complaint> Handle(GetComplaintCitizenQuery request, CancellationToken cancellationToken)
+    public async Task<ComplaintResponse> Handle(GetComplaintCitizenQuery request, CancellationToken cancellationToken)
     {
-        var result = await _complaintRepository.GetAsync(request.TrackingNumber, request.Password, Actor.Citizen);
-        return result;
+        var result = await _complaintRepository.GetCitizenAsync(request.TrackingNumber, request.Password);
+        return result.Adapt<ComplaintResponse>();
     }
 }

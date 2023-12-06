@@ -2,7 +2,6 @@
 using Domain.Models.IdentityAggregate;
 using Domain.Primitives;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Runtime.InteropServices;
 
 namespace Domain.Models.ComplaintAggregate;
 
@@ -10,70 +9,57 @@ public class Complaint : Entity
 {
     private Complaint(Guid id) : base(id) { }
     public string TrackingNumber { get; set; } = null!;
-    [NotMapped]
-    public string PlainPassword { get; set; } = string.Empty;
-    public Password Password { get; set; } = null!;
     public ApplicationUser? User { get; set; } = null;
-
     public string Title { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
     public ComplaintCategory Category { get; set; } = null!;
-    [NotMapped]
     public List<ComplaintContent> Contents { get; set; } = new List<ComplaintContent>();
-    public List<ComplaintContentCitizen> ContentsCitizen { get; set; } = new List<ComplaintContentCitizen>();
-    public List<ComplaintContentInspector> ContentsInspector { get; set; } = new List<ComplaintContentInspector>();
     public ComplaintState Status { get; set; }
+    public DateTime RegisteredAt { get; set; }
+    public DateTime LastChanged { get; set; }
+    public Actor LastActor { get; set; }
+
+    // Citizen password
+    [NotMapped]
+    public string PlainPassword { get; set; } = string.Empty;
+    public string ServerPassword { get; set; } = string.Empty;
+    public Password CitizenPassword { get; set; } = null!;
+    ///////////////////
+    // Report password
+    [NotMapped]
+    public byte[] EncryptionKey { get; set; } = null!;
+    public byte[] EncryptionIv { get; set; } = null!;
+    public byte[] CipherKeyCitizen { get; set; } = null!;
+    public Password EncryptionKeyPassword { get; set; } = null!;
+    public byte[] EncryptionIvCitizen { get; set; } = null!;
+    public byte[] CipherKeyInspector { get; set; } = null!;
+    ///////////////////
+
 
     // Factory methods
-    public static Complaint Register(string title, string text, Guid categoryId)
+    public static Complaint Register(string title, string text, Guid categoryId, List<Media> medias)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         Complaint complaint = new(Guid.NewGuid());
+        complaint.RegisteredAt = now;
+        complaint.LastChanged = now;
+        complaint.LastActor = Actor.Citizen;
         complaint.Title = title;
         complaint.CategoryId = categoryId;
-        complaint.Contents.Add(ComplaintContent.Create(text));
+        complaint.Contents.Add(ComplaintContent.Create(text, medias, Actor.Citizen));
 
         return complaint;
     }
-}
 
-public class ComplaintContent : Entity
-{
-    protected ComplaintContent(Guid id) : base(id) { }
-    public static ComplaintContent Create(string text)
+    public bool Reply(string text, List<Media> medias, Actor sender)
     {
-        var complaintContent = new ComplaintContent(Guid.NewGuid());
-        complaintContent.Text = text;
-        return complaintContent;
+        var now = DateTime.UtcNow;
+        LastChanged = now;
+        LastActor = sender;
+        var content = ComplaintContent.Create(text, medias, sender);
+        Contents.Add(content);
+        return true;
     }
-
-    public static ComplaintContent Create(Guid id, string text)
-    {
-        var complaintContent = new ComplaintContent(id);
-        complaintContent.Text = text;
-        return complaintContent;
-    }
-
-    public string Text { get; set; } = string.Empty;
-    [NotMapped]
-    public List<Media> Media { get; set; } = new List<Media>();
-    public Actor Sender { get; set; }
-    public DateTime DateTime { get; set; }
-    public bool IsEncrypted { get; set; }
-}
-
-public class ComplaintContentCitizen : ComplaintContent
-{
-    public ComplaintContentCitizen(Guid id) : base(id) { }
-    public byte[] SymmetricCipher { get; set; } = null!;
-    public List<MediaCitizen> MediaCitizen { get; set; } = new List<MediaCitizen>();
-}
-
-public class ComplaintContentInspector : ComplaintContent
-{
-    public ComplaintContentInspector(Guid id) : base(id) { }
-    public byte[] AsymmetricCipher { get; set; } = null!;
-    public List<MediaInspector> MediaInspector { get; set; } = new List<MediaInspector>();
 }
 
 public enum Actor

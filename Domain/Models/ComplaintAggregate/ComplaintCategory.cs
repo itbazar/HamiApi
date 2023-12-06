@@ -15,3 +15,4 @@ public class ComplaintCategory : Entity
     public string Title { get; set; } = null!;
     public string Description { get; set; } = string.Empty;
 }
+

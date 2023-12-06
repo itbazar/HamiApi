@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Infrastructure.Encryption;
 
-public class PasswordHasher
+public class Hasher
 {
     const int keySize = 64;
     const int iterations = 350000;
@@ -22,16 +22,26 @@ public class PasswordHasher
             hashAlgorithm,
             keySize);
 
-        result.Hash = Convert.ToHexString(hash);
-        result.Salt = Convert.ToHexString(salt);
+        result.Hash = hash;
+        result.Salt = salt;
         return result;
     }
 
-    public static bool VerifyPassword(string password, Password hash)
+    public static bool VerifyPassword(string password, Password passwordHash)
     {
-        var salt = Convert.FromHexString(hash.Salt);
+        var salt = passwordHash.Salt;
         var hashToCompare = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, hashAlgorithm, keySize);
 
-        return CryptographicOperations.FixedTimeEquals(hashToCompare, Convert.FromHexString(hash.Hash));
+        return CryptographicOperations.FixedTimeEquals(hashToCompare, passwordHash.Hash);
+    }
+
+    public static byte[] Hash(byte[] data)
+    {
+        return SHA512.HashData(data);
+    }
+
+    public static bool Verify(byte[] data, byte[] hash)
+    {
+        return SHA512.HashData(data).SequenceEqual(hash);
     }
 }

@@ -8,8 +8,9 @@ public class ComplaintConfigurations : IEntityTypeConfiguration<Complaint>
 {
     public void Configure(EntityTypeBuilder<Complaint> builder)
     {
-        builder.HasMany(c => c.ContentsCitizen);
-        builder.HasMany(c => c.ContentsInspector);
-        builder.OwnsOne(c => c.Password);
+        builder.HasMany(c => c.Contents);
+        
+        builder.OwnsOne(c => c.CitizenPassword);
+        builder.OwnsOne(c => c.EncryptionKeyPassword);
     }
 }
