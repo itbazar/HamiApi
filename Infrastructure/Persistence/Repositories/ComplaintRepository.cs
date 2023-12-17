@@ -3,6 +3,8 @@ using Domain.Models.ComplaintAggregate;
 using Infrastructure.Encryption;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Cryptography.Xml;
 using System.Text;
 
 namespace Infrastructure.Persistence.Repositories;
@@ -20,51 +22,16 @@ public class ComplaintRepository : IComplaintRepository
     {
         complaint.TrackingNumber = GenerateTrackingNumber();
 
-        // Generate citizen key and password
-        SymmetricKeyComponents encryptionKeyCitizen = new SymmetricKeyComponents();
-        complaint.ServerPassword = encryptionKeyCitizen.PasswordServer;
-        complaint.PlainPassword = encryptionKeyCitizen.PasswordCitizen;
-        complaint.CitizenPassword = Hasher.HashPasword(complaint.PlainPassword);
-        complaint.EncryptionIvCitizen = encryptionKeyCitizen.IV;
-
-        //Generate report encryption key
-        SymmetricKeyComponents encryptionKey = new SymmetricKeyComponents();
-        complaint.EncryptionKey = encryptionKey.Key;
-        complaint.EncryptionIv = encryptionKey.IV;
-        complaint.EncryptionKeyPassword = Hasher.HashPasword(complaint.EncryptionKey.ToBase64());
-
-        // Store report encryption key as encrypted by citizen and inspector keys
-        complaint.CipherKeyInspector = AsymmetricEncryption.EncryptAsymmetric(_publicKey, complaint.EncryptionKey);
-        complaint.CipherKeyCitizen = SymmetricEncryption.Encrypt(encryptionKeyCitizen, encryptionKey.Key);
+        complaint.GenerateCredentials(_publicKey);
         
         if (complaint.Contents.Count != 1)
             throw new Exception("Inconsistent contents.");
-        EncryptComplaintContent(complaint, complaint.Contents[0]);
+
+        complaint.EncryptContent();
 
         _context.Add(complaint);
 
         await _context.SaveChangesAsync();
-        return true;
-    }
-
-    private bool EncryptComplaintContent(Complaint complaint, ComplaintContent content)
-    {
-        if (complaint.EncryptionKey is null || complaint.EncryptionIv is null)
-            throw new Exception("Encryption key or iv is null");
-        content.Encrypt(complaint.EncryptionKey, complaint.EncryptionIv);
-
-        return true;
-    }
-    
-    private bool DecryptComplaintContent(Complaint complaint)
-    {
-        if (complaint.EncryptionKey is null || complaint.EncryptionIv is null)
-            throw new Exception("Encryption key or iv is null");
-        foreach (var content in complaint.Contents)
-        {
-            content.Decrypt(complaint.EncryptionKey, complaint.EncryptionIv);
-        }
-        
         return true;
     }
 
@@ -79,19 +46,12 @@ public class ComplaintRepository : IComplaintRepository
         if (complaint is null)
             throw new Exception("Not found");
 
-        if (!Hasher.VerifyPassword(password, complaint.CitizenPassword))
-            throw new Exception("Wrong password");
-
-        complaint.PlainPassword = password;
-        var encryptionKey = new SymmetricKeyComponents(password, complaint.ServerPassword, complaint.EncryptionIvCitizen);
-        complaint.EncryptionKey = SymmetricEncryption.Decrypt(encryptionKey, complaint.CipherKeyCitizen);
-        if (!Hasher.VerifyPassword(complaint.EncryptionKey.ToBase64(), complaint.EncryptionKeyPassword))
-            throw new Exception("Invalid encryption key");
-        DecryptComplaintContent(complaint);
+        complaint.LoadEncryptionKeyByCitizenPassword(password);
+        complaint.DecryptContent();
         return complaint;
     }
 
-    public async Task<Complaint> GetInspectorAsync(string trackingNumber, string password)
+    public async Task<Complaint> GetInspectorAsync(string trackingNumber, string encodedKey)
     {
         var complaint = await _context.Complaint
             .Where(c => c.TrackingNumber == trackingNumber)
@@ -102,16 +62,9 @@ public class ComplaintRepository : IComplaintRepository
         if (complaint is null)
             throw new Exception("Not found");
 
-        if (!Hasher.VerifyPassword(password, complaint.EncryptionKeyPassword))
-            throw new Exception("Invalid encryption key");
-        complaint.EncryptionKey = password.ParseBytes();
-        DecryptComplaintContent(complaint);
+        complaint.LoadEncryptionKeyByInspector(encodedKey);
+        complaint.DecryptContent();
         return complaint;
-    }
-
-    private string GenerateTrackingNumber()
-    {
-        return RandomNumberGenerator.GetInt32(10000000, 99999999).ToString();
     }
 
     public async Task<Complaint> GetAsync(string trackingNumber)
@@ -129,19 +82,92 @@ public class ComplaintRepository : IComplaintRepository
         return complaintList;
     }
 
-    public async Task<bool> ReplyInspector(Complaint complaint, string encryptedKey)
+    public async Task<bool> ReplyInspector(Complaint complaint, string encodedKey)
     {
-        complaint.EncryptionKey = encryptedKey.ParseBytes();
-        if (!Hasher.VerifyPassword(complaint.EncryptionKey.ToBase64(), complaint.EncryptionKeyPassword))
-            throw new Exception("Invalid encryption key");
-        EncryptComplaintContent(complaint, complaint.Contents[0]);
+        complaint.LoadEncryptionKeyByInspector(encodedKey);
+        complaint.EncryptContent();
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<bool> ReplyCitizen(Complaint complaint, string password)
+    {
+        complaint.LoadEncryptionKeyByCitizenPassword(password);
+        complaint.EncryptContent();
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    private string GenerateTrackingNumber()
+    {
+        return RandomNumberGenerator.GetInt32(10000000, 99999999).ToString();
     }
 }
 
 
 public static class ComplaintExtensionMethods
+{
+    public static bool GenerateCredentials(this Complaint complaint, string _publicKey)
+    {
+        // Generate citizen key and password
+        SymmetricKeyComponents encryptionKeyCitizen = new SymmetricKeyComponents();
+        complaint.ServerPassword = encryptionKeyCitizen.PasswordServer;
+        complaint.PlainPassword = encryptionKeyCitizen.PasswordCitizen;
+        complaint.CitizenPassword = Hasher.HashPasword(complaint.PlainPassword);
+        complaint.EncryptionIvCitizen = encryptionKeyCitizen.IV;
+
+        //Generate report encryption key
+        SymmetricKeyComponents encryptionKey = new SymmetricKeyComponents();
+        complaint.EncryptionKey = encryptionKey.Key;
+        complaint.EncryptionIv = encryptionKey.IV;
+        complaint.EncryptionKeyPassword = Hasher.HashPasword(complaint.EncryptionKey.ToBase64());
+
+        // Store report encryption key as encrypted by citizen and inspector keys
+        complaint.CipherKeyInspector = AsymmetricEncryption.EncryptAsymmetric(_publicKey, complaint.EncryptionKey);
+        complaint.CipherKeyCitizen = SymmetricEncryption.Encrypt(encryptionKeyCitizen, encryptionKey.Key);
+
+        return true;
+    }
+    public static bool LoadEncryptionKeyByCitizenPassword(this Complaint complaint, string password)
+    {
+        if (!Hasher.VerifyPassword(password, complaint.CitizenPassword))
+            throw new Exception("Wrong password");
+        complaint.PlainPassword = password;
+        var citizenEncryptionKey = new SymmetricKeyComponents(password, complaint.ServerPassword, complaint.EncryptionIvCitizen);
+        complaint.EncryptionKey = SymmetricEncryption.Decrypt(citizenEncryptionKey, complaint.CipherKeyCitizen);
+        if (!Hasher.VerifyPassword(complaint.EncryptionKey.ToBase64(), complaint.EncryptionKeyPassword))
+            throw new Exception("Invalid encryption key");
+        return true;
+    }
+
+    public static bool LoadEncryptionKeyByInspector(this Complaint complaint, string encodedKey)
+    {
+        complaint.EncryptionKey = encodedKey.ParseBytes();
+        if (!Hasher.VerifyPassword(complaint.EncryptionKey.ToBase64(), complaint.EncryptionKeyPassword))
+            throw new Exception("Invalid encryption key");
+        return true;
+    }
+
+    public static bool EncryptContent(this Complaint complaint, int index = 0) 
+    {
+        if (complaint.EncryptionKey is null || complaint.EncryptionIv is null)
+            throw new Exception("Encryption key or iv is null");
+        complaint.Contents[index].Encrypt(complaint.EncryptionKey, complaint.EncryptionIv);
+        return true;
+    }
+    public static bool DecryptContent(this Complaint complaint)
+    {
+        if (complaint.EncryptionKey is null || complaint.EncryptionIv is null)
+            throw new Exception("Encryption key or iv is null");
+        foreach (var content in complaint.Contents)
+        {
+            content.Decrypt(complaint.EncryptionKey, complaint.EncryptionIv);
+        }
+
+        return true;
+    }
+}
+public static class ComplaintContentExtensionMethods
 {
     public static bool Encrypt(this ComplaintContent content, byte[] key, byte[] iv)
     {
