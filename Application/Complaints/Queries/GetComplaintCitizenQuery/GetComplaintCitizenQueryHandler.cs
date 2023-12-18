@@ -1,5 +1,6 @@
 ﻿using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Queries.Common;
+using Domain.Models.ComplaintAggregate;
 using Mapster;
 using MediatR;
 
@@ -16,7 +17,10 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
 
     public async Task<ComplaintResponse> Handle(GetComplaintCitizenQuery request, CancellationToken cancellationToken)
     {
-        var result = await _complaintRepository.GetCitizenAsync(request.TrackingNumber, request.Password);
-        return result.Adapt<ComplaintResponse>();
+        var complaint = await _complaintRepository.GetCitizenAsync(request.TrackingNumber, request.Password);
+        complaint.Contents.RemoveAll(cc => cc.Visibility == ComplaintContentVisibility.Inspector);
+        var result = complaint.Adapt<ComplaintResponse>();
+        result.PossibleOperations.AddRange(complaint.GetPossibleOperations(Actor.Citizen));
+        return result;
     }
 }

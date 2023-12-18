@@ -9,5 +9,5 @@ public record ComplaintResponse(
     ComplaintState Status,
     DateTime RegisteredAt,
     DateTime LastChanged,
-    Actor LastActor,
-    List<ComplaintContentResponse> Contents);
+    List<ComplaintContentResponse> Contents,
+    List<ComplaintOperation> PossibleOperations);

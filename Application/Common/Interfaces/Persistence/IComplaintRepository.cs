@@ -10,4 +10,5 @@ public interface IComplaintRepository
     public Task<Complaint> GetAsync(string trackingNumber);
     public Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo);
     public Task<bool> ReplyInspector(Complaint complaint, string encryptedKey);
+    public Task<bool> ReplyCitizen(Complaint complaint, string password);
 }

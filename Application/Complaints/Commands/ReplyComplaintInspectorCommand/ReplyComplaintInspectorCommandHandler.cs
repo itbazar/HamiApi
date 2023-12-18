@@ -17,11 +17,13 @@ public class ReplyComplaintInspectorCommandHandler : IRequestHandler<ReplyCompla
     public async Task<bool> Handle(ReplyComplaintInspectorCommand request, CancellationToken cancellationToken)
     {
         var complaint = await _complaintRepository.GetAsync(request.TrackingNumber);
-        complaint.Reply(
+        complaint.AddContent(
             request.Text,
             request.Medias.Adapt<List<Media>>(),
-            Actor.Inspector);
-        await _complaintRepository.ReplyInspector(complaint, request.EncryptedKey);
+            Actor.Inspector,
+            request.Operation,
+            request.IsPublic ? ComplaintContentVisibility.Everyone : ComplaintContentVisibility.Inspector);
+        await _complaintRepository.ReplyInspector(complaint, request.EncodedKey);
         return true;
     }
 }

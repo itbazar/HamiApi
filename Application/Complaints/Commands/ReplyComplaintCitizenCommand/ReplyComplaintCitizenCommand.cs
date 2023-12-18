@@ -2,12 +2,11 @@
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 
-namespace Application.Complaints.Commands.AddComplaintCommand;
+namespace Application.Complaints.Commands.ReplyComplaintCitizenCommand;
 
-public record ReplyComplaintInspectorCommand(
+public record ReplyComplaintCitizenCommand(
     string TrackingNumber,
     string Text,
     List<MediaRequest> Medias,
     ComplaintOperation Operation,
-    bool IsPublic,
-    string EncodedKey) : IRequest<bool>;
+    string Password) : IRequest<bool>;
