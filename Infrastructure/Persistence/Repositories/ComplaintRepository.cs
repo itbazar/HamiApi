@@ -1,7 +1,9 @@
 ﻿using Application.Common.Interfaces.Persistence;
+using Application.Complaints.Queries.Common;
 using Domain.Models.ComplaintAggregate;
 using Infrastructure.Encryption;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
@@ -73,9 +75,14 @@ public class ComplaintRepository : IComplaintRepository
         return complaint ?? throw new Exception("Not found.");
     }
 
-    public async Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo)
+    public async Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
     {
-        var complaintList = await _context.Complaint
+        var query = _context.Complaint.Where(c => true);
+        if(filters.States.Count > 0)
+            query = query.Where(c => filters.States.Contains(c.Status));
+        if(!filters.TrackingNumber.IsNullOrEmpty())
+            query = query.Where(c => c.TrackingNumber.Contains(filters.TrackingNumber));
+        var complaintList = await query
             .Skip(pagingInfo.PageSize * (pagingInfo.PageNumber -1))
             .Take(pagingInfo.PageSize)
             .ToListAsync();

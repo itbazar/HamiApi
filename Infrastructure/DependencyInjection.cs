@@ -1,10 +1,13 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Communication;
+using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
 using Domain.Models.IdentityAggregate;
 using Infrastructure.Authentication;
 using Infrastructure.Captcha;
+using Infrastructure.Communications;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,16 +22,9 @@ public static class DependencyInjection
     {
         services.AddPersistence(configuration.GetConnectionString("DefaultConnection"));
         services.AddRepositories();
-        services.AddSecurity(new JwtInfo(
-            configuration["JWT:Secret"] ?? throw new Exception(),
-            configuration["JWT:ValidIssuer"] ?? throw new Exception(),
-            configuration["JWT:ValidAudience"] ?? throw new Exception(),
-            new TimeSpan(24, 0, 0)));
+        services.AddSecurity(configuration);
         services.AddStorage(webHostEnvironment);
-        services.AddCommunication(
-            configuration["MessageBroker:Host"]!,
-            configuration["MessageBroker:Username"]!,
-            configuration["MessageBroker:Password"]!);
+        services.AddCommunication(configuration);
         return services;
     }
 
@@ -54,12 +50,21 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
         services.AddScoped<IComplaintCategoryRepository, ComplaintCategoryRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ICaptchaProvider, SixLaborsCaptchaProvider>();
+        services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
 
         return services;
     }
 
-    public static IServiceCollection AddSecurity(this IServiceCollection services, JwtInfo jwtInfo)
+    public static IServiceCollection AddSecurity(this IServiceCollection services, IConfiguration configuration)
     {
+        var jwtInfo = new JwtInfo(
+            configuration["JWT:Secret"] ?? throw new Exception(),
+            configuration["JWT:ValidIssuer"] ?? throw new Exception(),
+            configuration["JWT:ValidAudience"] ?? throw new Exception(),
+            new TimeSpan(24, 0, 0));
+
         services.AddScoped<IAuthenticationService>(x => new AuthenticationService(
             x.GetRequiredService<UserManager<ApplicationUser>>(),
             x.GetRequiredService<IUnitOfWork>(),
@@ -75,12 +80,12 @@ public static class DependencyInjection
     }
 
     public static IServiceCollection AddCommunication(
-        this IServiceCollection services,
-        string host,
-        string username,
-        string password)
+            this IServiceCollection services,
+            IConfiguration configuration)
     {
-        /*
+        string host = configuration["MessageBroker:Host"] ?? throw new Exception("Message broker configurations not found");
+        string username = configuration["MessageBroker:Username"]! ?? throw new Exception("Message broker configurations not found");
+        string password = configuration["MessageBroker:Password"]! ?? throw new Exception("Message broker configurations not found");
         // Add MassTransit as a service
         services.AddMassTransit(busConfigurator =>
         {
@@ -102,7 +107,6 @@ public static class DependencyInjection
         });
 
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
-        */
         //services.AddSingleton<ISmsService>(x => new KaveNegarSms(
         //    new KaveNegarInfo(
         //        "10008000600033",
@@ -111,4 +115,5 @@ public static class DependencyInjection
 
         return services;
     }
+
 }

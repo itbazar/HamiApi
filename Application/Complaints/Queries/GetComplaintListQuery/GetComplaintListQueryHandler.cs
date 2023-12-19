@@ -16,7 +16,7 @@ internal class GetComplaintListQueryHandler : IRequestHandler<GetComplaintListQu
 
     public async Task<List<ComplaintListInspectorResponse>> Handle(GetComplaintListQuery request, CancellationToken cancellationToken)
     {
-        var complaintList = await _complaintRepository.GetListAsync(request.pagingInfo);
+        var complaintList = await _complaintRepository.GetListAsync(request.pagingInfo, request.Filters);
         return complaintList.Adapt<List<ComplaintListInspectorResponse>>();
     }
 }

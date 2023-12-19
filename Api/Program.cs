@@ -25,7 +25,7 @@ builder.Services.AddSwaggerGen(swagger =>
     swagger.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "ShahrbinMi Web API",
+        Title = "Sootzani Web API",
         Description = ""
     });
     // To Enable authorization using Swagger (JWT)    

@@ -52,8 +52,8 @@ public class CitizenController : ApiController
         return Ok(result);
     }
 
-    [HttpGet("CitizenGet")]
-    public async Task<ActionResult<Complaint>> GetComplaintCitizen([FromQuery] ComplaintCitizenGetDto complaintDto)
+    [HttpPost("Get")]
+    public async Task<ActionResult<Complaint>> GetComplaintCitizen([FromBody] ComplaintCitizenGetDto complaintDto)
     {
         var query = new GetComplaintCitizenQuery(complaintDto.TrackingNumber, complaintDto.Password);
         var result = await Sender.Send(query);
