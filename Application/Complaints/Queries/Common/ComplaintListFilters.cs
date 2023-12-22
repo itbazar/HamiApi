@@ -2,4 +2,4 @@
 
 namespace Application.Complaints.Queries.Common;
 
-public record ComplaintListFilters(List<ComplaintState> States, string TrackingNumber);
+public record ComplaintListFilters(List<ComplaintState>? States, string? TrackingNumber);

@@ -1,7 +1,7 @@
 ﻿using Api.Abstractions;
 using Application.Authentication.Queries.CaptchaQuery;
 using Application.ComplaintCategories.Queries;
-using Application.Setup.Commands.InitComplaintCategories;
+using Application.Setup.Commands.Init;
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -17,7 +17,7 @@ public class CommonController : ApiController
     [HttpGet("Init")]
     public async Task<IActionResult> Init()
     {
-        var command = new InitComplaintCategoriesCommand();
+        var command = new InitCommand();
         var result = await Sender.Send(command);
         return Ok(result);
     }

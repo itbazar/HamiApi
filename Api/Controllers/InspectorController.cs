@@ -31,7 +31,7 @@ public class InspectorController : ApiController
     }
 
     [HttpPost("Get")]
-    public async Task<ActionResult<Complaint>> Get([FromBody] ComplaintInspectorGetDto complaintDto)
+    public async Task<ActionResult<ComplaintResponse>> Get([FromBody] ComplaintInspectorGetDto complaintDto)
     {
         var query = new GetComplaintInspectorQuery(complaintDto.TrackingNumber, complaintDto.Password);
         var result = await Sender.Send(query);

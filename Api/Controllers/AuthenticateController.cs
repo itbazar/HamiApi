@@ -25,39 +25,16 @@ public class AuthenticateController : ApiController
     public async Task<ActionResult> LoginStaff(LoginStaffDto loginDto)
     {
         var command = new LoginCommand(loginDto.Username, loginDto.Password, loginDto.Captcha);
-        var result = await Sender.Send(command);
-        if (result.UserNotConfirmed)
-        {
-            return StatusCode(StatusCodes.Status428PreconditionRequired, "");
-        }
-        else
-        {
-            return Ok(result.JwtToken);
-        }
+        await Sender.Send(command);
+        return StatusCode(StatusCodes.Status428PreconditionRequired, "");
     }
 
     [HttpPost("Verify")]
     public async Task<ActionResult> Verify([FromBody] VerificationDto verificationDto)
     {
-        var command = new VerifyPhoneNumberCommand(verificationDto.Username, verificationDto.VerificationCode);
+        var command = new LoginCommand(verificationDto.Username, verificationDto.Password, null, verificationDto.VerificationCode);
         var result = await Sender.Send(command);
-        if (result)
-        {
-            var loginCommand = new LoginCommand(verificationDto.Username, verificationDto.Password);
-            var loginResult = await Sender.Send(loginCommand);
-            if (loginResult.UserNotConfirmed)
-            {
-                return Unauthorized();
-            }
-            else
-            {
-                return Ok(loginResult.JwtToken);
-            }
-        }
-        else
-        {
-            return Unauthorized();
-        }
+        return Ok(result.JwtToken);
     }
 
     [Authorize]

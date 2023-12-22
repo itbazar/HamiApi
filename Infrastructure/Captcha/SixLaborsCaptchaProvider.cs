@@ -7,7 +7,7 @@ public class SixLaborsCaptchaProvider : ICaptchaProvider
 {
     private SixLaborsCaptchaModule captchaRandomImage;
     //TODO: Use Redis or some thing else
-    private HashSet<Tuple<Guid, string, DateTime>> keyValuePairs;
+    private static HashSet<Tuple<Guid, string, DateTime>> keyValuePairs = new();
 
     public SixLaborsCaptchaProvider()
     {
@@ -17,7 +17,7 @@ public class SixLaborsCaptchaProvider : ICaptchaProvider
             TextColor = new Color[] { Color.Blue, Color.Black },
             FontFamilies = new string[] { "Marlboro", "Arial", "Verdana", "Times New Roman" }
         });
-        keyValuePairs = new HashSet<Tuple<Guid, string, DateTime>>();
+        //keyValuePairs = new HashSet<Tuple<Guid, string, DateTime>>();
     }
 
     public CaptchaResultModel GenerateImage(string text = "")

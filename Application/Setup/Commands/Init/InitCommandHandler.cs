@@ -3,17 +3,17 @@ using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using MediatR;
 
-namespace Application.Setup.Commands.InitComplaintCategories;
+namespace Application.Setup.Commands.Init;
 
-internal class InitComplaintCategoriesCommandHandler : IRequestHandler<InitComplaintCategoriesCommand, bool>
+internal class InitCommandHandler : IRequestHandler<InitCommand, bool>
 {
     private readonly IComplaintCategoryRepository _categoryRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public InitComplaintCategoriesCommandHandler(
+    public InitCommandHandler(
         IComplaintCategoryRepository categoryRepository,
-        IUserRepository userRepository, 
+        IUserRepository userRepository,
         IUnitOfWork unitOfWork)
     {
         _categoryRepository = categoryRepository;
@@ -21,7 +21,7 @@ internal class InitComplaintCategoriesCommandHandler : IRequestHandler<InitCompl
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<bool> Handle(InitComplaintCategoriesCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(InitCommand request, CancellationToken cancellationToken)
     {
         await initCategories();
         await initRolesAndUsers();

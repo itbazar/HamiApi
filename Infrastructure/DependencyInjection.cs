@@ -1,10 +1,12 @@
 ﻿using Application.Common.Interfaces.Communication;
+using Application.Common.Interfaces.Encryption;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
 using Domain.Models.IdentityAggregate;
 using Infrastructure.Authentication;
 using Infrastructure.Captcha;
 using Infrastructure.Communications;
+using Infrastructure.Encryption;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using MassTransit;
@@ -23,6 +25,7 @@ public static class DependencyInjection
         services.AddPersistence(configuration.GetConnectionString("DefaultConnection"));
         services.AddRepositories();
         services.AddSecurity(configuration);
+        services.AddEncryption();
         services.AddStorage(webHostEnvironment);
         services.AddCommunication(configuration);
         return services;
@@ -51,7 +54,7 @@ public static class DependencyInjection
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
         services.AddScoped<IComplaintCategoryRepository, ComplaintCategoryRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<ICaptchaProvider, SixLaborsCaptchaProvider>();
+        services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
 
         return services;
@@ -70,6 +73,15 @@ public static class DependencyInjection
             x.GetRequiredService<IUnitOfWork>(),
             jwtInfo));
         services.AddScoped<ICaptchaProvider, SixLaborsCaptchaProvider>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddEncryption(this IServiceCollection services)
+    {
+        services.AddScoped<ISymmetricEncryption, AesEncryption>();
+        services.AddScoped<IAsymmetricEncryption, RsaEncryption>();
+        services.AddScoped<IHasher, Hasher>();
 
         return services;
     }

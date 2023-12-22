@@ -27,25 +27,20 @@ public class AuthenticationService : IAuthenticationService
     public async Task<LoginResultModel> Login(string username, string password, string? verificationCode = null)
     {
         var user = await GetUser(username);
-        if (!user.PhoneNumberConfirmed)
-        {
-            if(verificationCode is null)
-            {
-                throw new PhoneNumberNotConfirmedException("Confirm the phone number first.");
-            }
-            else
-            {
-                if(await ValidateOtp(user, verificationCode))
-                {
-                    user.PhoneNumberConfirmed = true;
-                    await _unitOfWork.SaveAsync();
-                }
-            }
-            
-        }
+
         if (await _userManager.CheckPasswordAsync(user, password))
         {
-            return await GenerateToken(user);
+            if (verificationCode is null)
+                throw new PhoneNumberNotConfirmedException();
+
+            if (await ValidateOtp(user, verificationCode))
+            {
+                return await GenerateToken(user);
+            }
+            else 
+            {
+                throw new InvalidVerificationCode();
+            }
         }
         else
         {
