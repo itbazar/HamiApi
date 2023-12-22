@@ -2,8 +2,8 @@
 
 public interface IAsymmetricEncryption
 {
-    byte[] DecryptAsymmetric(string publicKey, byte[] cipher);
-    byte[] EncryptAsymmetric(string publicKey, byte[] content);
+    byte[] EncryptAsymmetricByPublic(string publicKey, byte[] content);
+    byte[] DecryptAsymmetricByPrivate(string privateKey, byte[] cipher);
     AsymmetricKey Generate();
 }
 

@@ -1,7 +1,6 @@
 ﻿using Api.Abstractions;
 using Application.Authentication.Queries.CaptchaQuery;
 using Application.ComplaintCategories.Queries;
-using Application.Setup.Commands.Init;
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -12,14 +11,6 @@ public class CommonController : ApiController
 {
     public CommonController(ISender sender) : base(sender)
     {
-    }
-
-    [HttpGet("Init")]
-    public async Task<IActionResult> Init()
-    {
-        var command = new InitCommand();
-        var result = await Sender.Send(command);
-        return Ok(result);
     }
 
     [HttpGet("Categories")]
@@ -38,6 +29,7 @@ public class CommonController : ApiController
         if (result is null)
             throw new Exception();
         Response.Headers.Append("Captcha-Key", result.Key.ToString());
-        return "data:image/jpg;base64," + Convert.ToBase64String(result.Data);
+        //return "data:image/jpg;base64," + Convert.ToBase64String(result.Data);
+        return File(result.Data, "image/jpg");
     }
 }

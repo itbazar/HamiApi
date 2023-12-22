@@ -42,7 +42,7 @@ public static class DependencyInjection
                 connectionString,
                 o =>
                 {
-                    o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                    //o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                     o.MigrationsAssembly("Infrastructure");
                 }));
         return services;
@@ -56,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
+        services.AddScoped<IPublicKeyRepository, PublicKeyRepository>();
 
         return services;
     }

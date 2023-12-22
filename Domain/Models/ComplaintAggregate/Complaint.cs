@@ -1,5 +1,6 @@
 ﻿using Domain.Models.Common;
 using Domain.Models.IdentityAggregate;
+using Domain.Models.PublicKeys;
 using Domain.Primitives;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -32,14 +33,17 @@ public class Complaint : Entity
     public Password EncryptionKeyPassword { get; set; } = null!;
     public byte[] EncryptionIvCitizen { get; set; } = null!;
     public byte[] CipherKeyInspector { get; set; } = null!;
+    public Guid PublicKeyId { get; set; }
+    public PublicKey PublicKey { get; set; } = null!;
     ///////////////////
 
 
     // Factory methods
-    public static Complaint Register(string title, string text, Guid categoryId, List<Media> medias)
+    public static Complaint Register(PublicKey publicKey, string title, string text, Guid categoryId, List<Media> medias)
     {
         var now = DateTime.UtcNow;
         Complaint complaint = new(Guid.NewGuid());
+        complaint.PublicKey = publicKey;
         complaint.RegisteredAt = now;
         complaint.LastChanged = now;
         complaint.Status = ComplaintState.Registered;

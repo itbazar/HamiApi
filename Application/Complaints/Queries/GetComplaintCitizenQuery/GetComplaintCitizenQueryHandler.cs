@@ -19,8 +19,17 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
     {
         var complaint = await _complaintRepository.GetCitizenAsync(request.TrackingNumber, request.Password);
         complaint.Contents.RemoveAll(cc => cc.Visibility == ComplaintContentVisibility.Inspector);
-        var result = complaint.Adapt<ComplaintResponse>();
-        result.PossibleOperations.AddRange(complaint.GetPossibleOperations(Actor.Citizen));
+        
+        var result = new ComplaintResponse(
+            complaint.TrackingNumber,
+            complaint.Title,
+            complaint.Category.Adapt<ComplaintCategoryResponse>(),
+            complaint.Status,
+            complaint.RegisteredAt,
+            complaint.LastChanged,
+            complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
+            complaint.GetPossibleOperations(Actor.Citizen));
+
         return result;
     }
 }

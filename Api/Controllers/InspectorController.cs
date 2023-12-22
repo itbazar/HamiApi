@@ -21,7 +21,7 @@ public class InspectorController : ApiController
     }
 
     [HttpGet("List")]
-    public async Task<ActionResult<List<Complaint>>> List(
+    public async Task<ActionResult<List<ComplaintListInspectorResponse>>> List(
         [FromQuery] PagingInfo pagingInfo,
         [FromQuery] ComplaintListFilters filters)
     {

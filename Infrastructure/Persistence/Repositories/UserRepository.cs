@@ -76,9 +76,8 @@ public class UserRepository : GenericRepository<ApplicationUser>, IUserRepositor
             .Join(_dbContext.UserRoles, r => r.Id, ur => ur.RoleId, (r, ur) => new { ur.UserId })
             .Join(_dbContext.Users, uid => uid.UserId, u => u.Id, (uid, u) => u )
             .ToListAsync();
-        //var roleId = await _dbContext.Roles.Where(p => p.Name == roleName).Select(p => p.Id).FirstOrDefaultAsync();
-        //var userIds = await _dbContext.UserRoles.Where(p => p.RoleId == roleId).Select(p => p.UserId).ToListAsync();
-        //var result = await _dbContext.Users.Where(p => userIds.Contains(p.Id)).Include(p => p.Contractors).Include(p => p.Executeves).AsNoTracking().ToListAsync();
+        if(result is null)
+            return new List<ApplicationUser>();
         return result;
     }
 

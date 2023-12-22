@@ -4,6 +4,7 @@ using Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231222154902_PublicKeyTableAdded")]
+    partial class PublicKeyTableAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,10 +35,7 @@ namespace Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<Guid>("ComplaintContent")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ComplaintContentId")
+                    b.Property<Guid?>("ComplaintContentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("IntegrityHash")
@@ -44,10 +44,6 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.Property<int>("MediaType")
                         .HasColumnType("int");
-
-                    b.Property<string>("MimeType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -439,9 +435,7 @@ namespace Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("Domain.Models.ComplaintAggregate.ComplaintContent", null)
                         .WithMany("Media")
-                        .HasForeignKey("ComplaintContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ComplaintContentId");
                 });
 
             modelBuilder.Entity("Domain.Models.ComplaintAggregate.Complaint", b =>

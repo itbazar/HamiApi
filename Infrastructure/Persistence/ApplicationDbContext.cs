@@ -1,4 +1,5 @@
-﻿using Domain.Models.ComplaintAggregate;
+﻿using Domain.Models.Common;
+using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -22,5 +23,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     //    => optionsBuilder.LogTo(Console.WriteLine);
     public DbSet<Complaint> Complaint { get; set; }
     public DbSet<ComplaintCategory> ComplaintCategory { get; set; }
-
+    public DbSet<Media> Media { get; set; }
 }

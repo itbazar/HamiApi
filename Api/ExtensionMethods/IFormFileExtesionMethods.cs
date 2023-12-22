@@ -9,7 +9,7 @@ public static class IFormFileExtesionMethods
     {
         var tmp = new MemoryStream();
         file.CopyTo(tmp);
-        var mediaRequest = new MediaRequest(file.FileName, MediaType.Image, tmp.ToArray());
+        var mediaRequest = new MediaRequest(file.FileName, file.ContentType, MediaType.Image, tmp.ToArray());
         return mediaRequest;
     }
 }

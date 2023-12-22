@@ -6,7 +6,7 @@ namespace Infrastructure.Encryption;
 
 public class RsaEncryption : IAsymmetricEncryption
 {
-    public byte[] EncryptAsymmetric(string publicKey, byte[] content)
+    public byte[] EncryptAsymmetricByPublic(string publicKey, byte[] content)
     {
         var base64Key = Convert.ToBase64String(content);
         var base64Bytes = Encoding.UTF8.GetBytes(base64Key);
@@ -14,7 +14,7 @@ public class RsaEncryption : IAsymmetricEncryption
         try
         {
             using var rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(publicKey);
+            rsa.ImportFromPem(publicKey);
             result = rsa.Encrypt(base64Bytes, RSAEncryptionPadding.Pkcs1);
         }
         catch
@@ -24,13 +24,21 @@ public class RsaEncryption : IAsymmetricEncryption
         return result;
     }
 
-    public byte[] DecryptAsymmetric(string publicKey, byte[] cipher)
+    public AsymmetricKey Generate()
+    {
+        var rsa = new RSACryptoServiceProvider();
+        var pub = rsa.ExportRSAPublicKeyPem();
+        var pri = rsa.ExportRSAPrivateKeyPem();
+        return new AsymmetricKey(pub, pri);
+    }
+
+    public byte[] DecryptAsymmetricByPrivate(string privateKey, byte[] cipher)
     {
         byte[] resultBase64;
         try
         {
             using var rsa = new RSACryptoServiceProvider();
-            rsa.FromXmlString(publicKey);
+            rsa.ImportFromPem(privateKey);
             resultBase64 = rsa.Decrypt(cipher, RSAEncryptionPadding.Pkcs1);
         }
         catch
@@ -41,14 +49,6 @@ public class RsaEncryption : IAsymmetricEncryption
         var result = Convert.FromBase64String(base64Key);
 
         return result;
-    }
-
-    public AsymmetricKey Generate()
-    {
-        var rsa = new RSACryptoServiceProvider();
-        var pub = rsa.ExportRSAPublicKeyPem();
-        var pri = rsa.ExportRSAPrivateKeyPem();
-        return new AsymmetricKey(pub, pri);
     }
 }
 

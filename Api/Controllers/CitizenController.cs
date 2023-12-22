@@ -3,6 +3,7 @@ using Api.ExtensionMethods;
 using Application.Complaints.Commands.AddComplaintCommand;
 using Application.Complaints.Commands.Common;
 using Application.Complaints.Commands.ReplyComplaintCitizenCommand;
+using Application.Complaints.Queries.Common;
 using Application.Complaints.Queries.GetComplaintCitizenQuery;
 using Domain.Models.ComplaintAggregate;
 using MediatR;
@@ -53,7 +54,7 @@ public class CitizenController : ApiController
     }
 
     [HttpPost("Get")]
-    public async Task<ActionResult<Complaint>> GetComplaintCitizen([FromBody] ComplaintCitizenGetDto complaintDto)
+    public async Task<ActionResult<ComplaintResponse>> GetComplaintCitizen([FromBody] ComplaintCitizenGetDto complaintDto)
     {
         var query = new GetComplaintCitizenQuery(complaintDto.TrackingNumber, complaintDto.Password);
         var result = await Sender.Send(query);

@@ -31,8 +31,15 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintIns
             await _complaintRepository.ReplyInspector(complaintToUpdate, request.EncodedKey);
         }
 
-        var result = complaint.Adapt<ComplaintResponse>();
-        result.PossibleOperations.AddRange(complaint.GetPossibleOperations(Actor.Inspector));
+        var result = new ComplaintResponse(
+            complaint.TrackingNumber,
+            complaint.Title,
+            complaint.Category.Adapt<ComplaintCategoryResponse>(),
+            complaint.Status,
+            complaint.RegisteredAt,
+            complaint.LastChanged,
+            complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
+            complaint.GetPossibleOperations(Actor.Inspector));
 
         return result;
     }

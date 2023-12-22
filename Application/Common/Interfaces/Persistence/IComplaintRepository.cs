@@ -10,6 +10,7 @@ public interface IComplaintRepository
     public Task<Complaint> GetInspectorAsync(string trackingNumber, string password);
     public Task<Complaint> GetAsync(string trackingNumber);
     public Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo, ComplaintListFilters filters);
-    public Task<bool> ReplyInspector(Complaint complaint, string encryptedKey);
+    public Task<bool> ReplyInspector(Complaint complaint, string encodedKey);
     public Task<bool> ReplyCitizen(Complaint complaint, string password);
+    public Task<bool> ChangeInspectorKey(Guid fromKeyId, string privateKey, Guid toKeyId);
 }

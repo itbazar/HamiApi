@@ -1,31 +1,40 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Encryption;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
+using Domain.Models.PublicKeys;
 using MediatR;
 
 namespace Application.Setup.Commands.Init;
 
-internal class InitCommandHandler : IRequestHandler<InitCommand, bool>
+internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 {
     private readonly IComplaintCategoryRepository _categoryRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAsymmetricEncryption _asymmetric;
+    private readonly IPublicKeyRepository _publicKeyRepository;
 
     public InitCommandHandler(
         IComplaintCategoryRepository categoryRepository,
         IUserRepository userRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IAsymmetricEncryption asymmetric,
+        IPublicKeyRepository publicKeyRepository)
     {
         _categoryRepository = categoryRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
+        _asymmetric = asymmetric;
+        _publicKeyRepository = publicKeyRepository;
     }
 
-    public async Task<bool> Handle(InitCommand request, CancellationToken cancellationToken)
+    public async Task<string> Handle(InitCommand request, CancellationToken cancellationToken)
     {
         await initCategories();
         await initRolesAndUsers();
-        return true;
+        var privateKey = await initPublicKey();
+        return privateKey;
     }
 
     private async Task initCategories()
@@ -100,5 +109,18 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, bool>
                 users.Add(u);
             }
         }
+    }
+
+    private async Task<string> initPublicKey()
+    {
+        var inspector = (await _userRepository.GetUsersInRole("Inspector")).FirstOrDefault();
+        if(inspector is null)
+        {
+            throw new Exception("No inspector found.");
+        }
+        var keyPair = _asymmetric.Generate();
+        var publicKey = PublicKey.Create(keyPair.PublicKey, inspector.Id);
+        await _publicKeyRepository.Add(publicKey);
+        return keyPair.PrivateKey;
     }
 }

@@ -11,5 +11,8 @@ public class Media
     public byte[] IntegrityHash { get; set; } = null!;
     public string Title { get; set; } = string.Empty;
     public MediaType MediaType { get; set; }
+    public string MimeType { get; set; } = string.Empty;
+    public Guid ComplaintContentId { get; set; }
+    public Guid ComplaintContent { get; set; }
 }
 
