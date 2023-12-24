@@ -100,13 +100,21 @@ public class ComplaintRepository(
         return true;
     }
 
-    public async Task<bool> ChangeInspectorKey(Guid fromKeyId, string privateKey, Guid toKeyId)
+    public async Task<bool> ChangeInspectorKey(string privateKey, Guid toKeyId, Guid? fromKeyId)
     {
-        var publicKey = await publicKeyRepository.Get(fromKeyId);
+        //TODO: Consider using transactions and improve the performance by pagination
+        var publicKeys = await context.PublicKey.ToListAsync();
+        publicKeys.ForEach(p => p.IsActive = false);
+        var fromPublicKey = publicKeys.Where(p => fromKeyId == null || p.Id == fromKeyId).SingleOrDefault();
+        var toPublicKey = publicKeys.Where(p => p.Id == toKeyId).SingleOrDefault();
+        if (fromPublicKey is null || toPublicKey is null)
+            throw new Exception("Public key not found.");
+        toPublicKey.IsActive = true;
+
         var complaints = await context.Set<Complaint>().Where(c => c.PublicKeyId == fromKeyId).ToListAsync();
         foreach (var complaint in complaints)
         {
-            complaint.ChangeInspectorKey(privateKey, publicKey.Key, hasher, asymmetric);
+            complaint.ChangeInspectorKey(privateKey, toPublicKey.Key, hasher, asymmetric);
             complaint.PublicKeyId = toKeyId;
         }
 

@@ -1,6 +1,7 @@
 ﻿using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
+using Domain.Models.PublicKeys;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,4 +25,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Complaint> Complaint { get; set; }
     public DbSet<ComplaintCategory> ComplaintCategory { get; set; }
     public DbSet<Media> Media { get; set; }
+    public DbSet<PublicKey> PublicKey { get; set; }
 }

@@ -1,13 +1,12 @@
 ﻿using Api.Abstractions;
+using Api.Contracts.Complaint;
 using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
-using Application.Common.Interfaces.Security;
 using Application.Complaints.Commands.AddComplaintCommand;
 using Application.Complaints.Commands.ReplyComplaintCitizenCommand;
 using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintCitizenQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
-using Domain.Models.ComplaintAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -83,18 +82,4 @@ public class CitizenController : ApiController
         var result = await Sender.Send(query);
         return Ok(result);
     }
-
-    public record ComplaintCreateDto(
-        string Title,
-        string Text,
-        Guid CategoryId,
-        List<IFormFile>? Medias,
-        CaptchaValidateModel Captcha);
-    public record ComplaintOperateCitizenDto(
-        string TrackingNumber,
-        string Text,
-        List<IFormFile>? Medias,
-        ComplaintOperation Operation,
-        string Password);
-    public record ComplaintCitizenGetDto(string TrackingNumber, string Password);
 }

@@ -22,7 +22,7 @@ public sealed class AddPublicKeyCommandHandler : IRequestHandler<AddPublicKeyCom
         {
             throw new Exception("No inspector found.");
         }
-        var publicKey = PublicKey.Create(request.publicKey, inspector.First().Id);
+        var publicKey = PublicKey.Create(request.Title, request.publicKey, inspector.First().Id);
         await _publicKeyRepository.Add(publicKey);
         return true;
     }

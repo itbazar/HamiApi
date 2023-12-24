@@ -119,7 +119,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
             throw new Exception("No inspector found.");
         }
         var keyPair = _asymmetric.Generate();
-        var publicKey = PublicKey.Create(keyPair.PublicKey, inspector.Id);
+        var publicKey = PublicKey.Create("Initial", keyPair.PublicKey, inspector.Id);
         await _publicKeyRepository.Add(publicKey);
         return keyPair.PrivateKey;
     }

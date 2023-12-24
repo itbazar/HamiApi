@@ -30,7 +30,7 @@ public class AddComplaintCommandHandler : IRequestHandler<AddComplaintCommand, A
                 throw new InvalidCaptchaException();
             }
         }
-        var publicKey = (await _publicKeyRepository.GetAll()).Where(p => p.IsDeleted == false).FirstOrDefault();
+        var publicKey = (await _publicKeyRepository.GetAll()).Where(p => p.IsActive == true).FirstOrDefault();
         if (publicKey is null)
             throw new Exception("There is no active public key.");
 

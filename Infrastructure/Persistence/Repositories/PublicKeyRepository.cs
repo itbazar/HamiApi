@@ -24,7 +24,7 @@ public class PublicKeyRepository : IPublicKeyRepository
     public async Task<bool> Delete(Guid id)
     {
         var publicKey = await Get(id);
-        publicKey.IsDeleted = true;
+        publicKey.IsActive = true;
         await _context.SaveChangesAsync();
         return true;
     }

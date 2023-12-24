@@ -12,5 +12,5 @@ public interface IComplaintRepository
     public Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string? userId);
     public Task<bool> ReplyInspector(Complaint complaint, string encodedKey);
     public Task<bool> ReplyCitizen(Complaint complaint, string password);
-    public Task<bool> ChangeInspectorKey(Guid fromKeyId, string privateKey, Guid toKeyId);
+    public Task<bool> ChangeInspectorKey(string privateKey, Guid toKeyId, Guid? fromKeyId);
 }

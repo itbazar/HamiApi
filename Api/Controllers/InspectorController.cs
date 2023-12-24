@@ -1,4 +1,5 @@
 ﻿using Api.Abstractions;
+using Api.Contracts.Complaint;
 using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Commands.AddComplaintCommand;
@@ -53,11 +54,3 @@ public class InspectorController : ApiController
         return Ok(result);
     }
 }
-
-public record ComplaintOperationInspectorDto(
-    string TrackingNumber,
-    string Text,
-    List<IFormFile>? Medias,
-    bool IsPublic,
-    string EncodedKey);
-public record ComplaintInspectorGetDto(string TrackingNumber, string Password);

@@ -2,4 +2,4 @@
 
 namespace Application.Setup.Commands.AddPublicKey;
 
-public sealed record AddPublicKeyCommand(string publicKey) : IRequest<bool>;
+public sealed record AddPublicKeyCommand(string Title, string publicKey) : IRequest<bool>;
