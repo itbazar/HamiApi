@@ -37,7 +37,7 @@ internal class RegisterCitizenCommandHandler : IRequestHandler<RegisterCitizenCo
                 var verificationCode = await _authenticationService.GetVerificationCode(request.Username);
                 try
                 {
-                    await _communicationService.SendVerificationAsync(request.Username, verificationCode);
+                    await _communicationService.SendVerificationAsync(verificationCode.PhoneNumber, verificationCode.Code);
                 }
                 catch
                 {

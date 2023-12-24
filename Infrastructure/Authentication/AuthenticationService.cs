@@ -89,10 +89,10 @@ public class AuthenticationService : IAuthenticationService
         return true;
     }
 
-    public async Task<string> GetVerificationCode(string username)
+    public async Task<VerificationCodeModel> GetVerificationCode(string username)
     {
         var user = await GetUser(username);
-        return await GenerateOtp(user);
+        return new VerificationCodeModel(user.PhoneNumber ?? "", await GenerateOtp(user));
     }
 
     public async Task<bool> VerifyPhoneNumber(string username, string verificationCode)

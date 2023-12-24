@@ -12,4 +12,17 @@ public static class IFormFileExtesionMethods
         var mediaRequest = new MediaRequest(file.FileName, file.ContentType, MediaType.Image, tmp.ToArray());
         return mediaRequest;
     }
+
+    public static List<MediaRequest> GetMedia(this List<IFormFile>? files)
+    {
+        List<MediaRequest> data = new List<MediaRequest>();
+        if (files is null)
+            return data;
+
+        foreach (var file in files)
+        {
+            data.Add(file.GetMedia());
+        }
+        return data;
+    }
 }

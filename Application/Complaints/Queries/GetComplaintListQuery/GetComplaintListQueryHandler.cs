@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintListQuery;
 
-internal class GetComplaintListQueryHandler : IRequestHandler<GetComplaintListQuery, List<ComplaintListInspectorResponse>>
+internal class GetComplaintListQueryHandler : IRequestHandler<GetComplaintListQuery, List<ComplaintListResponse>>
 {
     private readonly IComplaintRepository _complaintRepository;
 
@@ -14,9 +14,9 @@ internal class GetComplaintListQueryHandler : IRequestHandler<GetComplaintListQu
         _complaintRepository = complaintRepository;
     }
 
-    public async Task<List<ComplaintListInspectorResponse>> Handle(GetComplaintListQuery request, CancellationToken cancellationToken)
+    public async Task<List<ComplaintListResponse>> Handle(GetComplaintListQuery request, CancellationToken cancellationToken)
     {
-        var complaintList = await _complaintRepository.GetListAsync(request.pagingInfo, request.Filters);
-        return complaintList.Adapt<List<ComplaintListInspectorResponse>>();
+        var complaintList = await _complaintRepository.GetListAsync(request.pagingInfo, request.Filters, request.UserId);
+        return complaintList.Adapt<List<ComplaintListResponse>>();
     }
 }

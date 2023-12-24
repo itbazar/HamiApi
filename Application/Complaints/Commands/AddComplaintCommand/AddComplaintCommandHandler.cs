@@ -23,6 +23,7 @@ public class AddComplaintCommandHandler : IRequestHandler<AddComplaintCommand, A
             throw new Exception("There is no active public key.");
 
         var complaint = Complaint.Register(
+            request.UserId,
             publicKey,
             request.Title,
             request.Text,

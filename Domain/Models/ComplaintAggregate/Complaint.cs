@@ -10,6 +10,7 @@ public class Complaint : Entity
 {
     private Complaint(Guid id) : base(id) { }
     public string TrackingNumber { get; set; } = null!;
+    public string? UserId { get; set; }
     public ApplicationUser? User { get; set; } = null;
     public string Title { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
@@ -39,10 +40,11 @@ public class Complaint : Entity
 
 
     // Factory methods
-    public static Complaint Register(PublicKey publicKey, string title, string text, Guid categoryId, List<Media> medias)
+    public static Complaint Register(string? userId, PublicKey publicKey, string title, string text, Guid categoryId, List<Media> medias)
     {
         var now = DateTime.UtcNow;
         Complaint complaint = new(Guid.NewGuid());
+        complaint.UserId = userId;
         complaint.PublicKey = publicKey;
         complaint.RegisteredAt = now;
         complaint.LastChanged = now;

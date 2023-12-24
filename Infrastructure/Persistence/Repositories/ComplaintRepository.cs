@@ -65,13 +65,18 @@ public class ComplaintRepository(
         return complaint ?? throw new Exception("Not found.");
     }
 
-    public async Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
+    public async Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string? userId = null)
     {
         var query = context.Complaint.Where(c => true);
+        if(userId is not null)
+            query = query.Where(c => c.UserId == userId);
+
         if(filters.States is not null && filters.States.Count > 0)
             query = query.Where(c => filters.States.Contains(c.Status));
+
         if(filters.TrackingNumber is not null && !filters.TrackingNumber.IsNullOrEmpty())
             query = query.Where(c => c.TrackingNumber.Contains(filters.TrackingNumber));
+
         var complaintList = await query
             .Skip(pagingInfo.PageSize * (pagingInfo.PageNumber -1))
             .Take(pagingInfo.PageSize)

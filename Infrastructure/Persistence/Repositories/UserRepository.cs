@@ -2,25 +2,18 @@
 using Domain.Models.IdentityAggregate;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class UserRepository : GenericRepository<ApplicationUser>, IUserRepository
+public class UserRepository(
+    ApplicationDbContext dbContext,
+    UserManager<ApplicationUser> userManager,
+    RoleManager<ApplicationRole> roleManager) : IUserRepository
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<ApplicationRole> _roleManager;
-
-    public UserRepository(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager) : base(dbContext)
-    {
-        _dbContext = dbContext;
-        _userManager = userManager;
-        _roleManager = roleManager;
-    }
-
     public async Task<ApplicationUser> GetOrCreateCitizen(string phoneNumber, string firstName, string lastName)
     {
-        var user = await _userManager.FindByNameAsync(phoneNumber);
+        var user = await userManager.FindByNameAsync(phoneNumber);
         if (user == null)
         {
             user = new ApplicationUser()
@@ -34,15 +27,15 @@ public class UserRepository : GenericRepository<ApplicationUser>, IUserRepositor
             };
             //TODO: Generate password randomly
             var password = "aA@12345";
-            var result = await _userManager.CreateAsync(user, password);
+            var result = await userManager.CreateAsync(user, password);
             if (!result.Succeeded)
                 throw new Exception("User creation failed.", null);
 
-            var result2 = await _userManager.AddToRoleAsync(user, "Citizen");
+            var result2 = await userManager.AddToRoleAsync(user, "Citizen");
 
             if (!result2.Succeeded)
             {
-                await _userManager.DeleteAsync(user);
+                await userManager.DeleteAsync(user);
                 throw new Exception("Role assignment failed.", null);
             }
 
@@ -54,27 +47,27 @@ public class UserRepository : GenericRepository<ApplicationUser>, IUserRepositor
 
     public async Task<List<ApplicationRole>> GetRoleActors(List<string> ids)
     {
-        var result = await _dbContext.Roles.Where(p => ids.Contains(p.Id)).AsNoTracking().ToListAsync();
+        var result = await dbContext.Roles.Where(p => ids.Contains(p.Id)).AsNoTracking().ToListAsync();
         return result;
     }
 
     public async Task<List<ApplicationUser>> GetUserActors(List<string> ids)
     {
-        var result = await _dbContext.Users.Where(p => ids.Contains(p.Id)).AsNoTracking().ToListAsync();
+        var result = await dbContext.Users.Where(p => ids.Contains(p.Id)).AsNoTracking().ToListAsync();
         return result;
     }
 
     public async Task<List<ApplicationRole>> GetRoles()
     {
-        var result = await _dbContext.Roles.ToListAsync();
+        var result = await dbContext.Roles.ToListAsync();
         return result;
     }
 
     public async Task<List<ApplicationUser>> GetUsersInRole(string roleName)
     {
-        var result = await _dbContext.Roles.Where(r => r.Name == roleName)
-            .Join(_dbContext.UserRoles, r => r.Id, ur => ur.RoleId, (r, ur) => new { ur.UserId })
-            .Join(_dbContext.Users, uid => uid.UserId, u => u.Id, (uid, u) => u )
+        var result = await dbContext.Roles.Where(r => r.Name == roleName)
+            .Join(dbContext.UserRoles, r => r.Id, ur => ur.RoleId, (r, ur) => new { ur.UserId })
+            .Join(dbContext.Users, uid => uid.UserId, u => u.Id, (uid, u) => u )
             .ToListAsync();
         if(result is null)
             return new List<ApplicationUser>();
@@ -83,55 +76,55 @@ public class UserRepository : GenericRepository<ApplicationUser>, IUserRepositor
 
     public async Task<IdentityResult> CreateAsync(ApplicationUser user, string password)
     {
-        var result = await _userManager.CreateAsync(user, password);
+        var result = await userManager.CreateAsync(user, password);
         return result;
     }
 
     public async Task<IdentityResult> AddToRolesAsync(ApplicationUser user, string[] roles)
     {
-        var result = await _userManager.AddToRolesAsync(user, roles);
+        var result = await userManager.AddToRolesAsync(user, roles);
         return result;
     }
 
     public async Task<IdentityResult> AddToRoleAsync(ApplicationUser user, string role)
     {
-        var result = await _userManager.AddToRoleAsync(user, role);
+        var result = await userManager.AddToRoleAsync(user, role);
         return result;
     }
 
     public async Task<ApplicationUser?> FindByNameAsync(string username)
     {
-        var result = await _userManager.FindByNameAsync(username);
+        var result = await userManager.FindByNameAsync(username);
         return result;
     }
 
     public async Task<ApplicationRole?> FindRoleByNameAsync(string roleName)
     {
-        var result = await _roleManager.FindByNameAsync(roleName);
+        var result = await roleManager.FindByNameAsync(roleName);
         return result;
     }
 
     public async Task<IdentityResult> CreateRoleAsync(ApplicationRole applicationRole)
     {
-        var result = await _roleManager.CreateAsync(applicationRole);
+        var result = await roleManager.CreateAsync(applicationRole);
         return result;
     }
 
     public async Task<bool> RoleExistsAsync(string roleName)
     {
-        var result = await _roleManager.RoleExistsAsync(roleName);
+        var result = await roleManager.RoleExistsAsync(roleName);
         return result;
     }
 
     public async Task<bool> CreateNewPasswordAsync(string userId, string password)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
         if (user is null)
             throw new Exception("User not found.");
-        var result = await _userManager.RemovePasswordAsync(user);
+        var result = await userManager.RemovePasswordAsync(user);
         if (result is null || !result.Succeeded)
             return false;
-        result = await _userManager.AddPasswordAsync(user, password);
+        result = await userManager.AddPasswordAsync(user, password);
         if (result is null || !result.Succeeded)
             return false;
         return true;
@@ -139,21 +132,21 @@ public class UserRepository : GenericRepository<ApplicationUser>, IUserRepositor
 
     public async Task<bool> UpdateRolesAsync(string userId, List<string> roles)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
         if (user is null)
             throw new Exception("User not found");
-        var currentRoles = await _userManager.GetRolesAsync(user);
+        var currentRoles = await userManager.GetRolesAsync(user);
         var inRoles = roles.Where(r => !currentRoles.Contains(r)).ToList();
         var outRoles = currentRoles.Where(r => !roles.Contains(r)).ToList();
-        var result = await _userManager.RemoveFromRolesAsync(user, outRoles);
+        var result = await userManager.RemoveFromRolesAsync(user, outRoles);
         if (result is null || !result.Succeeded)
             return false;
-        var result2 = await _userManager.AddToRolesAsync(user, inRoles);
+        var result2 = await userManager.AddToRolesAsync(user, inRoles);
         if(result2 is null || !result2.Succeeded)
         {
             //try to rollback operation
             //TODO: This won't work in all cases. What if these commands fail?
-            await _userManager.AddToRolesAsync(user, outRoles);
+            await userManager.AddToRolesAsync(user, outRoles);
             return false;
         }
             
@@ -162,10 +155,10 @@ public class UserRepository : GenericRepository<ApplicationUser>, IUserRepositor
 
     public async Task<List<string>> GetUserRoles(string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId);
+        var user = await userManager.FindByIdAsync(userId);
         if (user is null)
             throw new Exception("User not found.");
-        var roles = await _userManager.GetRolesAsync(user);
+        var roles = await userManager.GetRolesAsync(user);
         if (roles is null)
             throw new Exception("Unknown problem!");
         return roles.ToList();
@@ -173,13 +166,37 @@ public class UserRepository : GenericRepository<ApplicationUser>, IUserRepositor
 
     public async Task<bool> IsInRoleAsync(ApplicationUser user, string role)
     {
-        var result = await _userManager.IsInRoleAsync(user, role);
+        var result = await userManager.IsInRoleAsync(user, role);
         return result;
     }
 
     public async Task<IdentityResult> DeleteAsync(ApplicationUser user)
     {
-        var result = await _userManager.DeleteAsync(user);
+        var result = await userManager.DeleteAsync(user);
         return result;
+    }
+
+    public async Task<ApplicationUser?> FindByIdAsync(string id)
+    {
+        var result = await userManager.FindByIdAsync(id);
+        return result;
+    }
+
+    public async Task<bool> Update(ApplicationUser user)
+    {
+        dbContext.Update(user);
+        await dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<PagedList<ApplicationUser>> GetPagedAsync(
+        PagingInfo paging,
+        Expression<Func<ApplicationUser, bool>>? filter = null)
+    {
+        var query = dbContext.Users.Where(u => true);
+        if (filter is not null)
+            query = query.Where(filter);
+        
+        return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);
     }
 }

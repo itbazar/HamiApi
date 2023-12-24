@@ -15,7 +15,7 @@ internal class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Appli
 
     public async Task<ApplicationUser> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await _userRepository.GetSingleAsync(u => u.Id == request.UserId);
+        var user = await _userRepository.FindByIdAsync(request.UserId);
         if (user is null)
             throw new Exception("Not found!");
         return user;

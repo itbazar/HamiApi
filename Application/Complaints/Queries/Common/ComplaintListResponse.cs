@@ -2,7 +2,7 @@
 
 namespace Application.Complaints.Queries.Common;
 
-public record ComplaintListInspectorResponse(
+public record ComplaintListResponse(
     Guid Id,
     string TrackingNumber,
     string Title,

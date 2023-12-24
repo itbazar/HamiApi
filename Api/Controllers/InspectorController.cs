@@ -21,7 +21,7 @@ public class InspectorController : ApiController
     }
 
     [HttpGet("List")]
-    public async Task<ActionResult<List<ComplaintListInspectorResponse>>> List(
+    public async Task<ActionResult<List<ComplaintListResponse>>> List(
         [FromQuery] PagingInfo pagingInfo,
         [FromQuery] ComplaintListFilters filters)
     {
@@ -41,19 +41,10 @@ public class InspectorController : ApiController
     [HttpPost("Operate")]
     public async Task<IActionResult> AddDetail([FromForm] ComplaintOperationInspectorDto operateDto)
     {
-        List<MediaRequest> data = new List<MediaRequest>();
-        if (operateDto.Medias is not null)
-        {
-            foreach (var file in operateDto.Medias)
-            {
-                data.Add(file.GetMedia());
-            }
-        }
-
         var command = new ReplyComplaintInspectorCommand(
             operateDto.TrackingNumber,
             operateDto.Text,
-            data,
+            operateDto.Medias.GetMedia(),
             ComplaintOperation.AddDetails,
             operateDto.IsPublic,
             operateDto.EncodedKey);

@@ -15,9 +15,7 @@ internal class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedList<A
 
     public async Task<PagedList<ApplicationUser>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
-        var result = await _userRepository.GetPagedAsync(request.PagingInfo,
-            null,
-            false);
+        var result = await _userRepository.GetPagedAsync(request.PagingInfo);
         return result;
     }
 }

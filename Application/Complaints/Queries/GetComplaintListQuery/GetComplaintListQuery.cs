@@ -6,4 +6,5 @@ namespace Application.Complaints.Queries.GetComplaintListQuery;
 
 public record GetComplaintListQuery(
     PagingInfo pagingInfo,
-    ComplaintListFilters Filters) : IRequest<List<ComplaintListInspectorResponse>>;
+    ComplaintListFilters Filters,
+    string? UserId = null) : IRequest<List<ComplaintListResponse>>;
