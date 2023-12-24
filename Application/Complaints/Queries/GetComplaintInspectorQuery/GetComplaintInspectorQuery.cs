@@ -1,4 +1,4 @@
-﻿using Application.Complaints.Queries.Common;
+﻿using Application.Complaints.Common;
 using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintInspectorQuery;

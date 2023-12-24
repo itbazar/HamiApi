@@ -1,3 +1,3 @@
-﻿namespace Application.Complaints.Queries.Common;
+﻿namespace Application.Complaints.Common;
 
 public record ComplaintCategoryResponse(Guid Id, string Title, string Description);

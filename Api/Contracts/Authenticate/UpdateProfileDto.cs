@@ -2,7 +2,7 @@
 
 namespace Api.Contracts.Authenticate;
 
-public record UpdateStaffProfileDto(
+public record UpdateProfileDto(
     [MaxLength(32)]
     string? FirstName,
     [MaxLength(32)]

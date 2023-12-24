@@ -3,7 +3,7 @@ using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Commands.AddComplaintCommand;
 using Application.Complaints.Commands.Common;
-using Application.Complaints.Queries.Common;
+using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintInspectorQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
 using Domain.Models.ComplaintAggregate;

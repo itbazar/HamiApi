@@ -48,45 +48,50 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<bool> RegisterCitizen(string username, string password)
+    public async Task<LoginResultModel> LogisterCitizen(string phoneNumber, string? verificationCode)
     {
         Regex regex = new Regex(@"^09[0-9]{9}$");
-        if (!regex.IsMatch(username))
+        if (!regex.IsMatch(phoneNumber))
         {
             throw new InvalidUsernameException();
         }
-        var userExists = await _userManager.FindByNameAsync(username);
-        if (userExists is not null && userExists.PhoneNumberConfirmed)
-            throw new UserAlreadyExsistsException();
+        var user = await _userManager.FindByNameAsync(phoneNumber);
 
-        if (userExists is not null)
+        if (user is not null)
         {
-            await _userManager.RemovePasswordAsync(userExists);
-            await _userManager.AddPasswordAsync(userExists, password);
-            return true;
+            if (verificationCode is null)
+                throw new PhoneNumberNotConfirmedException();
+
+            if (await ValidateOtp(user, verificationCode))
+            {
+                return await GenerateToken(user);
+            }
+            else
+            {
+                throw new InvalidVerificationCode();
+            }
         }
 
-        ApplicationUser user = new ApplicationUser()
+        user = new ApplicationUser()
         {
-            //Email = model.Email,
             SecurityStamp = Guid.NewGuid().ToString(),
-            UserName = username,
-            PhoneNumber = username,
+            UserName = phoneNumber,
+            PhoneNumber = phoneNumber,
             PhoneNumberConfirmed = false
         };
-        var result = await _userManager.CreateAsync(user, password);
+        var result = await _userManager.CreateAsync(user, "");
         if (!result.Succeeded)
-            new UserRegisterException();
+            throw new UserRegisterException();
 
         var result2 = await _userManager.AddToRoleAsync(user, "Citizen");
 
         if (!result2.Succeeded)
         {
             await _userManager.DeleteAsync(user);
-            new UserRegisterException();
+            throw new UserRegisterException();
         }
 
-        return true;
+        throw new PhoneNumberNotConfirmedException();
     }
 
     public async Task<VerificationCodeModel> GetVerificationCode(string username)

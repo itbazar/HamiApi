@@ -1,6 +1,6 @@
 ﻿namespace Api.Contracts.Authenticate;
 
-public record GetStaffProfileDto(
+public record GetProfileDto(
     string UserName,
     string FirstName,
     string LastName,

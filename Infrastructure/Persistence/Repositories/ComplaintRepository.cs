@@ -1,6 +1,6 @@
 ﻿using Application.Common.Interfaces.Encryption;
 using Application.Common.Interfaces.Persistence;
-using Application.Complaints.Queries.Common;
+using Application.Complaints.Common;
 using Domain.Models.ComplaintAggregate;
 using Infrastructure.ExtensionMethods;
 using Microsoft.EntityFrameworkCore;

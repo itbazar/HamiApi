@@ -1,14 +1,13 @@
 ﻿using Domain.Models.ComplaintAggregate;
 
-namespace Application.Complaints.Queries.Common;
+namespace Application.Complaints.Common;
 
-public record ComplaintListResponse(
-    Guid Id,
+public record ComplaintResponse(
     string TrackingNumber,
     string Title,
     ComplaintCategoryResponse Category,
     ComplaintState Status,
     DateTime RegisteredAt,
     DateTime LastChanged,
-    Actor LastActor,
-    byte[] CipherKeyInspector);
+    List<ComplaintContentResponse> Contents,
+    List<ComplaintOperation> PossibleOperations);

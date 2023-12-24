@@ -3,7 +3,7 @@
 public interface IAuthenticationService
 {
     public Task<LoginResultModel> Login(string username, string password, string? verificationCode = null);
-    public Task<bool> RegisterCitizen(string username, string password);
+    public Task<LoginResultModel> LogisterCitizen(string phoneNumber, string? verificationCode);
     public Task<bool> ChangePassword(string username, string oldPassword, string newPassword);
     public Task<VerificationCodeModel> GetVerificationCode(string username);
     public Task<bool> VerifyPhoneNumber(string username, string verificationCode);

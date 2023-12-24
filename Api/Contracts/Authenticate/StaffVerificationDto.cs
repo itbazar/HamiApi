@@ -2,7 +2,7 @@
 
 namespace Api.Contracts.Authenticate;
 
-public record VerificationDto(
+public record StaffVerificationDto(
     string Username,
     [Required] [MinLength(6)] [MaxLength(512)]
     string Password,

@@ -1,5 +1,5 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Application.Complaints.Queries.Common;
+using Application.Complaints.Common;
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Mapster;

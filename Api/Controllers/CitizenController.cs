@@ -1,9 +1,10 @@
 ﻿using Api.Abstractions;
 using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
+using Application.Common.Interfaces.Security;
 using Application.Complaints.Commands.AddComplaintCommand;
 using Application.Complaints.Commands.ReplyComplaintCitizenCommand;
-using Application.Complaints.Queries.Common;
+using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintCitizenQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
 using Domain.Models.ComplaintAggregate;
@@ -27,7 +28,8 @@ public class CitizenController : ApiController
             createDto.Title,
             createDto.Text,
             createDto.CategoryId,
-            createDto.Medias.GetMedia());
+            createDto.Medias.GetMedia(),
+            createDto.Captcha);
         var result = await Sender.Send(command);
 
         return Ok(result);
@@ -41,7 +43,8 @@ public class CitizenController : ApiController
             createDto.Title,
             createDto.Text,
             createDto.CategoryId,
-            createDto.Medias.GetMedia());
+            createDto.Medias.GetMedia(),
+            createDto.Captcha);
         var result = await Sender.Send(command);
 
         return Ok(result);
@@ -81,7 +84,12 @@ public class CitizenController : ApiController
         return Ok(result);
     }
 
-    public record ComplaintCreateDto(string Title, string Text, Guid CategoryId, List<IFormFile>? Medias);
+    public record ComplaintCreateDto(
+        string Title,
+        string Text,
+        Guid CategoryId,
+        List<IFormFile>? Medias,
+        CaptchaValidateModel Captcha);
     public record ComplaintOperateCitizenDto(
         string TrackingNumber,
         string Text,

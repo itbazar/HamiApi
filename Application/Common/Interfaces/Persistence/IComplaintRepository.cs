@@ -1,4 +1,4 @@
-﻿using Application.Complaints.Queries.Common;
+﻿using Application.Complaints.Common;
 using Domain.Models.ComplaintAggregate;
 
 namespace Application.Common.Interfaces.Persistence;

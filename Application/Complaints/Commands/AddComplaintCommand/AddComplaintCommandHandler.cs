@@ -1,4 +1,6 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Exceptions;
+using Application.Common.Interfaces.Persistence;
+using Application.Common.Interfaces.Security;
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Mapster;
@@ -10,14 +12,24 @@ public class AddComplaintCommandHandler : IRequestHandler<AddComplaintCommand, A
 {
     private readonly IComplaintRepository _complaintRepository;
     private readonly IPublicKeyRepository _publicKeyRepository;
-    public AddComplaintCommandHandler(IComplaintRepository complaintRepository, IPublicKeyRepository publicKeyRepository)
+    private readonly ICaptchaProvider _captchaProvider;
+    public AddComplaintCommandHandler(IComplaintRepository complaintRepository, IPublicKeyRepository publicKeyRepository, ICaptchaProvider captchaProvider)
     {
         _complaintRepository = complaintRepository;
         _publicKeyRepository = publicKeyRepository;
+        _captchaProvider = captchaProvider;
     }
 
     public async Task<AddComplaintResult> Handle(AddComplaintCommand request, CancellationToken cancellationToken)
     {
+        if (request.CaptchaValidateModel is not null)
+        {
+            var isCaptchaValid = _captchaProvider.Validate(request.CaptchaValidateModel);
+            if (!isCaptchaValid)
+            {
+                throw new InvalidCaptchaException();
+            }
+        }
         var publicKey = (await _publicKeyRepository.GetAll()).Where(p => p.IsDeleted == false).FirstOrDefault();
         if (publicKey is null)
             throw new Exception("There is no active public key.");

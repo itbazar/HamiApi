@@ -3,6 +3,7 @@ using Api.Contracts.Authenticate;
 using Api.ExtensionMethods;
 using Application.Authentication.Commands.ChangePasswordCommand;
 using Application.Authentication.Commands.LoginCommand;
+using Application.Authentication.Commands.LogisterCitizenCommand;
 using Application.Authentication.Commands.VerifyPhoneNumberCommand;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
@@ -29,12 +30,28 @@ public class AuthenticateController : ApiController
         return StatusCode(StatusCodes.Status428PreconditionRequired, "");
     }
 
-    [HttpPost("Verify")]
-    public async Task<ActionResult> Verify([FromBody] VerificationDto verificationDto)
+    [HttpPost("VerifyStaff")]
+    public async Task<ActionResult> Verify([FromBody] CitizenVerificationDto verificationDto)
     {
-        var command = new LoginCommand(verificationDto.Username, verificationDto.Password, null, verificationDto.VerificationCode);
+        var command = new LoginCommand(verificationDto.PhoneNumber, verificationDto.VerificationCode, null);
         var result = await Sender.Send(command);
         return Ok(result.JwtToken);
+    }
+
+    [HttpPost("LogisterCitizen")]
+    public async Task<ActionResult> LogisterCitizen(LogisterCitizenDto logisterDto)
+    {
+        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, null, logisterDto.Captcha);
+        await Sender.Send(command);
+        return StatusCode(StatusCodes.Status428PreconditionRequired, "");
+    }
+
+    [HttpPost("VerifyCitizen")]
+    public async Task<ActionResult> VerifyCitizen(LogisterCitizenDto logisterDto)
+    {
+        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, null, logisterDto.Captcha);
+        await Sender.Send(command);
+        return StatusCode(StatusCodes.Status428PreconditionRequired, "");
     }
 
     [Authorize]
@@ -61,7 +78,7 @@ public class AuthenticateController : ApiController
 
     [Authorize]
     [HttpGet("Profile")]
-    public async Task<ActionResult<GetStaffProfileDto>> GetUserProfile()
+    public async Task<ActionResult<GetProfileDto>> GetUserProfile()
     {
         var userId = User.GetUserId();
         if (userId == null)
@@ -70,13 +87,13 @@ public class AuthenticateController : ApiController
         }
         var query = new GetUserProfileQuery(userId);
         var result = await Sender.Send(query);
-        var mappedUser = result.Adapt<GetStaffProfileDto>();
+        var mappedUser = result.Adapt<GetProfileDto>();
         return Ok(mappedUser);
     }
 
     [Authorize]
     [HttpPut("Profile")]
-    public async Task<ActionResult> UpdateProfile(UpdateStaffProfileDto updateDto)
+    public async Task<ActionResult> UpdateProfile(UpdateProfileDto updateDto)
     {
         var userId = User.GetUserId();
         if (userId == null)
