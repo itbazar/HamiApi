@@ -113,13 +113,15 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 
     private async Task<string> initPublicKey()
     {
+        if (_unitOfWork.DbContext.Set<PublicKey>().Any())
+            return "Already initialized.";
         var inspector = (await _userRepository.GetUsersInRole("Inspector")).FirstOrDefault();
         if(inspector is null)
         {
             throw new Exception("No inspector found.");
         }
         var keyPair = _asymmetric.Generate();
-        var publicKey = PublicKey.Create("Initial", keyPair.PublicKey, inspector.Id);
+        var publicKey = PublicKey.Create("Initial", keyPair.PublicKey, inspector.Id, true);
         await _publicKeyRepository.Add(publicKey);
         return keyPair.PrivateKey;
     }

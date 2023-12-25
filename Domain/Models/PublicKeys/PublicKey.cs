@@ -14,13 +14,13 @@ public class PublicKey : Entity
     public List<Complaint> Complaints { get; set; } = new List<Complaint>();
     public bool IsActive { get; set; }
 
-    public static PublicKey Create(string title, string key, string inspectorId)
+    public static PublicKey Create(string title, string key, string inspectorId, bool isActive = false)
     {
         var publicKey = new PublicKey(Guid.NewGuid());
         publicKey.Title = title;
         publicKey.Key = key;
         publicKey.InspectorId = inspectorId;
-        publicKey.IsActive = false;
+        publicKey.IsActive = isActive;
         return publicKey;
     }
 }
