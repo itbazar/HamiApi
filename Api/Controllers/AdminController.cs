@@ -45,7 +45,7 @@ public class AdminController : ApiController
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpGet("AddKey")]
+    [HttpPost("AddKey")]
     public async Task<ActionResult<bool>> AddKey([FromBody] AddPublicKeyDto addKeyDto)
     {
         var command = new AddPublicKeyCommand(addKeyDto.Title, addKeyDto.PublicKey);
@@ -53,7 +53,7 @@ public class AdminController : ApiController
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpGet("ChangeKey")]
+    [HttpPost("ChangeKey")]
     public async Task<ActionResult<bool>> ChangeKey([FromBody] ChangeInspectorKeyDto changeKeyDto)
     {
         var command = new ChangeInspectorKeyCommand(changeKeyDto.PrivateKey, changeKeyDto.PublicKeyId);
