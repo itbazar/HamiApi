@@ -31,9 +31,9 @@ public class AuthenticateController : ApiController
     }
 
     [HttpPost("VerifyStaff")]
-    public async Task<ActionResult> Verify([FromBody] CitizenVerificationDto verificationDto)
+    public async Task<ActionResult> Verify([FromBody] StaffVerificationDto verificationDto)
     {
-        var command = new LoginCommand(verificationDto.PhoneNumber, verificationDto.VerificationCode, null);
+        var command = new LoginCommand(verificationDto.Username, verificationDto.VerificationCode, null);
         var result = await Sender.Send(command);
         return Ok(result.JwtToken);
     }
