@@ -61,7 +61,9 @@ public class ComplaintRepository(
 
     public async Task<Complaint> GetAsync(string trackingNumber)
     {
-        var complaint = await context.Complaint.Where(c => c.TrackingNumber == trackingNumber).SingleOrDefaultAsync();
+        var complaint = await context.Complaint
+            .Where(c => c.TrackingNumber == trackingNumber)
+            .SingleOrDefaultAsync();
         return complaint ?? throw new Exception("Not found.");
     }
 

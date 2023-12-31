@@ -57,7 +57,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ComplaintContentId");
 
-                    b.ToTable("Media");
+                    b.ToTable("Media", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.ComplaintAggregate.Complaint", b =>
@@ -120,7 +120,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Complaint");
+                    b.ToTable("Complaint", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintCategory", b =>
@@ -139,7 +139,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ComplaintCategory");
+                    b.ToTable("ComplaintCategory", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.ComplaintAggregate.ComplaintContent", b =>
@@ -175,7 +175,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ComplaintId");
 
-                    b.ToTable("ComplaintContent");
+                    b.ToTable("ComplaintContent", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Models.IdentityAggregate.ApplicationRole", b =>
@@ -330,7 +330,7 @@ namespace Infrastructure.Persistence.Migrations
 
                     b.HasIndex("InspectorId");
 
-                    b.ToTable("PublicKey");
+                    b.ToTable("PublicKey", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -466,7 +466,7 @@ namespace Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("UserId");
 
-                    b.OwnsOne("Domain.Models.ComplaintAggregate.Password", "CitizenPassword", b1 =>
+                    b.OwnsOne("Domain.Models.ComplaintAggregate.Complaint.CitizenPassword#Domain.Models.ComplaintAggregate.Password", "CitizenPassword", b1 =>
                         {
                             b1.Property<Guid>("ComplaintId")
                                 .HasColumnType("uniqueidentifier");
@@ -481,13 +481,13 @@ namespace Infrastructure.Persistence.Migrations
 
                             b1.HasKey("ComplaintId");
 
-                            b1.ToTable("Complaint");
+                            b1.ToTable("Complaint", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ComplaintId");
                         });
 
-                    b.OwnsOne("Domain.Models.ComplaintAggregate.Password", "EncryptionKeyPassword", b1 =>
+                    b.OwnsOne("Domain.Models.ComplaintAggregate.Complaint.EncryptionKeyPassword#Domain.Models.ComplaintAggregate.Password", "EncryptionKeyPassword", b1 =>
                         {
                             b1.Property<Guid>("ComplaintId")
                                 .HasColumnType("uniqueidentifier");
@@ -502,7 +502,7 @@ namespace Infrastructure.Persistence.Migrations
 
                             b1.HasKey("ComplaintId");
 
-                            b1.ToTable("Complaint");
+                            b1.ToTable("Complaint", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("ComplaintId");

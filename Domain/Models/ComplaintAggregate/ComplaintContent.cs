@@ -9,7 +9,7 @@ public class ComplaintContent : Entity
     protected ComplaintContent(Guid id) : base(id) { }
     public static ComplaintContent Create(string text, List<Media> medias, Actor sender, ComplaintContentVisibility visibility)
     {
-        var complaintContent = new ComplaintContent(Guid.NewGuid());
+        var complaintContent = new ComplaintContent(Guid.Empty);
         complaintContent.Text = text;
         complaintContent.Sender = sender;
         complaintContent.DateTime = DateTime.UtcNow;

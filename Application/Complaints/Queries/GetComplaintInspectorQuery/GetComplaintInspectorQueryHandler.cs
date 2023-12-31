@@ -22,7 +22,7 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintIns
         if (complaint.ShouldMarkedAsRead())
         {
             var complaintToUpdate = await _complaintRepository.GetAsync(request.TrackingNumber);
-            complaint.AddContent(
+            complaintToUpdate.AddContent(
                 "",
                 new List<Media>(),
                 Actor.Inspector,
