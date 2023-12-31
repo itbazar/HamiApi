@@ -46,7 +46,7 @@ public class InspectorController : ApiController
             operateDto.TrackingNumber,
             operateDto.Text,
             operateDto.Medias.GetMedia(),
-            ComplaintOperation.AddDetails,
+            operateDto.Operation,
             operateDto.IsPublic,
             operateDto.EncodedKey);
         var result = await Sender.Send(command);
