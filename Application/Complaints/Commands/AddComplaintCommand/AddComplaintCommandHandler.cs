@@ -1,6 +1,7 @@
 ﻿using Application.Common.Exceptions;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
+using Application.Complaints.Commands.Common;
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Mapster;

@@ -15,6 +15,9 @@ public class Complaint : Entity
     public string Title { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
     public ComplaintCategory Category { get; set; } = null!;
+    public string? Complaining { get; set; }
+    public Guid? ComplaintOrganizationId { get; set; }
+    public ComplaintOrganization? ComplaintOrganization { get; set; }
     public List<ComplaintContent> Contents { get; set; } = new List<ComplaintContent>();
     public ComplaintState Status { get; set; }
     public DateTime RegisteredAt { get; set; }
@@ -40,7 +43,15 @@ public class Complaint : Entity
 
 
     // Factory methods
-    public static Complaint Register(string? userId, PublicKey publicKey, string title, string text, Guid categoryId, List<Media> medias)
+    public static Complaint Register(
+        string? userId,
+        PublicKey publicKey,
+        string title,
+        string text,
+        Guid categoryId,
+        List<Media> medias,
+        string? complaining = null,
+        Guid? organizationId = null)
     {
         var now = DateTime.UtcNow;
         Complaint complaint = new(Guid.NewGuid());
@@ -51,6 +62,8 @@ public class Complaint : Entity
         complaint.Status = ComplaintState.Registered;
         complaint.Title = title;
         complaint.CategoryId = categoryId;
+        complaint.Complaining = complaining;
+        complaint.ComplaintOrganizationId = organizationId;
         complaint.Contents.Add(ComplaintContent.Create(text, medias, Actor.Citizen, ComplaintContentVisibility.Everyone));
 
         return complaint;

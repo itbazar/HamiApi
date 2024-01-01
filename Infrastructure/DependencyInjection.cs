@@ -53,6 +53,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IComplaintRepository, ComplaintRepository>();
         services.AddScoped<IComplaintCategoryRepository, ComplaintCategoryRepository>();
+        services.AddScoped<IComplaintOrganizationRepository, ComplaintOrganizationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();

@@ -24,6 +24,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     //    => optionsBuilder.LogTo(Console.WriteLine);
     public DbSet<Complaint> Complaint { get; set; }
     public DbSet<ComplaintCategory> ComplaintCategory { get; set; }
+    public DbSet<ComplaintOrganization> ComplaintOrganization { get; set; }
     public DbSet<Media> Media { get; set; }
     public DbSet<PublicKey> PublicKey { get; set; }
 }

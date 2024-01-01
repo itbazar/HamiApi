@@ -28,7 +28,9 @@ public class CitizenController : ApiController
             createDto.Text,
             createDto.CategoryId,
             createDto.Medias.GetMedia(),
-            createDto.Captcha);
+            createDto.Captcha,
+            createDto.Complaining,
+            createDto.OrganizationId);
         var result = await Sender.Send(command);
 
         return Ok(result);
@@ -43,7 +45,9 @@ public class CitizenController : ApiController
             createDto.Text,
             createDto.CategoryId,
             createDto.Medias.GetMedia(),
-            createDto.Captcha);
+            createDto.Captcha,
+            createDto.Complaining,
+            createDto.OrganizationId);
         var result = await Sender.Send(command);
 
         return Ok(result);

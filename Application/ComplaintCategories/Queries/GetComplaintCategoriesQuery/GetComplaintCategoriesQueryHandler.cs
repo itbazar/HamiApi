@@ -2,7 +2,7 @@
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 
-namespace Application.ComplaintCategories.Queries;
+namespace Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
 
 internal class GetComplaintCategoriesQueryHandler : IRequestHandler<GetComplaintCategoriesQuery, List<ComplaintCategory>>
 {
@@ -15,7 +15,7 @@ internal class GetComplaintCategoriesQueryHandler : IRequestHandler<GetComplaint
 
     public async Task<List<ComplaintCategory>> Handle(GetComplaintCategoriesQuery request, CancellationToken cancellationToken)
     {
-        var result = await _categoryRepository.GetAsync();
+        var result = await _categoryRepository.GetAsync(cc => cc.IsDeleted == false);
         return result.ToList();
     }
 }

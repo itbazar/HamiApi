@@ -2,15 +2,15 @@
 
 namespace Domain.Models.ComplaintAggregate;
 
-public class ComplaintCategory : Entity
+public class ComplaintOrganization : Entity
 {
-    private ComplaintCategory(Guid id) : base(id) { }
-    public static ComplaintCategory Create(string title, string description)
+    private ComplaintOrganization(Guid id) : base(id) { }
+    public static ComplaintOrganization Create(string title, string description)
     {
-        var complaintCategory = new ComplaintCategory(Guid.Empty);
-        complaintCategory.Title = title;
-        complaintCategory.Description = description;
-        return complaintCategory;
+        var organization = new ComplaintOrganization(Guid.Empty);
+        organization.Title = title;
+        organization.Description = description;
+        return organization;
     }
 
     public void Update(string? title, string? description)
@@ -24,8 +24,7 @@ public class ComplaintCategory : Entity
         IsDeleted = isDeleted;
     }
 
-    public string Title { get; set; } = null!;
+    public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsDeleted { get; set; } = false;
 }
-

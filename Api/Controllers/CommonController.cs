@@ -1,6 +1,6 @@
 ﻿using Api.Abstractions;
 using Application.Authentication.Queries.CaptchaQuery;
-using Application.ComplaintCategories.Queries;
+using Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
