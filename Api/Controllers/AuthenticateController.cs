@@ -48,7 +48,7 @@ public class AuthenticateController : ApiController
     [HttpPost("VerifyCitizen")]
     public async Task<ActionResult> VerifyCitizen([FromBody] CitizenVerificationDto logisterDto)
     {
-        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, null, null);
+        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, logisterDto.VerificationCode, null);
         var result = await Sender.Send(command);
         return Ok(result.JwtToken);
     }
