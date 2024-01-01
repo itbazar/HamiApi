@@ -79,7 +79,7 @@ public class AuthenticationService : IAuthenticationService
             PhoneNumber = phoneNumber,
             PhoneNumberConfirmed = false
         };
-        var result = await _userManager.CreateAsync(user, "ADGJL';khfs");
+        var result = await _userManager.CreateAsync(user, "ADGJL';khfs12");
         if (!result.Succeeded)
             throw new UserRegisterException();
 
