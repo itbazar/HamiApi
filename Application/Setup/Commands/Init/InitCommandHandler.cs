@@ -10,6 +10,7 @@ namespace Application.Setup.Commands.Init;
 internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 {
     private readonly IComplaintCategoryRepository _categoryRepository;
+    private readonly IComplaintOrganizationRepository _organizationRepository;
     private readonly IUserRepository _userRepository;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAsymmetricEncryption _asymmetric;
@@ -20,18 +21,21 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         IUserRepository userRepository,
         IUnitOfWork unitOfWork,
         IAsymmetricEncryption asymmetric,
-        IPublicKeyRepository publicKeyRepository)
+        IPublicKeyRepository publicKeyRepository,
+        IComplaintOrganizationRepository organizationRepository)
     {
         _categoryRepository = categoryRepository;
         _userRepository = userRepository;
         _unitOfWork = unitOfWork;
         _asymmetric = asymmetric;
         _publicKeyRepository = publicKeyRepository;
+        _organizationRepository = organizationRepository;
     }
 
     public async Task<string> Handle(InitCommand request, CancellationToken cancellationToken)
     {
         await initCategories();
+        await initOrganizations();
         await initRolesAndUsers();
         var privateKey = await initPublicKey();
         return privateKey;
@@ -53,6 +57,27 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         foreach (var title in titles)
         {
             _categoryRepository.Insert(ComplaintCategory.Create(title, ""));
+        }
+
+        await _unitOfWork.SaveAsync();
+    }
+
+    private async Task initOrganizations()
+    {
+        var complaintOrganizations = await _organizationRepository.GetAsync();
+        if (complaintOrganizations is not null && complaintOrganizations.Count() > 0)
+        {
+            return;
+        }
+        var titles = new List<string>()
+        {
+            "شورای شهر",
+            "عمران",
+        };
+
+        foreach (var title in titles)
+        {
+            _organizationRepository.Insert(ComplaintOrganization.Create(title, ""));
         }
 
         await _unitOfWork.SaveAsync();

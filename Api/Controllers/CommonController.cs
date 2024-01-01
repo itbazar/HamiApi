@@ -1,6 +1,7 @@
 ﻿using Api.Abstractions;
 using Application.Authentication.Queries.CaptchaQuery;
 using Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
+using Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,14 @@ public class CommonController : ApiController
     public async Task<ActionResult<List<ComplaintCategory>>> GetCategories()
     {
         var query = new GetComplaintCategoriesQuery();
+        var result = await Sender.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("Organizations")]
+    public async Task<ActionResult<List<ComplaintOrganization>>> GetOrganizations()
+    {
+        var query = new GetComplaintOrganizationsQuery();
         var result = await Sender.Send(query);
         return Ok(result);
     }

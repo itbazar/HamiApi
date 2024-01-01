@@ -4,7 +4,6 @@ using Api.ExtensionMethods;
 using Application.Authentication.Commands.ChangePasswordCommand;
 using Application.Authentication.Commands.LoginCommand;
 using Application.Authentication.Commands.LogisterCitizenCommand;
-using Application.Authentication.Commands.VerifyPhoneNumberCommand;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
 using Mapster;
@@ -39,7 +38,7 @@ public class AuthenticateController : ApiController
     }
 
     [HttpPost("LogisterCitizen")]
-    public async Task<ActionResult> LogisterCitizen(LogisterCitizenDto logisterDto)
+    public async Task<ActionResult> LogisterCitizen([FromBody] LogisterCitizenDto logisterDto)
     {
         var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, null, logisterDto.Captcha);
         await Sender.Send(command);
@@ -47,11 +46,11 @@ public class AuthenticateController : ApiController
     }
 
     [HttpPost("VerifyCitizen")]
-    public async Task<ActionResult> VerifyCitizen(LogisterCitizenDto logisterDto)
+    public async Task<ActionResult> VerifyCitizen([FromBody] CitizenVerificationDto logisterDto)
     {
-        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, null, logisterDto.Captcha);
-        await Sender.Send(command);
-        return StatusCode(StatusCodes.Status428PreconditionRequired, "");
+        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, null, null);
+        var result = await Sender.Send(command);
+        return Ok(result.JwtToken);
     }
 
     [Authorize]
