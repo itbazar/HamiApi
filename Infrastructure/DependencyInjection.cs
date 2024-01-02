@@ -58,6 +58,7 @@ public static class DependencyInjection
         services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
         services.AddScoped<IPublicKeyRepository, PublicKeyRepository>();
+        services.AddScoped<IChartRepository, ChartRepository>();
 
         return services;
     }

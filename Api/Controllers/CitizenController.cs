@@ -36,6 +36,7 @@ public class CitizenController : ApiController
         return Ok(result);
     }
 
+    [Authorize]
     [HttpPost("Authorized")]
     public async Task<IActionResult> AddComplaintAuthorized([FromForm] ComplaintCreateDto createDto)
     {
