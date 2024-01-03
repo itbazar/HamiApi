@@ -83,6 +83,7 @@ public class ComplaintRepository(
             .Skip(pagingInfo.PageSize * (pagingInfo.PageNumber -1))
             .Take(pagingInfo.PageSize)
             .Include(c => c.Category)
+            .Include(c => c.ComplaintOrganization)
             .ToListAsync();
         return complaintList;
     }
@@ -136,6 +137,7 @@ public class ComplaintRepository(
     {
         return context.Complaint
             .Where(c => c.TrackingNumber == trackingNumber)
+            .Include(c => c.ComplaintOrganization)
             .Include(c => c.Category)
             .Include(c => c.Contents)
             .ThenInclude(cc => cc.Media)

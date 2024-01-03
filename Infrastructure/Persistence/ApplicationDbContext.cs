@@ -1,4 +1,5 @@
-﻿using Domain.Models.Common;
+﻿using Domain.Models.ChartAggregate;
+using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
@@ -26,5 +27,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<ComplaintCategory> ComplaintCategory { get; set; }
     public DbSet<ComplaintOrganization> ComplaintOrganization { get; set; }
     public DbSet<Media> Media { get; set; }
+    public DbSet<Chart> Chart { get; set; }
     public DbSet<PublicKey> PublicKey { get; set; }
 }
