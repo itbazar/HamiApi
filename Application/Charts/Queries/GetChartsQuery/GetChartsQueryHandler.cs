@@ -15,7 +15,11 @@ internal class GetChartsQueryHandler : IRequestHandler<GetChartsQuery, List<Char
 
     public async Task<List<Chart>> Handle(GetChartsQuery request, CancellationToken cancellationToken)
     {
-        var result = await _chartRepository.GetAsync(cc => cc.IsDeleted == false);
+        var result = await _chartRepository.GetAsync(
+            cc => cc.IsDeleted == false && request.RoleNames.Any(rn => cc.Roles.Any(cr => cr.Name == rn)),
+            false,
+            cc => cc.OrderBy(o => o.Order));
+
         return result.ToList();
     }
 }

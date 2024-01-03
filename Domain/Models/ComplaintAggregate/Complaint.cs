@@ -2,6 +2,7 @@
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using Domain.Primitives;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Models.ComplaintAggregate;
@@ -125,27 +126,42 @@ public class Complaint : Entity
 
 public enum Actor
 {
+    [Description("شهروند")]
     Citizen,
+    [Description("بازرس")]
     Inspector
 }
 
 public enum ComplaintState
 {
+    [Description("ثبت شده")]
     Registered,
+    [Description("در حال رسیدگی")]
     InProgress,
+    [Description("در انتظار پاسخ شهروند")]
     WaitingForCitizenResponse,
+    [Description("پاسخ داده شده")]
     CitizenReplied,
+    [Description("پایان یافته")]
     Finished
 }
 
 public enum ComplaintOperation
 {
+    [Description("ثبت")]
     Register,
+    [Description("مشاهده")]
     Open,
+    [Description("درخواست توضیحات")]
     RequestForDescription,
+    [Description("پاسخ")]
     CitizenReply,
+    [Description("انصراف از درخواست توضیحات")]
     CancelRequest,
+    [Description("افزودن جزئیات")]
     AddDetails,
+    [Description("خاتمه")]
     Finish,
+    [Description("بازگشایی")]
     StartAgain
 }

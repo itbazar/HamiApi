@@ -1,9 +1,12 @@
 ﻿using Application.Common.Interfaces.Encryption;
 using Application.Common.Interfaces.Persistence;
+using Application.Common.Statics;
+using Domain.Models.ChartAggregate;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using MediatR;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Application.Setup.Commands.Init;
 
@@ -15,6 +18,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
     private readonly IUnitOfWork _unitOfWork;
     private readonly IAsymmetricEncryption _asymmetric;
     private readonly IPublicKeyRepository _publicKeyRepository;
+    private readonly IChartRepository _chartRepository;
 
     public InitCommandHandler(
         IComplaintCategoryRepository categoryRepository,
@@ -22,7 +26,8 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         IUnitOfWork unitOfWork,
         IAsymmetricEncryption asymmetric,
         IPublicKeyRepository publicKeyRepository,
-        IComplaintOrganizationRepository organizationRepository)
+        IComplaintOrganizationRepository organizationRepository,
+        IChartRepository chartRepository)
     {
         _categoryRepository = categoryRepository;
         _userRepository = userRepository;
@@ -30,6 +35,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         _asymmetric = asymmetric;
         _publicKeyRepository = publicKeyRepository;
         _organizationRepository = organizationRepository;
+        _chartRepository = chartRepository;
     }
 
     public async Task<string> Handle(InitCommand request, CancellationToken cancellationToken)
@@ -37,6 +43,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         await initCategories();
         await initOrganizations();
         await initRolesAndUsers();
+        await initCharts();
         var privateKey = await initPublicKey();
         return privateKey;
     }
@@ -149,5 +156,58 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         var publicKey = PublicKey.Create("Initial", keyPair.PublicKey, inspector.Id, true);
         await _publicKeyRepository.Add(publicKey);
         return keyPair.PrivateKey;
+    }
+
+    private async Task initCharts()
+    {
+        if (_unitOfWork.DbContext.Set<Chart>().Any())
+            return;
+        var allRoles = await _userRepository.GetRoles();
+        var adminRole = allRoles.Where(r => r.Name == RoleNames.Admin).First();
+        var inspectorRole = allRoles.Where(r => r.Name == RoleNames.Inspector).First();
+        var users = new List<ApplicationUser>();
+        Chart chart;
+        chart = Chart.Create(
+            ChartCodes.Dashboard,
+            "داشبورد مدیریت",
+            1,
+            1,
+            "",
+            new List<ApplicationRole>() { adminRole, inspectorRole},
+            users);
+        chart.Delete(true);
+        _chartRepository.Insert(chart);
+
+        chart = Chart.Create(
+            ChartCodes.ComplaintCategoryHistogram,
+            "فراوانی درخواست ها بر اساس دسته بندی",
+            2,
+            1,
+            "",
+            new List<ApplicationRole>() { adminRole, inspectorRole },
+            users);
+        _chartRepository.Insert(chart);
+
+        chart = Chart.Create(
+            ChartCodes.ComplaintOrganizationHistogram,
+            "فراوانی درخواست ها بر اساس واحد مربوطه",
+            3,
+            1,
+            "",
+            new List<ApplicationRole>() { adminRole, inspectorRole },
+            users);
+        _chartRepository.Insert(chart);
+
+        chart = Chart.Create(
+            ChartCodes.ComplaintStatusHistogram,
+            "فراوانی درخواست ها بر اساس وضعیت",
+            4,
+            1,
+            "",
+            new List<ApplicationRole>() { adminRole, inspectorRole },
+            users);
+        _chartRepository.Insert(chart);
+
+        await _unitOfWork.SaveAsync();
     }
 }

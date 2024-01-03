@@ -60,6 +60,12 @@ public record InfoSerie(string Title, string Icon)
         return this;
     }
 
+    public InfoSerie Add(List<DataItem> items)
+    {
+        Values.AddRange(items);
+        return this;
+    }
+
     public InfoSerie Add(string Title, string Value, string DisplayValue, object? Parameters = null)
     {
         Values.Add(new DataItem(Title, Value, DisplayValue, Parameters));
