@@ -59,6 +59,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         {
             "رشاء",
             "ارتشاء",
+            "سایر"
         };
 
         foreach (var title in titles)
@@ -80,6 +81,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         {
             "شورای شهر",
             "عمران",
+            "سایر"
         };
 
         foreach (var title in titles)

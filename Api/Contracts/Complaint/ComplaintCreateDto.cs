@@ -8,8 +8,8 @@ public record ComplaintCreateDto(
         Guid CategoryId,
         List<IFormFile>? Medias,
         CaptchaValidateModel Captcha,
-        string? Complaining,
-        Guid? OrganizationId);
+        string Complaining,
+        Guid OrganizationId);
 
 public record ComplaintAuthorizedCreateDto(
         string FirstName,

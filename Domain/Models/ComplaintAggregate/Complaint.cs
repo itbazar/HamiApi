@@ -16,9 +16,9 @@ public class Complaint : Entity
     public string Title { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
     public ComplaintCategory Category { get; set; } = null!;
-    public string? Complaining { get; set; }
-    public Guid? ComplaintOrganizationId { get; set; }
-    public ComplaintOrganization? ComplaintOrganization { get; set; }
+    public string Complaining { get; set; }
+    public Guid ComplaintOrganizationId { get; set; }
+    public ComplaintOrganization ComplaintOrganization { get; set; }
     public List<ComplaintContent> Contents { get; set; } = new List<ComplaintContent>();
     public ComplaintState Status { get; set; }
     public DateTime RegisteredAt { get; set; }
@@ -51,8 +51,8 @@ public class Complaint : Entity
         string text,
         Guid categoryId,
         List<Media> medias,
-        string? complaining = null,
-        Guid? organizationId = null)
+        string complaining,
+        Guid organizationId)
     {
         var now = DateTime.UtcNow;
         Complaint complaint = new(Guid.NewGuid());

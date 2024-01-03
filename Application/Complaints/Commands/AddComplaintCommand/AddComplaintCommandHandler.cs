@@ -41,7 +41,9 @@ public class AddComplaintCommandHandler : IRequestHandler<AddComplaintCommand, A
             request.Title,
             request.Text,
             request.CategoryId,
-            request.Medias.Adapt<List<Media>>());
+            request.Medias.Adapt<List<Media>>(),
+            request.Complaining,
+            request.OrganizationId);
 
         await _complaintRepository.Add(complaint);
         return new AddComplaintResult(complaint.TrackingNumber, complaint.PlainPassword);
