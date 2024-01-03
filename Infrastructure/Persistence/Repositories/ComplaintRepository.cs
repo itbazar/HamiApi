@@ -107,6 +107,7 @@ public class ComplaintRepository(
     {
         //TODO: Consider using transactions and improve the performance by pagination
         var publicKeys = await context.PublicKey.ToListAsync();
+        fromKeyId = fromKeyId ?? publicKeys.Where(p => p.IsActive).Select(p => p.Id).SingleOrDefault();
         publicKeys.ForEach(p => p.IsActive = false);
         var fromPublicKey = publicKeys.Where(p => fromKeyId == null || p.Id == fromKeyId).SingleOrDefault();
         var toPublicKey = publicKeys.Where(p => p.Id == toKeyId).SingleOrDefault();
@@ -114,6 +115,7 @@ public class ComplaintRepository(
             throw new Exception("Public key not found.");
         toPublicKey.IsActive = true;
 
+        //TODO: Consider pagination
         var complaints = await context.Set<Complaint>().Where(c => c.PublicKeyId == fromKeyId).ToListAsync();
         foreach (var complaint in complaints)
         {
