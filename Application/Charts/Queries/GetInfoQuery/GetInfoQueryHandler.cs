@@ -3,13 +3,10 @@ using Application.Common.Statics;
 using Application.ExtensionMethods;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
-using Domain.Primitives;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
 using System.Globalization;
 using System.Linq.Expressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Application.Charts.Queries.GetInfoQuery;
 
