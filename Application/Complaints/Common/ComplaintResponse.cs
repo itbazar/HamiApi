@@ -1,4 +1,5 @@
-﻿using Domain.Models.ComplaintAggregate;
+﻿using Application.ExtensionMethods;
+using Domain.Models.ComplaintAggregate;
 
 namespace Application.Complaints.Common;
 
@@ -10,4 +11,22 @@ public record ComplaintResponse(
     DateTime RegisteredAt,
     DateTime LastChanged,
     List<ComplaintContentResponse> Contents,
-    List<ComplaintOperation> PossibleOperations);
+    List<ComplaintOperation> PossibleOperations)
+{
+    public EnumValueDescription StatusWithDescription
+    { 
+        get
+        {
+            return new EnumValueDescription((int)Status, Status.GetDescription() ?? "");
+        } 
+    }
+    public List<EnumValueDescription> PossibleOperationsWithDescription
+    { 
+        get 
+        { 
+            var result = new List<EnumValueDescription>();
+            PossibleOperations.ForEach(o => { result.Add(new EnumValueDescription((int)o, o.GetDescription() ?? "")); });
+            return result;
+        } 
+    }
+};
