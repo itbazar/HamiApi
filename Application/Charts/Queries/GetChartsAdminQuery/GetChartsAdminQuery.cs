@@ -1,6 +1,6 @@
-﻿using Domain.Models.ChartAggregate;
+﻿using Application.Charts.Queries.GetChartByIdQuery;
 using MediatR;
 
 namespace Application.Charts.Queries.GetChartsAdminQuery;
 
-public record GetChartsAdminQuery() : IRequest<List<Chart>>;
+public record GetChartsAdminQuery() : IRequest<List<ChartResponse>>;

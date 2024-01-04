@@ -3,31 +3,33 @@ using Domain.Models.ComplaintAggregate;
 
 namespace Application.Complaints.Common;
 
-public record ComplaintListResponse(
-    Guid Id,
-    string TrackingNumber,
-    string Title,
-    ComplaintCategoryResponse Category,
-    ComplaintState Status,
-    DateTime RegisteredAt,
-    DateTime LastChanged,
-    Actor LastActor,
-    string Complaining,
-    ComplaintOrganizationResponse ComplaintOrganization,
-    byte[] CipherKeyInspector)
+public class ComplaintListResponse
 {
-    //public EnumValueDescription StatusWithDescription
-    //{
-    //    get
-    //    {
-    //        return new EnumValueDescription((int)Status, Status.GetDescription() ?? "");
-    //    }
-    //}
-    //public EnumValueDescription LastActorWithDescription
-    //{
-    //    get
-    //    {
-    //        return new EnumValueDescription((int)LastActor, LastActor.GetDescription() ?? "");
-    //    }
-    //}
+    public Guid Id { get; set; }
+    public string TrackingNumber { get; set; } = null!;
+    public string Title { get; set; } = null!;
+    public ComplaintCategoryResponse Category { get; set; } = null!;
+    public ComplaintState Status { get; set; }
+    public DateTime RegisteredAt { get; set; }
+    public DateTime LastChanged { get; set; }
+    public Actor LastActor { get; set; }
+    public string Complaining { get; set; } = null!;
+    public ComplaintOrganizationResponse ComplaintOrganization { get; set; } = null!;
+    public byte[] CipherKeyInspector { get; set; } = null!;
+
+    public EnumValueDescription LastActorWithDescription
+    {
+        get
+        {
+            return new EnumValueDescription((int)LastActor, LastActor.GetDescription() ?? "");
+        }
+    }
+
+    public EnumValueDescription StatusWithDescription
+    {
+        get
+        {
+            return new EnumValueDescription((int)Status, Status.GetDescription() ?? "");
+        }
+    }
 }

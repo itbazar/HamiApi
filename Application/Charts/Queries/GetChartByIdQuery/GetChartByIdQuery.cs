@@ -3,4 +3,13 @@ using MediatR;
 
 namespace Application.Charts.Queries.GetChartByIdQuery;
 
-public record GetChartByIdQuery(Guid Id) : IRequest<Chart>;
+public record GetChartByIdQuery(Guid Id) : IRequest<ChartResponse>;
+
+public record ChartResponse(
+    Guid Id,
+    int Order,
+    int Code,
+    string Title,
+    string Parameters,
+    long ValidForMilliseconds,
+    bool IsDeleted);
