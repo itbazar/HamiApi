@@ -12,20 +12,22 @@ public record ComplaintListResponse(
     DateTime RegisteredAt,
     DateTime LastChanged,
     Actor LastActor,
+    string Complaining,
+    ComplaintOrganization ComplaintOrganization,
     byte[] CipherKeyInspector)
 {
-    public EnumValueDescription StatusWithDescription
-    {
-        get
-        {
-            return new EnumValueDescription((int)Status, Status.GetDescription() ?? "");
-        }
-    }
-    public EnumValueDescription LastActorWithDescription
-    {
-        get
-        {
-            return new EnumValueDescription((int)LastActor, LastActor.GetDescription() ?? "");
-        }
-    }
+    //public EnumValueDescription StatusWithDescription
+    //{
+    //    get
+    //    {
+    //        return new EnumValueDescription((int)Status, Status.GetDescription() ?? "");
+    //    }
+    //}
+    //public EnumValueDescription LastActorWithDescription
+    //{
+    //    get
+    //    {
+    //        return new EnumValueDescription((int)LastActor, LastActor.GetDescription() ?? "");
+    //    }
+    //}
 }

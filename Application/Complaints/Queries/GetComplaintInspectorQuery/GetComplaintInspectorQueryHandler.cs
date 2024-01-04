@@ -38,6 +38,8 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintIns
             complaint.Status,
             complaint.RegisteredAt,
             complaint.LastChanged,
+            complaint.Complaining,
+            complaint.ComplaintOrganization,
             complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
             complaint.GetPossibleOperations(Actor.Inspector));
 
