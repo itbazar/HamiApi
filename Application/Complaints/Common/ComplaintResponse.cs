@@ -20,15 +20,15 @@ public class ComplaintResponse
     }
 
     public string TrackingNumber { get; set; } = null!;
-    string Title { get; set; } = null!;
-    ComplaintCategoryResponse Category { get; set; } = null!;
-    ComplaintState Status { get; set; }
-    DateTime RegisteredAt { get; set; }
-    DateTime LastChanged { get; set; }
-    string Complaining { get; set; } = null!;
-    ComplaintOrganizationResponse ComplaintOrganization { get; set; } = null!;
-    List<ComplaintContentResponse> Contents { get; set; } = null!;
-    List<ComplaintOperation> PossibleOperations { get; set; } = null!;
+    public string Title { get; set; } = null!;
+    public ComplaintCategoryResponse Category { get; set; } = null!;
+    public ComplaintState Status { get; set; }
+    public DateTime RegisteredAt { get; set; }
+    public DateTime LastChanged { get; set; }
+    public string Complaining { get; set; } = null!;
+    public ComplaintOrganizationResponse ComplaintOrganization { get; set; } = null!;
+    public List<ComplaintContentResponse> Contents { get; set; } = null!;
+    public List<ComplaintOperation> PossibleOperations { get; set; } = null!;
     public EnumValueDescription StatusWithDescription
     {
         get
