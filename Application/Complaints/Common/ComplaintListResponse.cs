@@ -13,7 +13,7 @@ public record ComplaintListResponse(
     DateTime LastChanged,
     Actor LastActor,
     string Complaining,
-    ComplaintOrganization ComplaintOrganization,
+    ComplaintOrganizationResponse ComplaintOrganization,
     byte[] CipherKeyInspector)
 {
     //public EnumValueDescription StatusWithDescription

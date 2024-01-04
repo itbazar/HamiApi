@@ -11,7 +11,7 @@ public record ComplaintResponse(
     DateTime RegisteredAt,
     DateTime LastChanged,
     string Complaining,
-    ComplaintOrganization ComplaintOrganization,
+    ComplaintOrganizationResponse ComplaintOrganization,
     List<ComplaintContentResponse> Contents,
     List<ComplaintOperation> PossibleOperations)
 {

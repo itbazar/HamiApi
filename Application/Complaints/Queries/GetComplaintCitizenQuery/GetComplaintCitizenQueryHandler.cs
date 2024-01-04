@@ -28,7 +28,7 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
             complaint.RegisteredAt,
             complaint.LastChanged,
             complaint.Complaining,
-            complaint.ComplaintOrganization,
+            complaint.ComplaintOrganization.Adapt<ComplaintOrganizationResponse>(),
             complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
             complaint.GetPossibleOperations(Actor.Citizen));
 
