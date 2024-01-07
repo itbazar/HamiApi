@@ -1,13 +1,8 @@
 ﻿using Api.Abstractions;
-using Api.ExtensionMethods;
-using Application.Charts.Queries.GetChartByIdQuery;
-using Application.Charts.Queries.GetChartsQuery;
-using Application.Charts.Queries.GetInfoQuery;
 using Application.Sliders.Commands.AddSliderCommand;
 using Application.Sliders.Commands.UpdateSliderCommand;
 using Application.Sliders.Queries.GetAdminSlidersQuery;
 using Application.Sliders.Queries.GetSliderByIdQuery;
-using Domain.Models.ChartAggregate;
 using Domain.Models.Sliders;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -38,7 +33,7 @@ public class SlidersController : ApiController
     }
 
     [HttpPost]
-    public async Task<ActionResult> AddSlider([FromBody] AddSliderDto sliderDto)
+    public async Task<ActionResult> AddSlider([FromForm] AddSliderDto sliderDto)
     {
         var command = new AddSliderCommand(
             sliderDto.Title,
@@ -51,7 +46,7 @@ public class SlidersController : ApiController
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult> UpdateSlider(Guid id, [FromBody] UpdateSliderDto sliderDto)
+    public async Task<ActionResult> UpdateSlider(Guid id, [FromForm] UpdateSliderDto sliderDto)
     {
         var command = new UpdateSliderCommand(
             id,
