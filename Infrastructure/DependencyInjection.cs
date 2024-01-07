@@ -9,6 +9,7 @@ using Infrastructure.Communications;
 using Infrastructure.Encryption;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
+using Infrastructure.Storage;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +27,7 @@ public static class DependencyInjection
         services.AddRepositories();
         services.AddSecurity(configuration);
         services.AddEncryption();
-        services.AddStorage(webHostEnvironment);
+        services.AddStorage(configuration, webHostEnvironment);
         services.AddCommunication(configuration);
         return services;
     }
@@ -59,6 +60,7 @@ public static class DependencyInjection
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
         services.AddScoped<IPublicKeyRepository, PublicKeyRepository>();
         services.AddScoped<IChartRepository, ChartRepository>();
+        services.AddScoped<ISliderRepository, SliderRepository>();
 
         return services;
     }
@@ -89,8 +91,11 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddStorage(this IServiceCollection services, IWebHostEnvironment webHostEnvironment)
+    public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
     {
+        var imageSizes = configuration.GetSection(ImageQualityOptions.Name).GetSection("ImageQualities").Get<List<Size>>();
+        services.AddScoped<IStorageService>(x => new StorageService(webHostEnvironment.WebRootPath, imageSizes));
+
         return services;
     }
 

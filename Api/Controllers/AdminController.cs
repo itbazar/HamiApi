@@ -6,6 +6,7 @@ using Application.Setup.Commands.ChangeInspectorKey;
 using Application.Setup.Commands.GenerateKeyPair;
 using Application.Setup.Commands.Init;
 using Application.Setup.Queries.GetPublicKeys;
+using Domain.Models.Sliders;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

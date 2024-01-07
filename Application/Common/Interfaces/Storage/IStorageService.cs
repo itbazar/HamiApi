@@ -5,6 +5,6 @@ namespace Infrastructure.Storage;
 
 public interface IStorageService
 {
-    Task<ICollection<Media>> WriteFileAsync(ICollection<IFormFile> files, AttachmentType attachmentType);
-    Task<Media?> WriteFileAsync(IFormFile file, AttachmentType attachmentType);
+    Task<ICollection<StorageMedia>> WriteFileAsync(ICollection<IFormFile> files, AttachmentType attachmentType);
+    Task<StorageMedia?> WriteFileAsync(IFormFile file, AttachmentType attachmentType);
 }

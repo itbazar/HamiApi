@@ -2,7 +2,9 @@
 using Application.Authentication.Queries.CaptchaQuery;
 using Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
 using Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
+using Application.Sliders.Queries.GetSlidersQuery;
 using Domain.Models.ComplaintAggregate;
+using Domain.Models.Sliders;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,5 +42,12 @@ public class CommonController : ApiController
         Response.Headers.Append("Captcha-Key", result.Key.ToString());
         //return "data:image/jpg;base64," + Convert.ToBase64String(result.Data);
         return File(result.Data, "image/jpg");
+    }
+
+    [HttpGet("Sliders")]
+    public async Task<ActionResult<List<Slider>>> GetSlidersList()
+    {
+        var query = new GetSlidersQuery();
+        return await Sender.Send(query);
     }
 }
