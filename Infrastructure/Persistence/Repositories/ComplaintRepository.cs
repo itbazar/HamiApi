@@ -13,8 +13,7 @@ public class ComplaintRepository(
     ApplicationDbContext context,
     ISymmetricEncryption symmetric,
     IAsymmetricEncryption asymmetric,
-    IHasher hasher,
-    IPublicKeyRepository publicKeyRepository) : IComplaintRepository
+    IHasher hasher) : IComplaintRepository
 {
     public async Task<bool> Add(Complaint complaint)
     {
@@ -35,6 +34,7 @@ public class ComplaintRepository(
 
     public async Task<Complaint> GetCitizenAsync(string trackingNumber, string password)
     {
+        password = password.Trim();
         var complaint = getComplaint(trackingNumber);
         await Task.CompletedTask;
 
@@ -98,6 +98,7 @@ public class ComplaintRepository(
 
     public async Task<bool> ReplyCitizen(Complaint complaint, string password)
     {
+        password = password.Trim();
         complaint.LoadEncryptionKeyByCitizenPassword(password, hasher, symmetric);
         complaint.EncryptContent(hasher, symmetric);
         await context.SaveChangesAsync();

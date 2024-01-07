@@ -29,6 +29,7 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintIns
                 ComplaintOperation.Open,
                 ComplaintContentVisibility.Inspector);
             await _complaintRepository.ReplyInspector(complaintToUpdate, request.EncodedKey);
+            complaint = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
         }
 
         var result = new ComplaintResponse(
