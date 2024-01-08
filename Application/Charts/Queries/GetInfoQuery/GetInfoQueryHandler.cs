@@ -30,6 +30,7 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
             case ChartCodes.ComplaintCategoryHistogram:
                 var bins = await _unitOfWork.DbContext.Set<ComplaintCategory>().Select(cc => new Bin<Guid>(cc.Id, cc.Title)).ToListAsync();
                 result = await GetHistogram(
+                    "فراوانی دسته بندی ها",
                     bins,
                     _unitOfWork.DbContext.Set<Complaint>(),
                     c => c.CategoryId); 
@@ -37,6 +38,7 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
             case ChartCodes.ComplaintOrganizationHistogram:
                 var bins3 = await _unitOfWork.DbContext.Set<ComplaintOrganization>().Select(co => new Bin<Guid?>(co.Id, co.Title)).ToListAsync();
                 result = await GetHistogram(
+                    "فراوانی سازمان ها",
                     bins3,
                     _unitOfWork.DbContext.Set<Complaint>(),
                     c => c.ComplaintOrganizationId);
@@ -44,6 +46,7 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
             case ChartCodes.ComplaintStatusHistogram:
                 var bins2 = GetBins<ComplaintState>();
                 result = await GetHistogram(
+                    "فراوانی وضعیت ها",
                     bins2,
                     _unitOfWork.DbContext.Set<Complaint>(),
                     c => c.Status);
@@ -87,17 +90,18 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
     //}
 
     private async Task<InfoModel> GetHistogram<T, Key>(
-    List<Bin<Key>> bins,
-    IQueryable<T> query,
-    Expression<Func<T, Key>> groupBy)
+        string title,
+        List<Bin<Key>> bins,
+        IQueryable<T> query,
+        Expression<Func<T, Key>> groupBy)
     {
         var hist = await query.GroupBy(groupBy)
             .Select(grp => new { Id = grp.Key, Count = grp.Count() })
             .ToListAsync();
 
         var result = new InfoModel();
-        var serie = new InfoSerie("", "");
-        result.Add(new InfoChart("Title", "", false, false).Add(serie));
+        var serie = new InfoSerie("فراوانی", "");
+        result.Add(new InfoChart(title, "", false, false).Add(serie));
 
 
         foreach (var bin in bins)

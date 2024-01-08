@@ -4,7 +4,7 @@ using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintListQuery;
 
-public record GetComplaintListQuery(
+public record GetComplaintListCitizenQuery(
     PagingInfo pagingInfo,
     ComplaintListFilters Filters,
-    string? UserId = null) : IRequest<List<ComplaintListResponse>>;
+    string UserId) : IRequest<List<ComplaintListCitizenResponse>>;

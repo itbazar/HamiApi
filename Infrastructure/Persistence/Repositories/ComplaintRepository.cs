@@ -67,11 +67,9 @@ public class ComplaintRepository(
         return complaint ?? throw new Exception("Not found.");
     }
 
-    public async Task<List<Complaint>> GetListAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string? userId = null)
+    public async Task<List<Complaint>> GetListCitizenAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string userId)
     {
-        var query = context.Complaint.Where(c => true);
-        if(userId is not null)
-            query = query.Where(c => c.UserId == userId);
+        var query = context.Complaint.Where(c => c.UserId == userId);
 
         if(filters.States is not null && filters.States.Count > 0)
             query = query.Where(c => filters.States.Contains(c.Status));
@@ -81,6 +79,25 @@ public class ComplaintRepository(
 
         var complaintList = await query
             .Skip(pagingInfo.PageSize * (pagingInfo.PageNumber -1))
+            .Take(pagingInfo.PageSize)
+            .Include(c => c.Category)
+            .Include(c => c.ComplaintOrganization)
+            .ToListAsync();
+        return complaintList;
+    }
+
+    public async Task<List<Complaint>> GetListInspectorAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
+    {
+        var query = context.Complaint.Where(c => true);
+
+        if (filters.States is not null && filters.States.Count > 0)
+            query = query.Where(c => filters.States.Contains(c.Status));
+
+        if (filters.TrackingNumber is not null && !filters.TrackingNumber.IsNullOrEmpty())
+            query = query.Where(c => c.TrackingNumber.Contains(filters.TrackingNumber));
+
+        var complaintList = await query
+            .Skip(pagingInfo.PageSize * (pagingInfo.PageNumber - 1))
             .Take(pagingInfo.PageSize)
             .Include(c => c.Category)
             .Include(c => c.ComplaintOrganization)
@@ -138,6 +155,7 @@ public class ComplaintRepository(
     {
         return context.Complaint
             .Where(c => c.TrackingNumber == trackingNumber)
+            .Include(c => c.User)
             .Include(c => c.ComplaintOrganization)
             .Include(c => c.Category)
             .Include(c => c.Contents)

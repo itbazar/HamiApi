@@ -3,7 +3,7 @@ using Domain.Models.ComplaintAggregate;
 
 namespace Application.Complaints.Common;
 
-public class ComplaintListResponse
+public class ComplaintListCitizenResponse
 {
     public Guid Id { get; set; }
     public string TrackingNumber { get; set; } = null!;
@@ -15,7 +15,6 @@ public class ComplaintListResponse
     public Actor LastActor { get; set; }
     public string Complaining { get; set; } = null!;
     public ComplaintOrganizationResponse ComplaintOrganization { get; set; } = null!;
-    public byte[] CipherKeyInspector { get; set; } = null!;
 
     public EnumValueDescription LastActorWithDescription
     {

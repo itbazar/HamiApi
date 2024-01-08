@@ -20,11 +20,11 @@ public class InspectorController : ApiController
     }
 
     [HttpGet("List")]
-    public async Task<ActionResult<List<ComplaintListResponse>>> List(
+    public async Task<ActionResult<List<ComplaintListInspectorResponse>>> List(
         [FromQuery] PagingInfo pagingInfo,
         [FromQuery] ComplaintListFilters filters)
     {
-        var query = new GetComplaintListQuery(pagingInfo, filters);
+        var query = new GetComplaintListInspectorQuery(pagingInfo, filters);
         var result = await Sender.Send(query);
         return Ok(result);
     }

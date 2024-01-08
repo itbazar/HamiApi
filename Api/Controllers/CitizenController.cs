@@ -78,12 +78,12 @@ public class CitizenController : ApiController
 
     [Authorize]
     [HttpGet("List")]
-    public async Task<ActionResult<List<ComplaintListResponse>>> List(
+    public async Task<ActionResult<List<ComplaintListCitizenResponse>>> List(
         [FromQuery] PagingInfo pagingInfo,
         [FromQuery] ComplaintListFilters filters)
     {
         var userId = User.GetUserId();
-        var query = new GetComplaintListQuery(pagingInfo, filters, userId);
+        var query = new GetComplaintListCitizenQuery(pagingInfo, filters, userId);
         var result = await Sender.Send(query);
         return Ok(result);
     }
