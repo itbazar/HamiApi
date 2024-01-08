@@ -3,9 +3,9 @@ using Domain.Models.ComplaintAggregate;
 
 namespace Application.Complaints.Common;
 
-public class ComplaintResponse
+public class ComplaintCitizenResponse
 {
-    public ComplaintResponse(string trackingNumber, string title, ComplaintCategoryResponse complaintCategoryResponse, ComplaintState status, DateTime registeredAt, DateTime lastChanged, string complaining, ComplaintOrganizationResponse complaintOrganizationResponse, List<ComplaintContentResponse> complaintContentResponses, List<ComplaintOperation> complaintOperations)
+    public ComplaintCitizenResponse(string trackingNumber, string title, ComplaintCategoryResponse complaintCategoryResponse, ComplaintState status, DateTime registeredAt, DateTime lastChanged, string complaining, ComplaintOrganizationResponse complaintOrganizationResponse, List<ComplaintContentResponse> complaintContentResponses, List<ComplaintOperation> complaintOperations)
     {
         TrackingNumber = trackingNumber;
         Title = title;

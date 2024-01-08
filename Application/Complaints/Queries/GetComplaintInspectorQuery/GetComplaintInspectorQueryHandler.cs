@@ -7,16 +7,16 @@ using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintInspectorQuery;
 
-internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintInspectorQuery, ComplaintResponse>
+internal class ComplaintInspectorResponseHandler : IRequestHandler<GetComplaintInspectorQuery, ComplaintInspectorResponse>
 {
     private readonly IComplaintRepository _complaintRepository;
 
-    public GetComplaintCitizenQueryHandler(IComplaintRepository complaintRepository)
+    public ComplaintInspectorResponseHandler(IComplaintRepository complaintRepository)
     {
         _complaintRepository = complaintRepository;
     }
 
-    public async Task<ComplaintResponse> Handle(GetComplaintInspectorQuery request, CancellationToken cancellationToken)
+    public async Task<ComplaintInspectorResponse> Handle(GetComplaintInspectorQuery request, CancellationToken cancellationToken)
     {
         var complaint = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
         if (complaint.ShouldMarkedAsRead())
@@ -32,7 +32,7 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintIns
             complaint = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
         }
 
-        var result = new ComplaintResponse(
+        var result = new ComplaintInspectorResponse(
             complaint.TrackingNumber,
             complaint.Title,
             complaint.Category.Adapt<ComplaintCategoryResponse>(),
@@ -42,7 +42,8 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintIns
             complaint.Complaining,
             complaint.ComplaintOrganization.Adapt<ComplaintOrganizationResponse>(),
             complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
-            complaint.GetPossibleOperations(Actor.Inspector));
+            complaint.GetPossibleOperations(Actor.Inspector),
+            complaint.User.Adapt<UserResponse>());
 
         return result;
     }
