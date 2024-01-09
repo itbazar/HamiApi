@@ -61,6 +61,7 @@ public static class DependencyInjection
         services.AddScoped<IPublicKeyRepository, PublicKeyRepository>();
         services.AddScoped<IChartRepository, ChartRepository>();
         services.AddScoped<ISliderRepository, SliderRepository>();
+        services.AddScoped<INewsRepository, NewsRepository>();
 
         return services;
     }

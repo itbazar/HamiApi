@@ -1,5 +1,7 @@
 ﻿using Api.Abstractions;
+using Api.Contracts.Sliders;
 using Application.Sliders.Commands.AddSliderCommand;
+using Application.Sliders.Commands.DeleteSliderCommand;
 using Application.Sliders.Commands.UpdateSliderCommand;
 using Application.Sliders.Queries.GetAdminSlidersQuery;
 using Application.Sliders.Queries.GetSliderByIdQuery;
@@ -69,5 +71,3 @@ public class SlidersController : ApiController
     }
 }
 
-public record UpdateSliderDto(string? Title, IFormFile? Image, string? Url, string? Description);
-public record AddSliderDto(string Title, IFormFile Image, string Url = "", string Description = "");

@@ -2,7 +2,7 @@
 using Domain.Models.Sliders;
 using MediatR;
 
-namespace Application.Sliders.Commands.UpdateSliderCommand;
+namespace Application.Sliders.Commands.DeleteSliderCommand;
 
 internal class DeleteSliderCommandHandler : IRequestHandler<DeleteSliderCommand, Slider>
 {
