@@ -95,8 +95,16 @@ public static class DependencyInjection
 
     public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
     {
-        var imageSizes = configuration.GetSection(ImageQualityOptions.Name).GetSection("ImageQualities").Get<List<Size>>();
-        services.AddScoped<IStorageService>(x => new StorageService(webHostEnvironment.WebRootPath, imageSizes));
+        var imageSizes = configuration.GetSection("Storage")
+            .GetSection("ImageQualities").Get<List<Size>>();
+        var allowedExtensions = configuration.GetSection("Storage")
+            .GetSection("AllowedExtensions")
+            .Get<string>();
+        var maxFileSize = configuration.GetSection("Storage")
+            .GetSection("MaxFileSize")
+            .Get<long>();
+        services.AddScoped<IStorageService>(x => 
+            new StorageService(webHostEnvironment.WebRootPath, imageSizes, allowedExtensions, maxFileSize));
 
         return services;
     }

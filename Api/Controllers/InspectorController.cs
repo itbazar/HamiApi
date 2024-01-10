@@ -9,14 +9,36 @@ using Application.Complaints.Queries.GetComplaintListQuery;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SixLabors.ImageSharp;
 
 namespace Api.Controllers;
 
 [Authorize(Roles = "Inspector")]
 public class InspectorController : ApiController
 {
-    public InspectorController(ISender sender) : base(sender)
+    private readonly long _maxFileSize;
+    private readonly int _maxFileCount;
+    private readonly List<string> _allowedExtensions;
+    public InspectorController(ISender sender, IConfiguration configuration) : base(sender)
     {
+        _maxFileSize = configuration
+            .GetSection("General")
+            .GetSection("Files")
+            .GetSection("MaxFileSize")
+            .Get<long>();
+        _maxFileCount = configuration
+            .GetSection("General")
+            .GetSection("Files")
+            .GetSection("MaxFileCount")
+            .Get<int>();
+        var allowedExtensions = configuration
+            .GetSection("General")
+            .GetSection("Files")
+            .GetSection("AllowedExtensions")
+            .Get<string>();
+        _allowedExtensions = allowedExtensions?.Split(',').ToList() ??
+            new List<string> { "jpg", "png", "doc", "docx", "mp3", "avi", "mp4" };
+        _allowedExtensions = _allowedExtensions.Select(x => x.Trim().ToUpper()).ToList();
     }
 
     [HttpGet("List")]
@@ -43,7 +65,7 @@ public class InspectorController : ApiController
         var command = new ReplyComplaintInspectorCommand(
             operateDto.TrackingNumber,
             operateDto.Text,
-            operateDto.Medias.GetMedia(),
+            operateDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
             operateDto.Operation,
             operateDto.IsPublic,
             operateDto.EncodedKey);

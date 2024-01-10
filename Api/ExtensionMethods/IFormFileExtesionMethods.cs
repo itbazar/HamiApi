@@ -5,7 +5,8 @@ namespace Api.ExtensionMethods;
 
 public static class IFormFileExtesionMethods
 {
-    public static MediaRequest GetMedia(this IFormFile file)
+    public static MediaRequest GetMedia(
+        this IFormFile file)
     {
         var tmp = new MemoryStream();
         file.CopyTo(tmp);
@@ -13,14 +14,28 @@ public static class IFormFileExtesionMethods
         return mediaRequest;
     }
 
-    public static List<MediaRequest> GetMedia(this List<IFormFile>? files)
+    public static List<MediaRequest> GetMedia(
+        this List<IFormFile>? files,
+        long maxFileSize,
+        int maxFileCount,
+        List<string> allowedExtensions)
     {
         List<MediaRequest> data = new List<MediaRequest>();
         if (files is null)
             return data;
-
+        
+        if (files.Count > maxFileCount)
+        {
+            throw new Exception("Max file count limit exceeded.");
+        }
         foreach (var file in files)
         {
+            if (file.Length > maxFileSize)
+                throw new Exception("Max file size limit exceeded.");
+            if (!allowedExtensions.Contains(file.FileName.Split('.').Last().ToUpper()))
+            {
+                throw new Exception("Unacceptable file type.");
+            }
             data.Add(file.GetMedia());
         }
         return data;

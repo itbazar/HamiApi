@@ -15,8 +15,29 @@ namespace Api.Controllers;
 
 public class CitizenController : ApiController
 {
-    public CitizenController(ISender sender) : base(sender)
+    private readonly long _maxFileSize;
+    private readonly int _maxFileCount;
+    private readonly List<string> _allowedExtensions;
+    public CitizenController(ISender sender, IConfiguration configuration) : base(sender)
     {
+        _maxFileSize = configuration
+            .GetSection("General")
+            .GetSection("Files")
+            .GetSection("MaxFileSize")
+            .Get<long>();
+        _maxFileCount = configuration
+            .GetSection("General")
+            .GetSection("Files")
+            .GetSection("MaxFileCount")
+            .Get<int>();
+        var allowedExtensions = configuration
+            .GetSection("General")
+            .GetSection("Files")
+            .GetSection("AllowedExtensions")
+            .Get<string>();
+        _allowedExtensions = allowedExtensions?.Split(',').ToList() ?? 
+            new List<string> { "jpg", "png", "doc", "docx", "mp3", "avi", "mp4" };
+        _allowedExtensions = _allowedExtensions.Select(x => x.Trim().ToUpper()).ToList();
     }
 
     [HttpPost]
@@ -27,7 +48,7 @@ public class CitizenController : ApiController
             createDto.Title,
             createDto.Text,
             createDto.CategoryId,
-            createDto.Medias.GetMedia(),
+            createDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
             createDto.Captcha,
             createDto.Complaining,
             createDto.OrganizationId);
@@ -45,7 +66,7 @@ public class CitizenController : ApiController
             createDto.Title,
             createDto.Text,
             createDto.CategoryId,
-            createDto.Medias.GetMedia(),
+            createDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
             createDto.Captcha,
             createDto.Complaining,
             createDto.OrganizationId);
@@ -60,7 +81,7 @@ public class CitizenController : ApiController
         var command = new ReplyComplaintCitizenCommand(
             operateDto.TrackingNumber,
             operateDto.Text,
-            operateDto.Medias.GetMedia(),
+            operateDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
             operateDto.Operation,
             operateDto.Password);
         var result = await Sender.Send(command);

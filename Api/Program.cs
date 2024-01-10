@@ -109,7 +109,10 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.WebHost.ConfigureKestrel(options => { options.Limits.MaxRequestBodySize = 100 * 1024 * 1024; });
+var maxFileSize = builder.Configuration.GetSection("Storage")
+            .GetSection("MaxFileSize")
+            .Get<long>();
+builder.WebHost.ConfigureKestrel(options => { options.Limits.MaxRequestBodySize = maxFileSize; });
 
 
 

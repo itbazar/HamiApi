@@ -1,9 +1,7 @@
 ﻿using Domain.Models.Common;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Processing;
 
 namespace Infrastructure.Storage;
 
@@ -11,12 +9,25 @@ public class StorageService : IStorageService
 {
     private readonly string _destinationPath;
     private readonly List<Size> _imageQualities;
-    private const long maxAllowdFileSize = 10 * 1024 * 1024;
+    private readonly List<string> _allowedExtensions;
+    private long _maxAllowdFileSize;
 
-    public StorageService(string destinationPath, List<Size>? imageQualities)
+    public StorageService(
+        string destinationPath,
+        List<Size>? imageQualities = null,
+        string? allowdExtensions = null,
+        long? maxAllowedFileSize = null)
     {
         _destinationPath = destinationPath;
         _imageQualities = imageQualities ?? new List<Size>() { new Size(100, 100), new Size(200, 200), new Size(300, 300) };
+        _allowedExtensions = allowdExtensions?.Split(',').ToList() ?? new List<string>()
+        {
+            "jpg", "jpeg", "jpe", "jif", "jfif", "jfi", "png", "gif", "tiff", "tif", "svg", "svgz",
+            "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx",
+            "mkv", "mp4", "mov", "3gp", "ogg"
+        };
+        _allowedExtensions = _allowedExtensions.Select(x => x.Trim().ToUpper()).ToList();
+        _maxAllowdFileSize = maxAllowedFileSize ?? 5 * 1024 * 1024;
     }
 
     public async Task<ICollection<StorageMedia>> WriteFileAsync(ICollection<IFormFile> files, AttachmentType attachmentType)
@@ -36,19 +47,17 @@ public class StorageService : IStorageService
 
     public async Task<StorageMedia?> WriteFileAsync(IFormFile file, AttachmentType attachmentType)
     {
-        //if (!isAcceptedExtension(file.FileName))
-        //    return null;
         if (file == null)
-            return null;
+            throw new Exception("Empty file");
 
-        if (file.Length > maxAllowdFileSize)
+        if (file.Length > _maxAllowdFileSize)
         {
-            return null;
+            throw new Exception("Max file size limit exceeded.");
         }
 
         if (!isAcceptedExtension(file.FileName))
         {
-            return null;
+            throw new Exception("Unacceptable file type.");
         }
 
         string fileName;
@@ -73,7 +82,7 @@ public class StorageService : IStorageService
         StorageMedia result;
         try
         {
-            var extension = "." + file.FileName.Split('.')[file.FileName.Split('.').Length - 1];
+            var extension = "." + file.FileName.Split('.').Last();
             //var extension = ".jpg";
             fileName = DateTime.Now.Ticks.ToString(); //Create a new Name for the file due to security reasons.
             relativePath = Path.Combine("Attachments", sub);
@@ -135,17 +144,11 @@ public class StorageService : IStorageService
         return MediaType.Other;
     }
 
-    private static bool isAcceptedExtension(string fileName)
+    private bool isAcceptedExtension(string fileName)
     {
-        var validExtensions = new List<string>()
-            {
-                "jpg", "jpeg", "jpe", "jif", "jfif", "jfi", "png", "gif", "tiff", "tif", "svg", "svgz",
-                "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx",
-                "mkv", "mp4", "mov", "3gp", "ogg"
-            };
-        var extension = fileName.Split('.')[fileName.Split('.').Length - 1];
+        var extension = fileName.Split('.').Last().ToUpper();
 
-        return validExtensions.Contains(extension.ToLower());
+        return _allowedExtensions.Contains(extension.ToLower());
     }
 
     private async Task<StorageMedia> writeImage(Image image, string destinationPath, string relativePath, string fileName, List<Size> imageQualities)
