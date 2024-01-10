@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IChartRepository, ChartRepository>();
         services.AddScoped<ISliderRepository, SliderRepository>();
         services.AddScoped<INewsRepository, NewsRepository>();
+        services.AddScoped<IWebContentRepository, WebContentRepository>();
 
         return services;
     }

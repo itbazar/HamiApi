@@ -4,6 +4,7 @@ using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using Domain.Models.Sliders;
+using Domain.Models.WebContents;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,4 +32,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Chart> Chart { get; set; }
     public DbSet<PublicKey> PublicKey { get; set; }
     public DbSet<Slider> Slider { get; set; }
+    public DbSet<WebContent> WebContent { get; set; }
 }

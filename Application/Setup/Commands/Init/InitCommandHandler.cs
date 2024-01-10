@@ -5,6 +5,7 @@ using Domain.Models.ChartAggregate;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
+using Domain.Models.WebContents;
 using MediatR;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -19,6 +20,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
     private readonly IAsymmetricEncryption _asymmetric;
     private readonly IPublicKeyRepository _publicKeyRepository;
     private readonly IChartRepository _chartRepository;
+    private readonly IWebContentRepository _webContentRepository;
 
     public InitCommandHandler(
         IComplaintCategoryRepository categoryRepository,
@@ -27,7 +29,8 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         IAsymmetricEncryption asymmetric,
         IPublicKeyRepository publicKeyRepository,
         IComplaintOrganizationRepository organizationRepository,
-        IChartRepository chartRepository)
+        IChartRepository chartRepository,
+        IWebContentRepository webContentRepository)
     {
         _categoryRepository = categoryRepository;
         _userRepository = userRepository;
@@ -36,6 +39,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         _publicKeyRepository = publicKeyRepository;
         _organizationRepository = organizationRepository;
         _chartRepository = chartRepository;
+        _webContentRepository = webContentRepository;
     }
 
     public async Task<string> Handle(InitCommand request, CancellationToken cancellationToken)
@@ -44,6 +48,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         await initOrganizations();
         await initRolesAndUsers();
         await initCharts();
+        await initWebContents();
         var privateKey = await initPublicKey();
         return privateKey;
     }
@@ -210,6 +215,27 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
             users);
         _chartRepository.Insert(chart);
 
+        await _unitOfWork.SaveAsync();
+    }
+
+    private async Task initWebContents()
+    {
+        var initialWebContents = new List<WebContent>
+        {
+            WebContent.Create("About", "", "<H1>درباره ما</H1>"),
+            WebContent.Create("Contanct", "", "<H1>تماس با ما</H1>"),
+            WebContent.Create("PreRequest", "", "<H1>لطفاً گزارش خود را ثبت کنید.</H1>"),
+            WebContent.Create("PostRequest", "", "<H1>با تشکر از شما</H1>")
+        };
+        var webContents = await _webContentRepository.GetAsync();
+        foreach (var webContent in initialWebContents)
+        {
+            if (!webContents.Any(wc => wc.Title == webContent.Title))
+            {
+                _webContentRepository.Insert(webContent);
+            }
+        }
+        
         await _unitOfWork.SaveAsync();
     }
 }
