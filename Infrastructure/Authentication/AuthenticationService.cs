@@ -3,6 +3,7 @@ using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
 using Domain.Models.IdentityAggregate;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,7 +17,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUnitOfWork _unitOfWork;
     private readonly JwtInfo _jwtInfo;
-    
+
     public AuthenticationService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, JwtInfo jwtInfo)
     {
         _userManager = userManager;
@@ -97,6 +98,11 @@ public class AuthenticationService : IAuthenticationService
     public async Task<VerificationCodeModel> GetVerificationCode(string username)
     {
         var user = await GetUser(username);
+        var now = DateTime.UtcNow;
+        if (now - user.VerificationSent < new TimeSpan(0, 2, 0))
+            throw new Exception("Verification can't be sent in less than 2 minutes.");
+        await _unitOfWork.DbContext.Database.ExecuteSqlInterpolatedAsync(
+            $"UPDATE [dbo].[AspNetUsers] SET VerificationSent={now} WHERE Id = {user.Id}");
         return new VerificationCodeModel(user.PhoneNumber ?? "", await GenerateOtp(user));
     }
 
