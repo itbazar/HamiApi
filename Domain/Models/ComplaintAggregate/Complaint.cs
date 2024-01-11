@@ -16,9 +16,9 @@ public class Complaint : Entity
     public string Title { get; set; } = string.Empty;
     public Guid CategoryId { get; set; }
     public ComplaintCategory Category { get; set; } = null!;
-    public string Complaining { get; set; }
+    public string Complaining { get; set; } = string.Empty;
     public Guid ComplaintOrganizationId { get; set; }
-    public ComplaintOrganization ComplaintOrganization { get; set; }
+    public ComplaintOrganization ComplaintOrganization { get; set; } = null!;
     public List<ComplaintContent> Contents { get; set; } = new List<ComplaintContent>();
     public ComplaintState Status { get; set; }
     public DateTime RegisteredAt { get; set; }
@@ -122,6 +122,21 @@ public class Complaint : Entity
             _ => []
         };
     }
+    
+    public List<ComplaintMessage> GetMessages(ComplaintOperation operation)
+    {
+        return operation switch
+        {
+            ComplaintOperation.Register =>
+                new List<ComplaintMessage>()
+                {
+                    new ComplaintMessage(
+                        Actor.Citizen,
+                        $"درخواست شما با کد رهگیری {PlainPassword} و رمز {TrackingNumber} ثبت شد."),
+                },
+            _ => new List<ComplaintMessage>()
+        };
+    }
 }
 
 public enum Actor
@@ -165,3 +180,5 @@ public enum ComplaintOperation
     [Description("بازگشایی")]
     StartAgain
 }
+
+public record ComplaintMessage(Actor To, string Message);

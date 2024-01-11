@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Application.ExtensionMethods;
+namespace Application.Common.ExtensionMethods;
 
 public static class EnumExtensionMethods
 {

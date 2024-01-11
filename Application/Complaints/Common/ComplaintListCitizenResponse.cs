@@ -1,4 +1,4 @@
-﻿using Application.ExtensionMethods;
+﻿using Application.Common.ExtensionMethods;
 using Domain.Models.ComplaintAggregate;
 
 namespace Application.Complaints.Common;

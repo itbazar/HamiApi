@@ -1,6 +1,6 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.ExtensionMethods;
+using Application.Common.Interfaces.Persistence;
 using Application.Common.Statics;
-using Application.ExtensionMethods;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using MediatR;
