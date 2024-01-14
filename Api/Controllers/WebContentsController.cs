@@ -1,16 +1,9 @@
 ﻿using Api.Abstractions;
-using Api.Contracts.Sliders;
 using Api.Contracts.WebContents;
-using Application.Sliders.Commands.AddSliderCommand;
-using Application.Sliders.Commands.DeleteSliderCommand;
-using Application.Sliders.Commands.UpdateSliderCommand;
-using Application.Sliders.Queries.GetAdminSlidersQuery;
-using Application.Sliders.Queries.GetSliderByIdQuery;
 using Application.WebContents.Commands.AddWebContent;
 using Application.WebContents.Commands.EditWebContent;
 using Application.WebContents.Queries.GetAdminWebContentsQuery;
 using Application.WebContents.Queries.GetWebContentByIdQuery;
-using Domain.Models.Sliders;
 using Domain.Models.WebContents;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;

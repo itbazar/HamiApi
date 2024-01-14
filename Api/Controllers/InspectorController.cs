@@ -6,6 +6,7 @@ using Application.Complaints.Commands.AddComplaintCommand;
 using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintInspectorQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
+using Domain.Models.ComplaintAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -41,6 +42,17 @@ public class InspectorController : ApiController
         _allowedExtensions = _allowedExtensions.Select(x => x.Trim().ToUpper()).ToList();
     }
 
+    [HttpGet("PossibleStates")]
+    public ActionResult<List<PossibleStateDto>> GetPossibleStates()
+    {
+        var result = new List<PossibleStateDto>();
+        foreach(var item in Enum.GetValues(typeof(ComplaintState)))
+        {
+            result.Add(new PossibleStateDto(((ComplaintState)item).GetDescription() ?? "", (int)item));
+        }
+        return result;
+    }
+
     [HttpGet("List")]
     public async Task<ActionResult<List<ComplaintListInspectorResponse>>> List(
         [FromQuery] PagingInfo pagingInfo,
@@ -74,3 +86,5 @@ public class InspectorController : ApiController
         return Ok(result);
     }
 }
+
+public record PossibleStateDto(string Title, int Value);
