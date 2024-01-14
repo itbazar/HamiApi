@@ -25,6 +25,7 @@
     </PackageReference>
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
     <PackageReference Include="SixLaborsCaptcha.Core" Version="0.2.2" />
+    <PackageReference Include="StackExchange.Redis" Version="2.7.10" />
   </ItemGroup>
 
   <ItemGroup>

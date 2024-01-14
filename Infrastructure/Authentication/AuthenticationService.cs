@@ -17,12 +17,16 @@ public class AuthenticationService : IAuthenticationService
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IUnitOfWork _unitOfWork;
     private readonly JwtInfo _jwtInfo;
+    private readonly TokenValidationParameters _tokenValidationParameters;
+    private readonly IRefreshTokenRepository _refreshTokenRepository;
 
-    public AuthenticationService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, JwtInfo jwtInfo)
+    public AuthenticationService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, JwtInfo jwtInfo, TokenValidationParameters tokenValidationParameters, IRefreshTokenRepository refreshTokenRepository)
     {
         _userManager = userManager;
         _unitOfWork = unitOfWork;
         _jwtInfo = jwtInfo;
+        _tokenValidationParameters = tokenValidationParameters;
+        _refreshTokenRepository = refreshTokenRepository;
     }
 
     public async Task<LoginResultModel> Login(string username, string password, string? verificationCode = null)
@@ -47,6 +51,43 @@ public class AuthenticationService : IAuthenticationService
         {
             throw new InvalidLoginException();
         }
+    }
+
+    public async Task<LoginResultModel> Refresh(string token, string refreshToken)
+    {
+        var validatedToken = GetPrincipalFromToken(token);
+        if(validatedToken == null)
+        {
+            throw new Exception("Invalid token");
+        }
+        
+        var now = DateTime.UtcNow;
+        var expiryDateUnix =
+            long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
+        var expiryDateUtc = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            .AddSeconds(expiryDateUnix);
+        if (expiryDateUtc > now)
+        {
+            throw new Exception("Token not expired yet");
+        }
+
+        var storedRefreshToken = await _refreshTokenRepository.GetAsync(refreshToken);
+        if (storedRefreshToken is null)
+            throw new Exception("Refresh token not exsists");
+
+        // We don't need this when using Redis but is kept for compatibility
+        if (now > storedRefreshToken.CreationDate.Add(storedRefreshToken.Expiry))
+            throw new Exception("Refresh token is expired");
+
+        var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
+        if (storedRefreshToken.JwtId != jti)
+            throw new Exception("Jwt id not matched");
+
+        var userName = validatedToken.FindFirstValue(ClaimTypes.Name);
+        if (userName is null)
+            throw new Exception("Invalid username");
+        var user = await GetUser(userName);
+        return await GenerateToken(user);
     }
 
     public async Task<LoginResultModel> LogisterCitizen(string phoneNumber, string? verificationCode)
@@ -207,17 +248,63 @@ public class AuthenticationService : IAuthenticationService
         }
 
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtInfo.Secret));
-
+        var now = DateTime.UtcNow;
         var token = new JwtSecurityToken(
             issuer: _jwtInfo.Issuer,
             audience: _jwtInfo.Audience,
-            expires: DateTime.Now.Add(_jwtInfo.TimeSpan),
+            expires: now.Add(_jwtInfo.AccessTokenValidDuration),
             claims: authClaims,
             signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256));
 
-        return new LoginResultModel(new JwtSecurityTokenHandler().WriteToken(token));
+        var refreshToken = new RefreshToken(
+            Guid.NewGuid().ToString(),
+            user.Id,
+            token.Id,
+            now,
+            _jwtInfo.RefreshTokenValidDuration);
+        await _refreshTokenRepository.InsertAsync(refreshToken);
+
+        return new LoginResultModel(new JwtSecurityTokenHandler().WriteToken(token), refreshToken.Token);
+    }
+
+    private ClaimsPrincipal? GetPrincipalFromToken(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        try
+        {
+            var principal = tokenHandler.ValidateToken(
+                token,
+                _tokenValidationParameters,
+                out var validatedToken);
+            if (!IsJwtWithValidSecurityAlgorithm(validatedToken))
+            {
+                return null;
+            }
+            return principal;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+    private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
+    {
+        return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
+            jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256,
+                StringComparison.InvariantCultureIgnoreCase);
     }
 }
 
-public record JwtInfo(string Secret, string Issuer, string Audience, TimeSpan TimeSpan);
+public record JwtInfo(
+    string Secret,
+    string Issuer,
+    string Audience,
+    TimeSpan AccessTokenValidDuration,
+    TimeSpan RefreshTokenValidDuration);
 
+public record RefreshToken(
+    string Token,
+    string UserId,
+    string JwtId,
+    DateTime CreationDate,
+    TimeSpan Expiry);

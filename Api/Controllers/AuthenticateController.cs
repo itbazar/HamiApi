@@ -4,6 +4,7 @@ using Api.ExtensionMethods;
 using Application.Authentication.Commands.ChangePasswordCommand;
 using Application.Authentication.Commands.LoginCommand;
 using Application.Authentication.Commands.LogisterCitizenCommand;
+using Application.Authentication.Commands.RefreshCommand;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
 using Mapster;
@@ -30,11 +31,25 @@ public class AuthenticateController : ApiController
     }
 
     [HttpPost("VerifyStaff")]
-    public async Task<ActionResult> Verify([FromBody] StaffVerificationDto verificationDto)
+    public async Task<ActionResult<LoginResultDto>> Verify([FromBody] StaffVerificationDto verificationDto)
     {
-        var command = new LoginCommand(verificationDto.Username, verificationDto.Password, null, verificationDto.VerificationCode);
+        var command = new LoginCommand(
+            verificationDto.Username,
+            verificationDto.Password,
+            null,
+            verificationDto.VerificationCode);
         var result = await Sender.Send(command);
-        return Ok(result.JwtToken);
+        return Ok(result.Adapt<LoginResultDto>());
+    }
+
+    [HttpPost("Refresh")]
+    public async Task<ActionResult> Refresh([FromBody] RefreshDto refreshDto)
+    {
+        var command = new RefreshCommand(
+            refreshDto.Token,
+            refreshDto.RefreshToken);
+        var result = await Sender.Send(command);
+        return Ok(result);
     }
 
     [HttpPost("LogisterCitizen")]
@@ -46,11 +61,11 @@ public class AuthenticateController : ApiController
     }
 
     [HttpPost("VerifyCitizen")]
-    public async Task<ActionResult> VerifyCitizen([FromBody] CitizenVerificationDto logisterDto)
+    public async Task<ActionResult<LoginResultDto>> VerifyCitizen([FromBody] CitizenVerificationDto logisterDto)
     {
         var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, logisterDto.VerificationCode, null);
         var result = await Sender.Send(command);
-        return Ok(result.JwtToken);
+        return Ok(result.Adapt<LoginResultDto>());
     }
 
     [Authorize]

@@ -2,7 +2,6 @@
 using Application.Common.Interfaces.Encryption;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
-using Domain.Models.IdentityAggregate;
 using Infrastructure.Authentication;
 using Infrastructure.Captcha;
 using Infrastructure.Communications;
@@ -12,10 +11,10 @@ using Infrastructure.Persistence.Repositories;
 using Infrastructure.Storage;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 
 namespace Infrastructure;
 
@@ -24,6 +23,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
     {
         services.AddPersistence(configuration.GetConnectionString("DefaultConnection"));
+        services.AddRedis(configuration);
         services.AddRepositories();
         services.AddSecurity(configuration);
         services.AddEncryption();
@@ -49,6 +49,16 @@ public static class DependencyInjection
         return services;
     }
 
+    public static IServiceCollection AddRedis(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+                 ConnectionMultiplexer.Connect(new ConfigurationOptions
+                 {
+                     EndPoints = { $"{configuration.GetValue<string>("Redis:Host")}:{configuration.GetValue<int>("Redis:Port")}" },
+                     AbortOnConnectFail = false,
+                 }));
+        return services;
+    }
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -56,29 +66,26 @@ public static class DependencyInjection
         services.AddScoped<IComplaintCategoryRepository, ComplaintCategoryRepository>();
         services.AddScoped<IComplaintOrganizationRepository, ComplaintOrganizationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
         services.AddScoped<IPublicKeyRepository, PublicKeyRepository>();
         services.AddScoped<IChartRepository, ChartRepository>();
         services.AddScoped<ISliderRepository, SliderRepository>();
         services.AddScoped<INewsRepository, NewsRepository>();
         services.AddScoped<IWebContentRepository, WebContentRepository>();
+        services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         return services;
     }
 
     public static IServiceCollection AddSecurity(this IServiceCollection services, IConfiguration configuration)
     {
-        var jwtInfo = new JwtInfo(
-            configuration["JWT:Secret"] ?? throw new Exception(),
-            configuration["JWT:ValidIssuer"] ?? throw new Exception(),
-            configuration["JWT:ValidAudience"] ?? throw new Exception(),
-            new TimeSpan(24, 0, 0));
-
-        services.AddScoped<IAuthenticationService>(x => new AuthenticationService(
-            x.GetRequiredService<UserManager<ApplicationUser>>(),
-            x.GetRequiredService<IUnitOfWork>(),
-            jwtInfo));
+        var jwtInfo = configuration.GetSection("JWT").Get<JwtInfo>();
+        if (jwtInfo is null)
+            throw new Exception("Jwt info not exist");
+        
+        services.AddSingleton(jwtInfo);
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<ICaptchaProvider, SixLaborsCaptchaProvider>();
 
         return services;

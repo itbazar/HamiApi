@@ -28,7 +28,7 @@ public class RecaptchaCaptchaProvider
 
             result = captchaVerfication?.Success;
         }
-        catch (Exception e)
+        catch
         {
             // fail gracefully, but log
         }

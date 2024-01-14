@@ -44,7 +44,7 @@ internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginR
             {
                 throw new SendSmsException();
             }
-            result = new LoginResultModel("", true);
+            result = new LoginResultModel("", "", true);
         }
         return result;
     }

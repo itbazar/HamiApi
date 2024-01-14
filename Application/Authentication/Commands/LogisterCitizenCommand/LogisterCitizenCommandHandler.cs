@@ -44,7 +44,7 @@ internal class LogisterCitizenCommandHandler : IRequestHandler<LogisterCitizenCo
             {
                 throw new SendSmsException();
             }
-            result = new LoginResultModel("", true);
+            result = new LoginResultModel("", "", true);
         }
         return result;
     }
