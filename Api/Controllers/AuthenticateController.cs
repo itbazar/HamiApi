@@ -5,6 +5,7 @@ using Application.Authentication.Commands.ChangePasswordCommand;
 using Application.Authentication.Commands.LoginCommand;
 using Application.Authentication.Commands.LogisterCitizenCommand;
 using Application.Authentication.Commands.RefreshCommand;
+using Application.Authentication.Commands.RevokeCommand;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
 using Mapster;
@@ -43,11 +44,22 @@ public class AuthenticateController : ApiController
     }
 
     [HttpPost("Refresh")]
-    public async Task<ActionResult> Refresh([FromBody] RefreshDto refreshDto)
+    public async Task<ActionResult<LoginResultDto>> Refresh([FromBody] RefreshDto refreshDto)
     {
         var command = new RefreshCommand(
             refreshDto.Token,
             refreshDto.RefreshToken);
+        var result = await Sender.Send(command);
+        return Ok(result.Adapt<LoginResultDto>());
+    }
+
+    [Authorize]
+    [HttpPost("Revoke")]
+    public async Task<ActionResult<bool>> Revoke([FromBody] RevokeDto revokeDto)
+    {
+        var command = new RevokeCommand(
+            User.GetUserId(),
+            revokeDto.RefreshToken);
         var result = await Sender.Send(command);
         return Ok(result);
     }

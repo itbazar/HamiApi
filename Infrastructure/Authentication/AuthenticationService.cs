@@ -82,12 +82,27 @@ public class AuthenticationService : IAuthenticationService
         var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
         if (storedRefreshToken.JwtId != jti)
             throw new Exception("Jwt id not matched");
+        
+        await _refreshTokenRepository.DeleteAsync(refreshToken);
 
         var userName = validatedToken.FindFirstValue(ClaimTypes.Name);
         if (userName is null)
             throw new Exception("Invalid username");
         var user = await GetUser(userName);
         return await GenerateToken(user);
+    }
+
+    public async Task<bool> Revoke(string userId, string refreshToken)
+    {
+        var storedRefreshToken = await _refreshTokenRepository.GetAsync(refreshToken);
+        if (storedRefreshToken is null)
+            throw new Exception("Refresh token not exsists");
+        
+        if (storedRefreshToken.UserId != userId) 
+            throw new Exception("User not matched");
+        await _refreshTokenRepository.DeleteAsync(refreshToken);
+
+        return true;
     }
 
     public async Task<LoginResultModel> LogisterCitizen(string phoneNumber, string? verificationCode)
@@ -138,6 +153,7 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<VerificationCodeModel> GetVerificationCode(string username)
     {
+        //TODO: Store sent time in redis
         var user = await GetUser(username);
         var now = DateTime.UtcNow;
         if (now - user.VerificationSent < new TimeSpan(0, 2, 0))

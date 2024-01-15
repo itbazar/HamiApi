@@ -7,7 +7,6 @@ using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using Domain.Models.WebContents;
 using MediatR;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Application.Setup.Commands.Init;
 

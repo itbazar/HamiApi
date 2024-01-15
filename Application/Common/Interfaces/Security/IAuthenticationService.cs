@@ -4,6 +4,7 @@ public interface IAuthenticationService
 {
     public Task<LoginResultModel> Login(string username, string password, string? verificationCode = null);
     public Task<LoginResultModel> Refresh(string token, string refreshToken);
+    public Task<bool> Revoke(string userId, string refreshToken);
     public Task<LoginResultModel> LogisterCitizen(string phoneNumber, string? verificationCode);
     public Task<bool> ChangePassword(string username, string oldPassword, string newPassword);
     public Task<VerificationCodeModel> GetVerificationCode(string username);

@@ -21,7 +21,7 @@ public class RefreshTokenRepository : IRefreshTokenRepository
 
     public async Task<RefreshToken?> GetAsync(string tokenId)
     {
-        string? serialized = await _database.StringGetDeleteAsync($"ref:{tokenId}");
+        string? serialized = await _database.StringGetAsync($"ref:{tokenId}");
         if (serialized is null)
             return null;
         var token = JsonSerializer.Deserialize<RefreshToken>(serialized);
