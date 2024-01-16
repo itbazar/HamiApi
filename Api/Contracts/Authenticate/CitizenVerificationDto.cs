@@ -3,7 +3,6 @@
 namespace Api.Contracts.Authenticate;
 
 public record CitizenVerificationDto(
-    [RegularExpression(@"^09[0-9]{9}$")]
-    string PhoneNumber,
+    string OtpToken,
     [Required] [MaxLength(8)]
     string VerificationCode);

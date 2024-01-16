@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.Authentication.Commands.LoginCommand;
 
-internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResultModel>
+internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ICaptchaProvider _captchaProvider;
@@ -17,7 +17,7 @@ internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginR
         _captchaProvider = captchaProvider;
         _communicationService = communicationService;
     }
-    public async Task<LoginResultModel> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         if(request.CaptchaValidateModel is not null)
         {
@@ -28,25 +28,27 @@ internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginR
             }
         }
 
-        LoginResultModel? result;
-        try
+        var result = await _authenticationService.Login(request.Username, request.Password, true);
+        if(result.AuthToken is not null)
         {
-            result = await _authenticationService.Login(request.Username, request.Password, request.VerificationCode);
+            return new LoginResponse(result.AuthToken, null);
         }
-        catch (PhoneNumberNotConfirmedException)
+        if(result.VerificationToken is not null)
         {
-            var verificationCode = await _authenticationService.GetVerificationCode(request.Username);
             try
             {
-                await _communicationService.SendVerificationAsync(verificationCode.PhoneNumber, verificationCode.Code);
+                await _communicationService.SendVerificationAsync(
+                    result.VerificationToken.PhoneNumber, result.VerificationToken.Code);
             }
             catch
             {
                 throw new SendSmsException();
             }
-            result = new LoginResultModel("", "", true);
+
+            return new LoginResponse(null, result.VerificationToken.Token);
         }
-        return result;
+
+        throw new Exception("Unpredictable behaviour.");
     }
 }
 

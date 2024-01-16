@@ -1,9 +1,8 @@
 ﻿using Application.Common.Exceptions;
-using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
+using Application.Common.Statics;
 using Domain.Models.IdentityAggregate;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -15,36 +14,35 @@ namespace Infrastructure.Authentication;
 public class AuthenticationService : IAuthenticationService
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IUnitOfWork _unitOfWork;
     private readonly JwtInfo _jwtInfo;
     private readonly TokenValidationParameters _tokenValidationParameters;
-    private readonly IRefreshTokenRepository _refreshTokenRepository;
+    private readonly IAuthenticateRepository _authenticateRepository;
 
-    public AuthenticationService(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork, JwtInfo jwtInfo, TokenValidationParameters tokenValidationParameters, IRefreshTokenRepository refreshTokenRepository)
+    public AuthenticationService(
+        UserManager<ApplicationUser> userManager,
+        JwtInfo jwtInfo,
+        TokenValidationParameters tokenValidationParameters,
+        IAuthenticateRepository authenticateRepository)
     {
         _userManager = userManager;
-        _unitOfWork = unitOfWork;
         _jwtInfo = jwtInfo;
         _tokenValidationParameters = tokenValidationParameters;
-        _refreshTokenRepository = refreshTokenRepository;
+        _authenticateRepository = authenticateRepository;
     }
 
-    public async Task<LoginResultModel> Login(string username, string password, string? verificationCode = null)
+    public async Task<LoginResultModel> Login(string username, string password, bool twoFactorEnabled = false)
     {
         var user = await GetUser(username);
 
         if (await _userManager.CheckPasswordAsync(user, password))
         {
-            if (verificationCode is null)
-                throw new PhoneNumberNotConfirmedException();
-
-            if (await ValidateOtp(user, verificationCode))
+            if (twoFactorEnabled)
             {
-                return await GenerateToken(user);
+                return new LoginResultModel(null, await GetVerificationCode(user));
             }
-            else 
+            else
             {
-                throw new InvalidVerificationCode();
+                return new LoginResultModel(await GenerateToken(user), null);
             }
         }
         else
@@ -53,14 +51,53 @@ public class AuthenticationService : IAuthenticationService
         }
     }
 
-    public async Task<LoginResultModel> Refresh(string token, string refreshToken)
+    public async Task<AuthToken> VerifyOtp(string otpToken, string code)
+    {
+        var storedOtp = await _authenticateRepository.GetOtpAsync(otpToken);
+        if (storedOtp is null)
+            throw new Exception("Otp not found");
+
+        if (await ValidateOtp(storedOtp.User, code))
+        {
+            await _authenticateRepository.DeleteOtpAsync(otpToken);
+            if (storedOtp.IsNew)
+            {
+                await CreateCitizen(storedOtp.User);
+            }
+            return await GenerateToken(storedOtp.User);
+        }
+            
+        throw new InvalidVerificationCode();
+    }
+
+    public async Task<VerificationToken> LogisterCitizen(string phoneNumber)
+    {
+        Regex regex = new Regex(@"^09[0-9]{9}$");
+        if (!regex.IsMatch(phoneNumber))
+        {
+            throw new InvalidUsernameException();
+        }
+        var user = await _userManager.FindByNameAsync(phoneNumber);
+        var isNew = user is null;
+        if (user is null)
+            user = new ApplicationUser()
+            {
+                SecurityStamp = Guid.NewGuid().ToString(),
+                UserName = phoneNumber,
+                PhoneNumber = phoneNumber,
+                PhoneNumberConfirmed = false
+            };
+        return await GetVerificationCode(user, isNew);
+    }
+
+    public async Task<AuthToken> Refresh(string token, string refreshToken)
     {
         var validatedToken = GetPrincipalFromToken(token);
-        if(validatedToken == null)
+        if (validatedToken == null)
         {
             throw new Exception("Invalid token");
         }
-        
+
         var now = DateTime.UtcNow;
         var expiryDateUnix =
             long.Parse(validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
@@ -71,7 +108,7 @@ public class AuthenticationService : IAuthenticationService
             throw new Exception("Token not expired yet");
         }
 
-        var storedRefreshToken = await _refreshTokenRepository.GetAsync(refreshToken);
+        var storedRefreshToken = await _authenticateRepository.GetRefreshTokenAsync(refreshToken);
         if (storedRefreshToken is null)
             throw new Exception("Refresh token not exsists");
 
@@ -82,8 +119,8 @@ public class AuthenticationService : IAuthenticationService
         var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
         if (storedRefreshToken.JwtId != jti)
             throw new Exception("Jwt id not matched");
-        
-        await _refreshTokenRepository.DeleteAsync(refreshToken);
+
+        await _authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
 
         var userName = validatedToken.FindFirstValue(ClaimTypes.Name);
         if (userName is null)
@@ -94,89 +131,15 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<bool> Revoke(string userId, string refreshToken)
     {
-        var storedRefreshToken = await _refreshTokenRepository.GetAsync(refreshToken);
+        var storedRefreshToken = await _authenticateRepository.GetRefreshTokenAsync(refreshToken);
         if (storedRefreshToken is null)
             throw new Exception("Refresh token not exsists");
-        
-        if (storedRefreshToken.UserId != userId) 
+
+        if (storedRefreshToken.UserId != userId)
             throw new Exception("User not matched");
-        await _refreshTokenRepository.DeleteAsync(refreshToken);
+        await _authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
 
         return true;
-    }
-
-    public async Task<LoginResultModel> LogisterCitizen(string phoneNumber, string? verificationCode)
-    {
-        Regex regex = new Regex(@"^09[0-9]{9}$");
-        if (!regex.IsMatch(phoneNumber))
-        {
-            throw new InvalidUsernameException();
-        }
-        var user = await _userManager.FindByNameAsync(phoneNumber);
-
-        if (user is not null)
-        {
-            if (verificationCode is null)
-                throw new PhoneNumberNotConfirmedException();
-
-            if (await ValidateOtp(user, verificationCode))
-            {
-                return await GenerateToken(user);
-            }
-            else
-            {
-                throw new InvalidVerificationCode();
-            }
-        }
-
-        user = new ApplicationUser()
-        {
-            SecurityStamp = Guid.NewGuid().ToString(),
-            UserName = phoneNumber,
-            PhoneNumber = phoneNumber,
-            PhoneNumberConfirmed = false
-        };
-        var result = await _userManager.CreateAsync(user, "ADGJL';khfs12");
-        if (!result.Succeeded)
-            throw new UserRegisterException();
-
-        var result2 = await _userManager.AddToRoleAsync(user, "Citizen");
-
-        if (!result2.Succeeded)
-        {
-            await _userManager.DeleteAsync(user);
-            throw new UserRegisterException();
-        }
-
-        throw new PhoneNumberNotConfirmedException();
-    }
-
-    public async Task<VerificationCodeModel> GetVerificationCode(string username)
-    {
-        //TODO: Store sent time in redis
-        var user = await GetUser(username);
-        var now = DateTime.UtcNow;
-        if (now - user.VerificationSent < new TimeSpan(0, 2, 0))
-            throw new Exception("Verification can't be sent in less than 2 minutes.");
-        await _unitOfWork.DbContext.Database.ExecuteSqlInterpolatedAsync(
-            $"UPDATE [dbo].[AspNetUsers] SET VerificationSent={now} WHERE Id = {user.Id}");
-        return new VerificationCodeModel(user.PhoneNumber ?? "", await GenerateOtp(user));
-    }
-
-    public async Task<bool> VerifyPhoneNumber(string username, string verificationCode)
-    {
-        var user = await GetUser(username);
-        var isVerified = await ValidateOtp(user, verificationCode);
-        if (isVerified)
-        {
-            user.PhoneNumberConfirmed = true;
-            await _unitOfWork.SaveAsync();
-            return true;
-        }
-        else
-        {
-            return false;
-        }
     }
 
     public async Task<bool> ChangePassword(string username, string oldPassword, string newPassword)
@@ -190,39 +153,42 @@ public class AuthenticationService : IAuthenticationService
         return false;
     }
 
-    public async Task<string> GetResetPasswordToken(string username, string verificationCode)
-    {
-        var user = await GetUser(username);
-        var isValid = await ValidateOtp(user, verificationCode);
-
-        if (isValid)
-        {
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            if(token is null)
-            {
-                throw new ResetPasswordTokenGenerationFailed();
-            }
-            return token;
-        }
-        else
-        {
-            throw new InvalidVerificationCode();
-        }
-    }
-
-    public async Task<bool> ResetPassword(string username, string resetPasswordToken, string newPassword)
-    {
-        var user = await GetUser(username);
-        
-        var result = await _userManager.ResetPasswordAsync(user, resetPasswordToken, newPassword);
-        if (result.Succeeded)
-            return true;
-        else
-            return false;
-    }
-
     /////////////////////////
     /// Private methods
+    private async Task CreateCitizen(ApplicationUser user)
+    {
+        try
+        {
+            user.PhoneNumberConfirmed = true;
+            var result = await _userManager.CreateAsync(user, "ADGJL';khfs12");
+            if (!result.Succeeded)
+                throw new UserRegisterException();
+
+            var result2 = await _userManager.AddToRoleAsync(user, RoleNames.Citizen);
+
+            if (!result2.Succeeded)
+            {
+                await _userManager.DeleteAsync(user);
+                throw new UserRegisterException();
+            }
+        }
+        catch
+        {
+            throw new UserRegisterException();
+        }
+    }
+
+    private async Task<VerificationToken> GetVerificationCode(ApplicationUser user, bool isNew = false)
+    {
+        if (await _authenticateRepository.IsSentAsync(user.UserName!))
+            throw new Exception("Verification can't be sent in less than 2 minutes.");
+
+        var otp = new Otp(Guid.NewGuid().ToString(), user, isNew);
+        await _authenticateRepository.InsertOtpAsync(otp);
+        await _authenticateRepository.InsertSentAsync(user.UserName!);
+        return new VerificationToken(user.PhoneNumber ?? "", otp.Token, await GenerateOtp(user));
+    }
+
     private async Task<ApplicationUser> GetUser(string username)
     {
         var user = await _userManager.FindByNameAsync(username);
@@ -247,7 +213,7 @@ public class AuthenticationService : IAuthenticationService
         return await tokenGenerator.ValidateAsync("Phone number verification", token, _userManager, user);
     }
 
-    private async Task<LoginResultModel> GenerateToken(ApplicationUser user)
+    private async Task<AuthToken> GenerateToken(ApplicationUser user)
     {
         var userRoles = await _userManager.GetRolesAsync(user);
 
@@ -278,9 +244,9 @@ public class AuthenticationService : IAuthenticationService
             token.Id,
             now,
             _jwtInfo.RefreshTokenValidDuration);
-        await _refreshTokenRepository.InsertAsync(refreshToken);
+        await _authenticateRepository.InsertRefreshTokenAsync(refreshToken);
 
-        return new LoginResultModel(new JwtSecurityTokenHandler().WriteToken(token), refreshToken.Token);
+        return new AuthToken(new JwtSecurityTokenHandler().WriteToken(token), refreshToken.Token);
     }
 
     private ClaimsPrincipal? GetPrincipalFromToken(string token)
@@ -303,6 +269,7 @@ public class AuthenticationService : IAuthenticationService
             return null;
         }
     }
+
     private bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
     {
         return (validatedToken is JwtSecurityToken jwtSecurityToken) &&
@@ -324,3 +291,8 @@ public record RefreshToken(
     string JwtId,
     DateTime CreationDate,
     TimeSpan Expiry);
+
+ public record Otp(
+     string Token,
+     ApplicationUser User,
+     bool IsNew);

@@ -3,8 +3,6 @@
 namespace Api.Contracts.Authenticate;
 
 public record StaffVerificationDto(
-    string Username,
-    [Required] [MinLength(6)] [MaxLength(512)]
-    string Password,
+    string OtpToken,
     [Required] [MaxLength(8)]
     string VerificationCode);

@@ -34,10 +34,8 @@ public class AuthenticateController : ApiController
     [HttpPost("VerifyStaff")]
     public async Task<ActionResult<LoginResultDto>> Verify([FromBody] StaffVerificationDto verificationDto)
     {
-        var command = new LoginCommand(
-            verificationDto.Username,
-            verificationDto.Password,
-            null,
+        var command = new TwoFactorLoginCommand(
+            verificationDto.OtpToken,
             verificationDto.VerificationCode);
         var result = await Sender.Send(command);
         return Ok(result.Adapt<LoginResultDto>());
@@ -67,15 +65,15 @@ public class AuthenticateController : ApiController
     [HttpPost("LogisterCitizen")]
     public async Task<ActionResult> LogisterCitizen([FromBody] LogisterCitizenDto logisterDto)
     {
-        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, null, logisterDto.Captcha);
-        await Sender.Send(command);
-        return StatusCode(StatusCodes.Status428PreconditionRequired, "");
+        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, logisterDto.Captcha);
+        var result = await Sender.Send(command);
+        return StatusCode(StatusCodes.Status428PreconditionRequired, result);
     }
 
     [HttpPost("VerifyCitizen")]
     public async Task<ActionResult<LoginResultDto>> VerifyCitizen([FromBody] CitizenVerificationDto logisterDto)
     {
-        var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, logisterDto.VerificationCode, null);
+        var command = new TwoFactorLoginCommand(logisterDto.OtpToken, logisterDto.VerificationCode);
         var result = await Sender.Send(command);
         return Ok(result.Adapt<LoginResultDto>());
     }

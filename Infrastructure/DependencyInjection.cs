@@ -73,7 +73,7 @@ public static class DependencyInjection
         services.AddScoped<INewsRepository, NewsRepository>();
         services.AddScoped<IWebContentRepository, WebContentRepository>();
         services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
-        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IAuthenticateRepository, AuthenticateRepository>();
 
         return services;
     }

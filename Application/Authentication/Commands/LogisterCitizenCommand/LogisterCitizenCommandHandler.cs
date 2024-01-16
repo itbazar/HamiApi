@@ -5,7 +5,7 @@ using MediatR;
 
 namespace Application.Authentication.Commands.LogisterCitizenCommand;
 
-internal class LogisterCitizenCommandHandler : IRequestHandler<LogisterCitizenCommand, LoginResultModel>
+internal class LogisterCitizenCommandHandler : IRequestHandler<LogisterCitizenCommand, string>
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ICaptchaProvider _captchaProvider;
@@ -17,7 +17,7 @@ internal class LogisterCitizenCommandHandler : IRequestHandler<LogisterCitizenCo
         _captchaProvider = captchaProvider;
         _communicationService = communicationService;
     }
-    public async Task<LoginResultModel> Handle(LogisterCitizenCommand request, CancellationToken cancellationToken)
+    public async Task<string> Handle(LogisterCitizenCommand request, CancellationToken cancellationToken)
     {
         if (request.CaptchaValidateModel is not null)
         {
@@ -28,24 +28,17 @@ internal class LogisterCitizenCommandHandler : IRequestHandler<LogisterCitizenCo
             }
         }
 
-        LoginResultModel? result;
+        var result = await _authenticationService.LogisterCitizen(request.PhoneNumber);
         try
         {
-            result = await _authenticationService.LogisterCitizen(request.PhoneNumber, request.VerificationCode);
+            await _communicationService.SendVerificationAsync(
+                result.PhoneNumber, result.Code);
         }
-        catch (PhoneNumberNotConfirmedException)
+        catch
         {
-            var verificationCode = await _authenticationService.GetVerificationCode(request.PhoneNumber);
-            try
-            {
-                await _communicationService.SendVerificationAsync(verificationCode.PhoneNumber, verificationCode.Code);
-            }
-            catch
-            {
-                throw new SendSmsException();
-            }
-            result = new LoginResultModel("", "", true);
+            throw new SendSmsException();
         }
-        return result;
+
+        return result.Token;
     }
 }
