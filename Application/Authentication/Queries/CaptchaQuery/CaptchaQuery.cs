@@ -3,5 +3,5 @@ using MediatR;
 
 namespace Application.Authentication.Queries.CaptchaQuery;
 
-public sealed record CaptchaQuery() : IRequest<CaptchaResultModel>;
+public sealed record CaptchaQuery() : IRequest<Result<CaptchaResultModel>>;
 

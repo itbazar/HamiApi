@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.KeyManagement;
+using Api.ExtensionMethods;
 using Application.Common.Interfaces.Encryption;
 using Application.Setup.Commands.AddPublicKey;
 using Application.Setup.Commands.ChangeInspectorKey;
@@ -25,7 +26,9 @@ public class AdminController : ApiController
     {
         var command = new InitCommand();
         var result = await Sender.Send(command);
-        return File(Encoding.ASCII.GetBytes(result), "text/plain", "private.txt");
+        return result.Match(
+            s => File(Encoding.ASCII.GetBytes(s), "text/plain", "private.txt"),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -33,7 +36,10 @@ public class AdminController : ApiController
     public async Task<ActionResult<AsymmetricKey>> GenerateKeyPair()
     {
         var command = new GenerateKeyPairCommand();
-        return await Sender.Send(command);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -41,7 +47,10 @@ public class AdminController : ApiController
     public async Task<ActionResult<List<PublicKeyResponse>>> GetKeys()
     {
         var command = new GetPublicKeysQuery();
-        return await Sender.Send(command);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -49,7 +58,10 @@ public class AdminController : ApiController
     public async Task<ActionResult<bool>> AddKey([FromBody] AddPublicKeyDto addKeyDto)
     {
         var command = new AddPublicKeyCommand(addKeyDto.Title, addKeyDto.PublicKey);
-        return await Sender.Send(command);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -57,6 +69,9 @@ public class AdminController : ApiController
     public async Task<ActionResult<bool>> ChangeKey([FromBody] ChangeInspectorKeyDto changeKeyDto)
     {
         var command = new ChangeInspectorKeyCommand(changeKeyDto.PrivateKey, changeKeyDto.PublicKeyId);
-        return await Sender.Send(command);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s), 
+            () => Problem());
     }
 }

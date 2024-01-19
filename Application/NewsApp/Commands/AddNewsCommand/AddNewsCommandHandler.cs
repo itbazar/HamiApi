@@ -1,36 +1,26 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.News;
 using Infrastructure.Storage;
 using MediatR;
 
 namespace Application.NewsApp.Commands.AddNewsCommand;
 
-internal class AddNewsCommandHandler : IRequestHandler<AddNewsCommand, News>
+internal class AddNewsCommandHandler(
+    INewsRepository newsRepository,
+    IStorageService storageService,
+    IUnitOfWork unitOfWork) : IRequestHandler<AddNewsCommand, Result<News>>
 {
-    private readonly INewsRepository _newsRepository;
-    private readonly IStorageService _storageService;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public AddNewsCommandHandler(
-        INewsRepository newsRepository,
-        IStorageService storageService,
-        IUnitOfWork unitOfWork)
+    public async Task<Result<News>> Handle(AddNewsCommand request, CancellationToken cancellationToken)
     {
-        _newsRepository = newsRepository;
-        _storageService = storageService;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<News> Handle(AddNewsCommand request, CancellationToken cancellationToken)
-    {
-        var image = await _storageService.WriteFileAsync(request.Image, AttachmentType.News);
+        var image = await storageService.WriteFileAsync(request.Image, AttachmentType.News);
         if (image is null)
         {
-            throw new Exception("Attachment failed.");
+            return GenericErrors.AttachmentFailed;
         }
         var news = News.Create(request.Title, image, request.Url, request.Description);
-        _newsRepository.Insert(news);
-        await _unitOfWork.SaveAsync();
+        newsRepository.Insert(news);
+        await unitOfWork.SaveAsync();
         return news;
     }
 }

@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.Users.Commands.UpdateRoles;
 
-public record UpdateRolesCommand(string UserId, List<IsInRoleModel> Roles):IRequest<bool>;
+public record UpdateRolesCommand(string UserId, List<IsInRoleModel> Roles):IRequest<Result<bool>>;

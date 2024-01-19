@@ -6,7 +6,7 @@ using MediatR;
 namespace Application.Complaints.Queries.GetComplaintListQuery;
 
 internal class GetComplaintListCitizenQueryHandler : 
-    IRequestHandler<GetComplaintListCitizenQuery, List<ComplaintListCitizenResponse>>
+    IRequestHandler<GetComplaintListCitizenQuery, Result<List<ComplaintListCitizenResponse>>>
 {
     private readonly IComplaintRepository _complaintRepository;
 
@@ -15,7 +15,7 @@ internal class GetComplaintListCitizenQueryHandler :
         _complaintRepository = complaintRepository;
     }
 
-    public async Task<List<ComplaintListCitizenResponse>> Handle(
+    public async Task<Result<List<ComplaintListCitizenResponse>>> Handle(
         GetComplaintListCitizenQuery request, CancellationToken cancellationToken)
     {
         var complaintList = await _complaintRepository.GetListInspectorAsync(

@@ -4,25 +4,16 @@ using MediatR;
 
 namespace Application.ComplaintCategories.Commands.DeleteComplaintCategory;
 
-internal class DeleteComplaintCategoryCommandHandler : IRequestHandler<DeleteComplaintCategoryCommand, ComplaintCategory>
+internal class DeleteComplaintCategoryCommandHandler(IComplaintCategoryRepository categoryRepository, IUnitOfWork unitOfWork) : IRequestHandler<DeleteComplaintCategoryCommand, Result<ComplaintCategory>>
 {
-    private readonly IComplaintCategoryRepository _categoryRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteComplaintCategoryCommandHandler(IComplaintCategoryRepository categoryRepository, IUnitOfWork unitOfWork)
+    public async Task<Result<ComplaintCategory>> Handle(DeleteComplaintCategoryCommand request, CancellationToken cancellationToken)
     {
-        _categoryRepository = categoryRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<ComplaintCategory> Handle(DeleteComplaintCategoryCommand request, CancellationToken cancellationToken)
-    {
-        var category = await _categoryRepository.GetSingleAsync(cc => cc.Id == request.Id);
+        var category = await categoryRepository.GetSingleAsync(cc => cc.Id == request.Id);
         if (category is null)
             throw new Exception("Not found!");
         category.Delete(request.IsDeleted);
-        _categoryRepository.Update(category);
-        await _unitOfWork.SaveAsync();
+        categoryRepository.Update(category);
+        await unitOfWork.SaveAsync();
         return category;
     }
 }

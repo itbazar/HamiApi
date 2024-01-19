@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.ComplaintCategories.Commands.EditComplaintCategory;
 
-public record EditComplaintCategoryCommand(Guid Id, string? Title, string? Description) : IRequest<ComplaintCategory>;
+public record EditComplaintCategoryCommand(Guid Id, string? Title, string? Description) : IRequest<Result<ComplaintCategory>>;

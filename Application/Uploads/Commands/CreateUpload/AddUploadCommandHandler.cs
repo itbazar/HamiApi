@@ -1,24 +1,18 @@
-﻿using Domain.Models.Common;
+﻿using Application.Common.Errors;
+using Domain.Models.Common;
 using Infrastructure.Storage;
 using MediatR;
 
 namespace Application.Uploads.Commands.CreateUpload;
 
-internal sealed class AddUploadCommandHandler : IRequestHandler<AddUploadCommand, StorageMedia>
+internal sealed class AddUploadCommandHandler(IStorageService storageService) : IRequestHandler<AddUploadCommand, Result<StorageMedia>>
 {
-    private readonly IStorageService _storageService;
-
-    public AddUploadCommandHandler(IStorageService storageService)
+    public async Task<Result<StorageMedia>> Handle(AddUploadCommand request, CancellationToken cancellationToken)
     {
-        _storageService = storageService;
-    }
-
-    public async Task<StorageMedia> Handle(AddUploadCommand request, CancellationToken cancellationToken)
-    {
-        var media = await _storageService.WriteFileAsync(request.File, request.AttachmentType);
+        var media = await storageService.WriteFileAsync(request.File, request.AttachmentType);
         if (media == null)
         {
-            throw new Exception("Upload failed.");
+            return GenericErrors.AttachmentFailed;
         }
 
         return media;

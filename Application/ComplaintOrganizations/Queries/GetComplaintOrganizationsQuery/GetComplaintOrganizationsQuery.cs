@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
 
-public record GetComplaintOrganizationsQuery() : IRequest<List<ComplaintOrganization>>;
+public record GetComplaintOrganizationsQuery() : IRequest<Result<List<ComplaintOrganization>>>;

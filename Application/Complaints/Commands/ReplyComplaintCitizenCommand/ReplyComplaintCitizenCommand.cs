@@ -9,4 +9,4 @@ public record ReplyComplaintCitizenCommand(
     string Text,
     List<MediaRequest> Medias,
     ComplaintOperation Operation,
-    string Password) : IRequest<bool>;
+    string Password) : IRequest<Result<bool>>;

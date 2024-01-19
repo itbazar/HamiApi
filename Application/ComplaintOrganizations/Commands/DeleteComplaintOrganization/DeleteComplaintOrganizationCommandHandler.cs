@@ -4,25 +4,16 @@ using MediatR;
 
 namespace Application.ComplaintOrganizations.Commands.DeleteComplaintOrganization;
 
-internal class DeleteComplaintOrganizationCommandHandler : IRequestHandler<DeleteComplaintOrganizationCommand, ComplaintOrganization>
+internal class DeleteComplaintOrganizationCommandHandler(IComplaintOrganizationRepository organizationRepository, IUnitOfWork unitOfWork) : IRequestHandler<DeleteComplaintOrganizationCommand, Result<ComplaintOrganization>>
 {
-    private readonly IComplaintOrganizationRepository _organizationRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteComplaintOrganizationCommandHandler(IComplaintOrganizationRepository organizationRepository, IUnitOfWork unitOfWork)
+    public async Task<Result<ComplaintOrganization>> Handle(DeleteComplaintOrganizationCommand request, CancellationToken cancellationToken)
     {
-        _organizationRepository = organizationRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<ComplaintOrganization> Handle(DeleteComplaintOrganizationCommand request, CancellationToken cancellationToken)
-    {
-        var organization = await _organizationRepository.GetSingleAsync(cc => cc.Id == request.Id);
+        var organization = await organizationRepository.GetSingleAsync(cc => cc.Id == request.Id);
         if (organization is null)
             throw new Exception("Not found!");
         organization.Delete(request.IsDeleted);
-        _organizationRepository.Update(organization);
-        await _unitOfWork.SaveAsync();
+        organizationRepository.Update(organization);
+        await unitOfWork.SaveAsync();
         return organization;
     }
 }

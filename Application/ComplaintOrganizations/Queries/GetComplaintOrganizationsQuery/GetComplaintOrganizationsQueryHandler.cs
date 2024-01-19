@@ -4,18 +4,11 @@ using MediatR;
 
 namespace Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
 
-internal class GetComplaintOrganizationsQueryHandler : IRequestHandler<GetComplaintOrganizationsQuery, List<ComplaintOrganization>>
+internal class GetComplaintOrganizationsQueryHandler(IComplaintOrganizationRepository organizationRepository) : IRequestHandler<GetComplaintOrganizationsQuery, Result<List<ComplaintOrganization>>>
 {
-    private readonly IComplaintOrganizationRepository _organizationRepository;
-
-    public GetComplaintOrganizationsQueryHandler(IComplaintOrganizationRepository organizationRepository)
+    public async Task<Result<List<ComplaintOrganization>>> Handle(GetComplaintOrganizationsQuery request, CancellationToken cancellationToken)
     {
-        _organizationRepository = organizationRepository;
-    }
-
-    public async Task<List<ComplaintOrganization>> Handle(GetComplaintOrganizationsQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _organizationRepository.GetAsync(cc => cc.IsDeleted == false);
+        var result = await organizationRepository.GetAsync(cc => cc.IsDeleted == false);
         return result.ToList();
     }
 }

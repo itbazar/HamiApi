@@ -4,16 +4,9 @@ using MediatR;
 
 namespace Application.Users.Commands.CreateUser;
 
-internal class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, ApplicationUser>
+internal class CreateUserCommandHandler(IUserRepository userRepository) : IRequestHandler<CreateUserCommand, Result<ApplicationUser>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public CreateUserCommandHandler(IUserRepository userRepository)
-    {
-        _userRepository = userRepository;
-    }
-
-    public async Task<ApplicationUser> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ApplicationUser>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
         ApplicationUser user = new()
         {
@@ -22,7 +15,7 @@ internal class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, App
             LastName = request.LastName,
             Title = request.Title,
         };
-        var result = await _userRepository.CreateAsync(user, request.Password);
+        var result = await userRepository.CreateAsync(user, request.Password);
         if (!result.Succeeded)
             throw new Exception();
         return user;

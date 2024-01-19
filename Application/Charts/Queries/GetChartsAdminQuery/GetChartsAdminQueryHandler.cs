@@ -6,18 +6,11 @@ using MediatR;
 
 namespace Application.Charts.Queries.GetChartsAdminQuery;
 
-internal class GetChartsAdminQueryHandler : IRequestHandler<GetChartsAdminQuery, List<ChartResponse>>
+internal class GetChartsAdminQueryHandler(IChartRepository categoryRepository) : IRequestHandler<GetChartsAdminQuery, Result<List<ChartResponse>>>
 {
-    private readonly IChartRepository _categoryRepository;
-
-    public GetChartsAdminQueryHandler(IChartRepository categoryRepository)
+    public async Task<Result<List<ChartResponse>>> Handle(GetChartsAdminQuery request, CancellationToken cancellationToken)
     {
-        _categoryRepository = categoryRepository;
-    }
-
-    public async Task<List<ChartResponse>> Handle(GetChartsAdminQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _categoryRepository.GetAsync();
+        var result = await categoryRepository.GetAsync();
         return result.ToList().Adapt<List<ChartResponse>>();
     }
 }

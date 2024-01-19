@@ -9,4 +9,4 @@ public record AddNewsCommand(
     IFormFile Image,
     string Url,
     string Description,
-    string Content) : IRequest<News>;
+    string Content) : IRequest<Result<News>>;

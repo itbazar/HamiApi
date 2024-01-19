@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.NewsApp.Queries.GetNewsQuery;
 
-public record GetNewsQuery() : IRequest<List<News>>;
+public record GetNewsQuery() : IRequest<Result<List<News>>>;

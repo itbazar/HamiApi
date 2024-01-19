@@ -1,24 +1,18 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.IdentityAggregate;
 using MediatR;
 
 namespace Application.Users.Queries.GetUserProfile;
 
-internal class GetUserProfileQueryHandler : IRequestHandler<GetUserProfileQuery, ApplicationUser>
+internal class GetUserProfileQueryHandler(IUserRepository userRepository) : IRequestHandler<GetUserProfileQuery, Result<ApplicationUser>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public GetUserProfileQueryHandler(IUserRepository userRepository)
+    public async Task<Result<ApplicationUser>> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
     {
-        _userRepository = userRepository;
-    }
-
-    public async Task<ApplicationUser> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _userRepository.FindByIdAsync(request.UserId);
+        var result = await userRepository.FindByIdAsync(request.UserId);
         if (result == null)
         {
-            throw new Exception("Not found.");
+            return UserErrors.UserNotExsists;
         }
 
         return result;

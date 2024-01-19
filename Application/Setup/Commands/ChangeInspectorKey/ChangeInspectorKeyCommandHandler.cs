@@ -1,21 +1,13 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Domain.Models.PublicKeys;
 using MediatR;
 
 namespace Application.Setup.Commands.ChangeInspectorKey;
 
-public sealed class ChangeInspectorKeyCommandHandler : IRequestHandler<ChangeInspectorKeyCommand, bool>
+public sealed class ChangeInspectorKeyCommandHandler(
+    IComplaintRepository complaintRepository) : IRequestHandler<ChangeInspectorKeyCommand, Result<bool>>
 {
-    private readonly IComplaintRepository _complaintRepository;
-
-    public ChangeInspectorKeyCommandHandler(
-        IComplaintRepository complaintRepository)
+    public async Task<Result<bool>> Handle(ChangeInspectorKeyCommand request, CancellationToken cancellationToken)
     {
-        _complaintRepository = complaintRepository;
-    }
-
-    public async Task<bool> Handle(ChangeInspectorKeyCommand request, CancellationToken cancellationToken)
-    {
-        return await _complaintRepository.ChangeInspectorKey(request.PrivateKey, request.ToKeyId, request.FromKeyId);
+        return await complaintRepository.ChangeInspectorKey(request.PrivateKey, request.ToKeyId, request.FromKeyId);
     }
 }

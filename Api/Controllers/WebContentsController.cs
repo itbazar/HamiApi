@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.WebContents;
+using Api.ExtensionMethods;
 using Application.WebContents.Commands.AddWebContent;
 using Application.WebContents.Commands.EditWebContent;
 using Application.WebContents.Queries.GetAdminWebContentsQuery;
@@ -22,7 +23,10 @@ public class WebContentsController : ApiController
     public async Task<ActionResult<List<WebContent>>> GetWebContentsList()
     {
         var query = new GetAdminWebContentsQuery();
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("{id:guid}")]
@@ -30,7 +34,9 @@ public class WebContentsController : ApiController
     {
         var query = new GetWebContentByIdQuery(id);
         var result = await Sender.Send(query);
-        return result;
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost]
@@ -42,7 +48,9 @@ public class WebContentsController : ApiController
             webContentDto.Content);
 
         var result = await Sender.Send(command);
-        return CreatedAtAction(nameof(GetWebContentById), new { id = result.Id }, result);
+        return result.Match(
+            s => CreatedAtAction(nameof(GetWebContentById), new { id = s.Id }, s),
+            () => Problem());
     }
 
     [HttpPut("{id:guid}")]
@@ -54,8 +62,10 @@ public class WebContentsController : ApiController
             webContentDto.Description,
             webContentDto.Content);
 
-        await Sender.Send(command);
-        return NoContent();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(), 
+            () => Problem());
     }
 }
 

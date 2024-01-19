@@ -3,4 +3,5 @@ using MediatR;
 
 namespace Application.ComplaintOrganizations.Commands.AddComplaintOrganization;
 
-public record AddComplaintOrganizationCommand(string Title, string Description) : IRequest<ComplaintOrganization>;
+public record AddComplaintOrganizationCommand(string Title, string Description) 
+    : IRequest<Result<ComplaintOrganization>>;

@@ -6,24 +6,18 @@ using MediatR;
 
 namespace Application.Complaints.Commands.AddComplaintCommand;
 
-public class ReplyComplaintInspectorCommandHandler : IRequestHandler<ReplyComplaintInspectorCommand, bool>
+public class ReplyComplaintInspectorCommandHandler(IComplaintRepository complaintRepository) : IRequestHandler<ReplyComplaintInspectorCommand, Result<bool>>
 {
-    private readonly IComplaintRepository _complaintRepository;
-    public ReplyComplaintInspectorCommandHandler(IComplaintRepository complaintRepository)
+    public async Task<Result<bool>> Handle(ReplyComplaintInspectorCommand request, CancellationToken cancellationToken)
     {
-        _complaintRepository = complaintRepository;
-    }
-
-    public async Task<bool> Handle(ReplyComplaintInspectorCommand request, CancellationToken cancellationToken)
-    {
-        var complaint = await _complaintRepository.GetAsync(request.TrackingNumber);
+        var complaint = await complaintRepository.GetAsync(request.TrackingNumber);
         complaint.AddContent(
             request.Text,
             request.Medias.Adapt<List<Media>>(),
             Actor.Inspector,
             request.Operation,
             request.IsPublic ? ComplaintContentVisibility.Everyone : ComplaintContentVisibility.Inspector);
-        await _complaintRepository.ReplyInspector(complaint, request.EncodedKey);
+        await complaintRepository.ReplyInspector(complaint, request.EncodedKey);
         return true;
     }
 }

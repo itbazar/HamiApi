@@ -7,5 +7,5 @@ public sealed record EditWebContentCommand(
     Guid Id,
     string? Title,
     string? Description,
-    string? Content) : IRequest<WebContent>;
+    string? Content) : IRequest<Result<WebContent>>;
 

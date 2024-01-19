@@ -3,17 +3,14 @@ using MediatR;
 
 namespace Application.Authentication.Commands.RevokeCommand;
 
-internal sealed class RevokeCommandHandler : IRequestHandler<RevokeCommand, bool>
+internal sealed class RevokeCommandHandler(
+    IAuthenticationService authenticationService) : IRequestHandler<RevokeCommand, Result<bool>>
 {
-    private readonly IAuthenticationService _authenticationService;
-
-    public RevokeCommandHandler(IAuthenticationService authenticationService)
+    public async Task<Result<bool>> Handle(
+        RevokeCommand request,
+        CancellationToken cancellationToken)
     {
-        _authenticationService = authenticationService;
-    }
-    public async Task<bool> Handle(RevokeCommand request, CancellationToken cancellationToken)
-    {
-        var result = await _authenticationService.Revoke(request.UserId, request.RefreshToken);
+        var result = await authenticationService.Revoke(request.UserId, request.RefreshToken);
         return result;
     }
 }

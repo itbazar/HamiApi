@@ -4,20 +4,11 @@ using MediatR;
 
 namespace Application.WebContents.Queries.GetWebContentsQuery;
 
-internal sealed class GetWebContentsQueryHandler : IRequestHandler<GetWebContentsQuery, List<WebContent>>
+internal sealed class GetWebContentsQueryHandler(IWebContentRepository webContentRepository) : IRequestHandler<GetWebContentsQuery, Result<List<WebContent>>>
 {
-    private readonly IWebContentRepository _webContentRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public GetWebContentsQueryHandler(IWebContentRepository webContentRepository, IUnitOfWork unitOfWork)
+    public async Task<Result<List<WebContent>>> Handle(GetWebContentsQuery request, CancellationToken cancellationToken)
     {
-        _webContentRepository = webContentRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<List<WebContent>> Handle(GetWebContentsQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _webContentRepository.GetAsync();
+        var result = await webContentRepository.GetAsync();
         return result.ToList();
     }
 }

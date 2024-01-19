@@ -10,38 +10,17 @@ using MediatR;
 
 namespace Application.Setup.Commands.Init;
 
-internal class InitCommandHandler : IRequestHandler<InitCommand, string>
+internal class InitCommandHandler(
+    IComplaintCategoryRepository categoryRepository,
+    IUserRepository userRepository,
+    IUnitOfWork unitOfWork,
+    IAsymmetricEncryption asymmetric,
+    IPublicKeyRepository publicKeyRepository,
+    IComplaintOrganizationRepository organizationRepository,
+    IChartRepository chartRepository,
+    IWebContentRepository webContentRepository) : IRequestHandler<InitCommand, Result<string>>
 {
-    private readonly IComplaintCategoryRepository _categoryRepository;
-    private readonly IComplaintOrganizationRepository _organizationRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IAsymmetricEncryption _asymmetric;
-    private readonly IPublicKeyRepository _publicKeyRepository;
-    private readonly IChartRepository _chartRepository;
-    private readonly IWebContentRepository _webContentRepository;
-
-    public InitCommandHandler(
-        IComplaintCategoryRepository categoryRepository,
-        IUserRepository userRepository,
-        IUnitOfWork unitOfWork,
-        IAsymmetricEncryption asymmetric,
-        IPublicKeyRepository publicKeyRepository,
-        IComplaintOrganizationRepository organizationRepository,
-        IChartRepository chartRepository,
-        IWebContentRepository webContentRepository)
-    {
-        _categoryRepository = categoryRepository;
-        _userRepository = userRepository;
-        _unitOfWork = unitOfWork;
-        _asymmetric = asymmetric;
-        _publicKeyRepository = publicKeyRepository;
-        _organizationRepository = organizationRepository;
-        _chartRepository = chartRepository;
-        _webContentRepository = webContentRepository;
-    }
-
-    public async Task<string> Handle(InitCommand request, CancellationToken cancellationToken)
+public async Task<Result<string>> Handle(InitCommand request, CancellationToken cancellationToken)
     {
         await initCategories();
         await initOrganizations();
@@ -54,7 +33,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 
     private async Task initCategories()
     {
-        var complaintCategories = await _categoryRepository.GetAsync();
+        var complaintCategories = await categoryRepository.GetAsync();
         if (complaintCategories is not null && complaintCategories.Count() > 0)
         {
             return;
@@ -68,15 +47,15 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 
         foreach (var title in titles)
         {
-            _categoryRepository.Insert(ComplaintCategory.Create(title, ""));
+            categoryRepository.Insert(ComplaintCategory.Create(title, ""));
         }
 
-        await _unitOfWork.SaveAsync();
+        await unitOfWork.SaveAsync();
     }
 
     private async Task initOrganizations()
     {
-        var complaintOrganizations = await _organizationRepository.GetAsync();
+        var complaintOrganizations = await organizationRepository.GetAsync();
         if (complaintOrganizations is not null && complaintOrganizations.Count() > 0)
         {
             return;
@@ -90,10 +69,10 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 
         foreach (var title in titles)
         {
-            _organizationRepository.Insert(ComplaintOrganization.Create(title, ""));
+            organizationRepository.Insert(ComplaintOrganization.Create(title, ""));
         }
 
-        await _unitOfWork.SaveAsync();
+        await unitOfWork.SaveAsync();
     }
 
     private async Task initRolesAndUsers()
@@ -111,10 +90,10 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
         var roles = new List<ApplicationRole>();
         foreach (var role in rolesInfo)
         {
-            if (!await _userRepository.RoleExistsAsync(role.Item1))
+            if (!await userRepository.RoleExistsAsync(role.Item1))
             {
                 var r = new ApplicationRole() { Name = role.Item1, Title = role.Item2 };
-                await _userRepository.CreateRoleAsync(r);
+                await userRepository.CreateRoleAsync(r);
                 roles.Add(r);
             }
         }
@@ -132,7 +111,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 
         foreach (var user in usersInfo)
         {
-            if (await _userRepository.FindByNameAsync(user.Item2) == null)
+            if (await userRepository.FindByNameAsync(user.Item2) == null)
             {
                 u = new ApplicationUser()
                 {
@@ -141,9 +120,9 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
                     PhoneNumberConfirmed = true
                 };
 
-                await _userRepository.CreateAsync(u, "aA@12345");
+                await userRepository.CreateAsync(u, "aA@12345");
 
-                await _userRepository.AddToRoleAsync(u, user.Item1);
+                await userRepository.AddToRoleAsync(u, user.Item1);
                 users.Add(u);
             }
         }
@@ -151,24 +130,24 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
 
     private async Task<string> initPublicKey()
     {
-        if (_unitOfWork.DbContext.Set<PublicKey>().Any())
+        if (unitOfWork.DbContext.Set<PublicKey>().Any())
             return "Already initialized.";
-        var inspector = (await _userRepository.GetUsersInRole("Inspector")).FirstOrDefault();
+        var inspector = (await userRepository.GetUsersInRole("Inspector")).FirstOrDefault();
         if(inspector is null)
         {
             throw new Exception("No inspector found.");
         }
-        var keyPair = _asymmetric.Generate();
+        var keyPair = asymmetric.Generate();
         var publicKey = PublicKey.Create("Initial", keyPair.PublicKey, inspector.Id, true);
-        await _publicKeyRepository.Add(publicKey);
+        await publicKeyRepository.Add(publicKey);
         return keyPair.PrivateKey;
     }
 
     private async Task initCharts()
     {
-        if (_unitOfWork.DbContext.Set<Chart>().Any())
+        if (unitOfWork.DbContext.Set<Chart>().Any())
             return;
-        var allRoles = await _userRepository.GetRoles();
+        var allRoles = await userRepository.GetRoles();
         var adminRole = allRoles.Where(r => r.Name == RoleNames.Admin).First();
         var inspectorRole = allRoles.Where(r => r.Name == RoleNames.Inspector).First();
         var users = new List<ApplicationUser>();
@@ -182,7 +161,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
             new List<ApplicationRole>() { adminRole, inspectorRole},
             users);
         chart.Delete(true);
-        _chartRepository.Insert(chart);
+        chartRepository.Insert(chart);
 
         chart = Chart.Create(
             ChartCodes.ComplaintCategoryHistogram,
@@ -192,7 +171,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
             "",
             new List<ApplicationRole>() { adminRole, inspectorRole },
             users);
-        _chartRepository.Insert(chart);
+        chartRepository.Insert(chart);
 
         chart = Chart.Create(
             ChartCodes.ComplaintOrganizationHistogram,
@@ -202,7 +181,7 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
             "",
             new List<ApplicationRole>() { adminRole, inspectorRole },
             users);
-        _chartRepository.Insert(chart);
+        chartRepository.Insert(chart);
 
         chart = Chart.Create(
             ChartCodes.ComplaintStatusHistogram,
@@ -212,9 +191,9 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
             "",
             new List<ApplicationRole>() { adminRole, inspectorRole },
             users);
-        _chartRepository.Insert(chart);
+        chartRepository.Insert(chart);
 
-        await _unitOfWork.SaveAsync();
+        await unitOfWork.SaveAsync();
     }
 
     private async Task initWebContents()
@@ -226,15 +205,15 @@ internal class InitCommandHandler : IRequestHandler<InitCommand, string>
             WebContent.Create("PreRequest", "", "<H1>لطفاً گزارش خود را ثبت کنید.</H1>"),
             WebContent.Create("PostRequest", "", "<H1>با تشکر از شما</H1>")
         };
-        var webContents = await _webContentRepository.GetAsync();
+        var webContents = await webContentRepository.GetAsync();
         foreach (var webContent in initialWebContents)
         {
             if (!webContents.Any(wc => wc.Title == webContent.Title))
             {
-                _webContentRepository.Insert(webContent);
+                webContentRepository.Insert(webContent);
             }
         }
         
-        await _unitOfWork.SaveAsync();
+        await unitOfWork.SaveAsync();
     }
 }

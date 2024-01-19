@@ -5,4 +5,4 @@ namespace Application.Complaints.Queries.GetComplaintInspectorQuery;
 
 public record GetComplaintInspectorQuery(
     string TrackingNumber,
-    string EncodedKey) : IRequest<ComplaintInspectorResponse>;
+    string EncodedKey) : IRequest<Result<ComplaintInspectorResponse>>;

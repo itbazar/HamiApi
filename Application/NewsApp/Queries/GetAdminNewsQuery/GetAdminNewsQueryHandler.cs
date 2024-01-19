@@ -4,7 +4,8 @@ using MediatR;
 
 namespace Application.NewsApp.Queries.GetAdminNewsQuery;
 
-internal class GetAdminNewssQueryHandler : IRequestHandler<GetAdminNewsQuery, List<News>>
+internal class GetAdminNewssQueryHandler : 
+    IRequestHandler<GetAdminNewsQuery, Result<List<News>>>
 {
     private readonly INewsRepository _newsRepository;
 
@@ -13,9 +14,9 @@ internal class GetAdminNewssQueryHandler : IRequestHandler<GetAdminNewsQuery, Li
         _newsRepository = newsRepository;
     }
 
-    public async Task<List<News>> Handle(GetAdminNewsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<News>>> Handle(GetAdminNewsQuery request, CancellationToken cancellationToken)
     {
-        var newss = await _newsRepository.GetAsync(null, false);
-        return newss.ToList();
+        var news = await _newsRepository.GetAsync(null, false);
+        return news.ToList();
     }
 }

@@ -1,30 +1,22 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.News;
 using MediatR;
 
 namespace Application.NewsApp.Commands.DeleteNewsCommand;
 
-internal class DeleteNewsCommandHandler : IRequestHandler<DeleteNewsCommand, News>
+internal class DeleteNewsCommandHandler(
+    INewsRepository newsrRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<DeleteNewsCommand, Result<News>>
 {
-    private readonly INewsRepository _newsrRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteNewsCommandHandler(
-        INewsRepository newsrRepository,
-        IUnitOfWork unitOfWork)
+    public async Task<Result<News>> Handle(DeleteNewsCommand request, CancellationToken cancellationToken)
     {
-        _newsrRepository = newsrRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<News> Handle(DeleteNewsCommand request, CancellationToken cancellationToken)
-    {
-        var newsr = await _newsrRepository.GetSingleAsync(s => s.Id == request.Id);
+        var newsr = await newsrRepository.GetSingleAsync(s => s.Id == request.Id);
         if (newsr is null)
-            throw new Exception("Not found.");
+            return GenericErrors.NotFound;
         newsr.Delete(request.IsDeleted);
-        _newsrRepository.Update(newsr);
-        await _unitOfWork.SaveAsync();
+        newsrRepository.Update(newsr);
+        await unitOfWork.SaveAsync();
         return newsr;
     }
 }

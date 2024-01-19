@@ -1,23 +1,17 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.Sliders;
 using MediatR;
 
 namespace Application.Sliders.Queries.GetSliderByIdQuery;
 
-internal class GetSliderByIdQueryHandler : IRequestHandler<GetSliderByIdQuery, Slider>
+internal class GetSliderByIdQueryHandler(ISliderRepository sliderRepository) : IRequestHandler<GetSliderByIdQuery, Result<Slider>>
 {
-    private readonly ISliderRepository _sliderRepository;
-
-    public GetSliderByIdQueryHandler(ISliderRepository sliderRepository)
+    public async Task<Result<Slider>> Handle(GetSliderByIdQuery request, CancellationToken cancellationToken)
     {
-        _sliderRepository = sliderRepository;
-    }
-
-    public async Task<Slider> Handle(GetSliderByIdQuery request, CancellationToken cancellationToken)
-    {
-        var slider = await _sliderRepository.GetSingleAsync(s => s.Id == request.Id, false);
+        var slider = await sliderRepository.GetSingleAsync(s => s.Id == request.Id, false);
         if (slider is null)
-            throw new Exception("Not found.");
+            return GenericErrors.NotFound;
         return slider;
     }
 }

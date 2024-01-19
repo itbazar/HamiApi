@@ -8,4 +8,4 @@ public record CreateUserCommand(
     string Password,
     string FirstName = "",
     string LastName = "",
-    string Title = "") :IRequest<ApplicationUser>;
+    string Title = "") :IRequest<Result<ApplicationUser>>;

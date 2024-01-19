@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Application.Charts.Queries.GetChartByIdQuery;
 
-public record GetChartByIdQuery(Guid Id) : IRequest<ChartResponse>;
+public record GetChartByIdQuery(Guid Id) : IRequest<Result<ChartResponse>>;
 
 public record ChartResponse(
     Guid Id,

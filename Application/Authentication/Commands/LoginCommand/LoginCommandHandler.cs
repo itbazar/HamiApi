@@ -1,34 +1,27 @@
-﻿using Application.Common.Exceptions;
+﻿using Application.Common.Errors;
 using Application.Common.Interfaces.Communication;
 using Application.Common.Interfaces.Security;
 using MediatR;
 
 namespace Application.Authentication.Commands.LoginCommand;
 
-internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
+internal sealed class LoginCommandHandler(
+    IAuthenticationService authenticationService,
+    ICaptchaProvider captchaProvider,
+    ICommunicationService communicationService) : IRequestHandler<LoginCommand, Result<LoginResponse>>
 {
-    private readonly IAuthenticationService _authenticationService;
-    private readonly ICaptchaProvider _captchaProvider;
-    private readonly ICommunicationService _communicationService;
-
-    public LoginCommandHandler(IAuthenticationService authenticationService, ICaptchaProvider captchaProvider, ICommunicationService communicationService)
-    {
-        _authenticationService = authenticationService;
-        _captchaProvider = captchaProvider;
-        _communicationService = communicationService;
-    }
-    public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<Result<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         if(request.CaptchaValidateModel is not null)
         {
-            var isCaptchaValid = _captchaProvider.Validate(request.CaptchaValidateModel);
+            var isCaptchaValid = captchaProvider.Validate(request.CaptchaValidateModel);
             if (!isCaptchaValid)
             {
-                throw new InvalidCaptchaException();
+                return AuthenticationErrors.InvalidCaptcha;
             }
         }
 
-        var result = await _authenticationService.Login(request.Username, request.Password, true);
+        var result = await authenticationService.Login(request.Username, request.Password, true);
         if(result.AuthToken is not null)
         {
             return new LoginResponse(result.AuthToken, null);
@@ -37,12 +30,12 @@ internal sealed class LoginCommandHandler : IRequestHandler<LoginCommand, LoginR
         {
             try
             {
-                await _communicationService.SendVerificationAsync(
+                await communicationService.SendVerificationAsync(
                     result.VerificationToken.PhoneNumber, result.VerificationToken.Code);
             }
             catch
             {
-                throw new SendSmsException();
+                return CommunicationErrors.SmsError;
             }
 
             return new LoginResponse(null, result.VerificationToken.Token);

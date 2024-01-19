@@ -5,4 +5,4 @@ namespace Application.Authentication.Commands.RefreshCommand;
 
 public sealed record RefreshCommand(
     string Token,
-    string RefreshToken) : IRequest<AuthToken>;
+    string RefreshToken) : IRequest<Result<AuthToken>>;

@@ -4,19 +4,12 @@ using MediatR;
 
 namespace Application.Users.Queries.GetRoles;
 
-internal class GetUserRolesQueryHandler : IRequestHandler<GetUserRolesQuery, List<IsInRoleModel>>
+internal class GetUserRolesQueryHandler(IUserRepository userRepository) : IRequestHandler<GetUserRolesQuery, Result<List<IsInRoleModel>>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public GetUserRolesQueryHandler(IUserRepository userRepository)
+    public async Task<Result<List<IsInRoleModel>>> Handle(GetUserRolesQuery request, CancellationToken cancellationToken)
     {
-        _userRepository = userRepository;
-    }
-
-    public async Task<List<IsInRoleModel>> Handle(GetUserRolesQuery request, CancellationToken cancellationToken)
-    {
-        var userRoles = await _userRepository.GetUserRoles(request.UserId);
-        var result = (await _userRepository.GetRoles())
+        var userRoles = await userRepository.GetUserRoles(request.UserId);
+        var result = (await userRepository.GetRoles())
             .Select(role => new IsInRoleModel(role.Name ?? "", role.Title,
                 role.Name != null && userRoles.Contains(role.Name)))
             .ToList();

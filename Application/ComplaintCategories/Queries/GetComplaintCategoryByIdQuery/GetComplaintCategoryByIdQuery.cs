@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.ComplaintCategories.Queries.GetComplaintCategoryByIdQuery;
 
-public record GetComplaintCategoryByIdQuery(Guid Id) : IRequest<ComplaintCategory>;
+public record GetComplaintCategoryByIdQuery(Guid Id) : IRequest<Result<ComplaintCategory>>;

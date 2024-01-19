@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.ComplaintCategories.Commands.AddComplaintCategory;
 
-public record AddComplaintCategoryCommand(string Title, string Description) : IRequest<ComplaintCategory>;
+public record AddComplaintCategoryCommand(string Title, string Description) : IRequest<Result<ComplaintCategory>>;

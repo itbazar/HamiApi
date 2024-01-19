@@ -37,12 +37,9 @@ public class FilesController : ApiController
             return Unauthorized();
         var command = new AddUploadCommand(userId, upload.File, upload.AttachmentType);
         var result = await Sender.Send(command);
-        if (result == null)
-        {
-            return Problem();
-        }
-        
-        return StatusCode(StatusCodes.Status201Created, new {id = result.Id});
+        return result.Match(
+            s => StatusCode(StatusCodes.Status201Created, new {id = s.Id}),
+            () => Problem());
     }
 }
 

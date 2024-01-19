@@ -1,28 +1,20 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 
 namespace Application.ComplaintCategories.Commands.EditComplaintCategory;
 
-internal class EditComplaintCategoryCommandHandler : IRequestHandler<EditComplaintCategoryCommand, ComplaintCategory>
+internal class EditComplaintCategoryCommandHandler(IComplaintCategoryRepository categoryRepository, IUnitOfWork unitOfWork) : IRequestHandler<EditComplaintCategoryCommand, Result<ComplaintCategory>>
 {
-    private readonly IComplaintCategoryRepository _categoryRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public EditComplaintCategoryCommandHandler(IComplaintCategoryRepository categoryRepository, IUnitOfWork unitOfWork)
+    public async Task<Result<ComplaintCategory>> Handle(EditComplaintCategoryCommand request, CancellationToken cancellationToken)
     {
-        _categoryRepository = categoryRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<ComplaintCategory> Handle(EditComplaintCategoryCommand request, CancellationToken cancellationToken)
-    {
-        var category = await _categoryRepository.GetSingleAsync(cc => cc.Id == request.Id);
+        var category = await categoryRepository.GetSingleAsync(cc => cc.Id == request.Id);
         if (category is null)
-            throw new Exception("Not found!");
+            return GenericErrors.NotFound;
         category.Update(request.Title, request.Description);
-        _categoryRepository.Update(category);
-        await _unitOfWork.SaveAsync();
+        categoryRepository.Update(category);
+        await unitOfWork.SaveAsync();
         return category;
     }
 }

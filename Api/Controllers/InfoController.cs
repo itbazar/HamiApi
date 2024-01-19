@@ -3,7 +3,6 @@ using Api.ExtensionMethods;
 using Application.Charts.Queries.GetChartByIdQuery;
 using Application.Charts.Queries.GetChartsQuery;
 using Application.Charts.Queries.GetInfoQuery;
-using Domain.Models.ChartAggregate;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +21,10 @@ public class InfoController : ApiController
     public async Task<ActionResult<List<ChartResponse>>> GetChartsList()
     {
         var query = new GetChartsQuery(User.GetUserRoles());
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize]
@@ -31,6 +33,8 @@ public class InfoController : ApiController
     {
         var query = new GetInfoQuery(code);
         var result = await Sender.Send(query);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 }

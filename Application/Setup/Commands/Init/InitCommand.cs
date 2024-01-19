@@ -2,4 +2,4 @@
 
 namespace Application.Setup.Commands.Init;
 
-public record InitCommand() : IRequest<string>;
+public record InitCommand() : IRequest<Result<string>>;

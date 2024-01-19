@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.Sliders.Queries.GetAdminSlidersQuery;
 
-public record GetAdminSlidersQuery() : IRequest<List<Slider>>;
+public record GetAdminSlidersQuery() : IRequest<Result<List<Slider>>>;

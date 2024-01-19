@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintCitizenQuery;
 
-internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCitizenQuery, ComplaintCitizenResponse>
+internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCitizenQuery, Result<ComplaintCitizenResponse>>
 {
     private readonly IComplaintRepository _complaintRepository;
 
@@ -15,7 +15,7 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
         _complaintRepository = complaintRepository;
     }
 
-    public async Task<ComplaintCitizenResponse> Handle(GetComplaintCitizenQuery request, CancellationToken cancellationToken)
+    public async Task<Result<ComplaintCitizenResponse>> Handle(GetComplaintCitizenQuery request, CancellationToken cancellationToken)
     {
         var complaint = await _complaintRepository.GetCitizenAsync(request.TrackingNumber, request.Password);
         complaint.Contents.RemoveAll(cc => cc.Visibility == ComplaintContentVisibility.Inspector);

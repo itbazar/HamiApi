@@ -10,16 +10,9 @@ using System.Linq.Expressions;
 
 namespace Application.Charts.Queries.GetInfoQuery;
 
-internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
+internal class GetInfoQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<GetInfoQuery, Result<InfoModel>>
 {
-    private readonly IUnitOfWork _unitOfWork;
-
-    public GetInfoQueryHandler(IUnitOfWork unitOfWork)
-    {
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<InfoModel> Handle(GetInfoQuery request, CancellationToken cancellationToken)
+    public async Task<Result<InfoModel>> Handle(GetInfoQuery request, CancellationToken cancellationToken)
     {
         InfoModel result = new InfoModel();
         switch (request.Code)
@@ -28,19 +21,19 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
                 result = await GetSummary();
                 break;
             case ChartCodes.ComplaintCategoryHistogram:
-                var bins = await _unitOfWork.DbContext.Set<ComplaintCategory>().Select(cc => new Bin<Guid>(cc.Id, cc.Title)).ToListAsync();
+                var bins = await unitOfWork.DbContext.Set<ComplaintCategory>().Select(cc => new Bin<Guid>(cc.Id, cc.Title)).ToListAsync();
                 result = await GetHistogram(
                     "فراوانی دسته بندی ها",
                     bins,
-                    _unitOfWork.DbContext.Set<Complaint>(),
+                    unitOfWork.DbContext.Set<Complaint>(),
                     c => c.CategoryId); 
                 break;
             case ChartCodes.ComplaintOrganizationHistogram:
-                var bins3 = await _unitOfWork.DbContext.Set<ComplaintOrganization>().Select(co => new Bin<Guid?>(co.Id, co.Title)).ToListAsync();
+                var bins3 = await unitOfWork.DbContext.Set<ComplaintOrganization>().Select(co => new Bin<Guid?>(co.Id, co.Title)).ToListAsync();
                 result = await GetHistogram(
                     "فراوانی سازمان ها",
                     bins3,
-                    _unitOfWork.DbContext.Set<Complaint>(),
+                    unitOfWork.DbContext.Set<Complaint>(),
                     c => c.ComplaintOrganizationId);
                 break;
             case ChartCodes.ComplaintStatusHistogram:
@@ -48,7 +41,7 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
                 result = await GetHistogram(
                     "فراوانی وضعیت ها",
                     bins2,
-                    _unitOfWork.DbContext.Set<Complaint>(),
+                    unitOfWork.DbContext.Set<Complaint>(),
                     c => c.Status);
                 break;
             default:
@@ -131,12 +124,12 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
     {
         var result = new InfoModel();
 
-        var anonymousComplaintsCount = await _unitOfWork.DbContext.Set<Complaint>()
+        var anonymousComplaintsCount = await unitOfWork.DbContext.Set<Complaint>()
             .Where(c => c.UserId == null)
             .CountAsync();
         result.Add(new InfoSingleton(anonymousComplaintsCount.ToString(), "درخواست ناشناس", ""));
 
-        var knownComplaintsCount = await _unitOfWork.DbContext.Set<Complaint>()
+        var knownComplaintsCount = await unitOfWork.DbContext.Set<Complaint>()
             .Where(c => c.UserId != null)
             .CountAsync();
         result.Add(new InfoSingleton(knownComplaintsCount.ToString(), "درخواست شناس", ""));
@@ -144,11 +137,11 @@ internal class GetInfoQueryHandler : IRequestHandler<GetInfoQuery, InfoModel>
         var totalComplaintsCount = anonymousComplaintsCount + knownComplaintsCount;
         result.Add(new InfoSingleton(totalComplaintsCount.ToString(), "درخواست", ""));
 
-        var totalUsers = await _unitOfWork.DbContext.Set<ApplicationUser>().CountAsync();
+        var totalUsers = await unitOfWork.DbContext.Set<ApplicationUser>().CountAsync();
         result.Add(new InfoSingleton(totalUsers.ToString(), "کاربر", ""));
 
         var now = DateTime.UtcNow;
-        var query = _unitOfWork.DbContext.Set<Complaint>().Where(c => true);
+        var query = unitOfWork.DbContext.Set<Complaint>().Where(c => true);
         var requestPerDay = await query.Where(p => p.RegisteredAt >= now.AddDays(-30))
                 .GroupBy(q => q.RegisteredAt.DayOfYear)
                 .Select(r => new { DayOfYear = r.Key, Count = r.Count() })

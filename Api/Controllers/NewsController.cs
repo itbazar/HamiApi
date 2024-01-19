@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.NewsContract;
+using Api.ExtensionMethods;
 using Application.NewsApp.Commands.AddNewsCommand;
 using Application.NewsApp.Commands.DeleteNewsCommand;
 using Application.NewsApp.Commands.UpdateNewsCommand;
@@ -23,7 +24,10 @@ public class NewsController : ApiController
     public async Task<ActionResult<List<News>>> GetNewsList()
     {
         var query = new GetAdminNewsQuery();
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("{id:guid}")]
@@ -31,7 +35,9 @@ public class NewsController : ApiController
     {
         var query = new GetNewsByIdQuery(id);
         var result = await Sender.Send(query);
-        return result;
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost]
@@ -45,7 +51,9 @@ public class NewsController : ApiController
             newsDto.Content);
 
         var result = await Sender.Send(command);
-        return CreatedAtAction(nameof(GetNews), new { id = result.Id }, result);
+        return result.Match(
+            s => CreatedAtAction(nameof(GetNews), new { id = s.Id }, s),
+            () => Problem());
     }
 
     [HttpPut("{id:guid}")]
@@ -58,8 +66,10 @@ public class NewsController : ApiController
             newsDto.Url,
             newsDto.Description);
 
-        await Sender.Send(command);
-        return NoContent();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
+            () => Problem());
     }
 
     [HttpDelete("{id:guid}")]
@@ -67,8 +77,10 @@ public class NewsController : ApiController
     {
         var command = new DeleteNewsCommand(id);
 
-        await Sender.Send(command);
-        return NoContent();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
+            () => Problem());
     }
 }
 

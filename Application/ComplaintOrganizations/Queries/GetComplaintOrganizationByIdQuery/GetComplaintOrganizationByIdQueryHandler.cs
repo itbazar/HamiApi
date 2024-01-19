@@ -1,23 +1,17 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.ComplaintAggregate;
 using MediatR;
 
 namespace Application.ComplaintOrganizations.Queries.GetComplaintOrganizationByIdQuery;
 
-internal class GetComplaintOrganizationByIdQueryHandler : IRequestHandler<GetComplaintOrganizationByIdQuery, ComplaintOrganization>
+internal class GetComplaintOrganizationByIdQueryHandler(IComplaintOrganizationRepository organizationRepository) : IRequestHandler<GetComplaintOrganizationByIdQuery, Result<ComplaintOrganization>>
 {
-    private readonly IComplaintOrganizationRepository _organizationRepository;
-
-    public GetComplaintOrganizationByIdQueryHandler(IComplaintOrganizationRepository organizationRepository)
+    public async Task<Result<ComplaintOrganization>> Handle(GetComplaintOrganizationByIdQuery request, CancellationToken cancellationToken)
     {
-        _organizationRepository = organizationRepository;
-    }
-
-    public async Task<ComplaintOrganization> Handle(GetComplaintOrganizationByIdQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _organizationRepository.GetSingleAsync(cc => cc.IsDeleted == false);
+        var result = await organizationRepository.GetSingleAsync(cc => cc.IsDeleted == false);
         if (result is null)
-            throw new Exception("Not found!");
+            return GenericErrors.NotFound;
         return result;
     }
 }

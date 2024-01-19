@@ -12,4 +12,4 @@ public record AddComplaintCommand(
     List<MediaRequest> Medias,
     CaptchaValidateModel? CaptchaValidateModel,
     string Complaining,
-    Guid OrganizationId) : IRequest<AddComplaintResult>;
+    Guid OrganizationId) : IRequest<Result<AddComplaintResult>>;

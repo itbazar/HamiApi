@@ -1,24 +1,18 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.ChartAggregate;
 using Mapster;
 using MediatR;
 
 namespace Application.Charts.Queries.GetChartByIdQuery;
 
-internal class GetComplaintCategoryByIdQueryHandler : IRequestHandler<GetChartByIdQuery, ChartResponse>
+internal class GetComplaintCategoryByIdQueryHandler(IChartRepository chartRepository) : IRequestHandler<GetChartByIdQuery, Result<ChartResponse>>
 {
-    private readonly IChartRepository _chartRepository;
-
-    public GetComplaintCategoryByIdQueryHandler(IChartRepository chartRepository)
+    public async Task<Result<ChartResponse>> Handle(GetChartByIdQuery request, CancellationToken cancellationToken)
     {
-        _chartRepository = chartRepository;
-    }
-
-    public async Task<ChartResponse> Handle(GetChartByIdQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _chartRepository.GetSingleAsync(cc => cc.IsDeleted == false);
+        var result = await chartRepository.GetSingleAsync(cc => cc.IsDeleted == false);
         if (result is null)
-            throw new Exception("Not found!");
+            return GenericErrors.NotFound;
         return result.Adapt<ChartResponse>();
     }
 }

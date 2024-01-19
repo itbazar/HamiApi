@@ -1,30 +1,22 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.Sliders;
 using MediatR;
 
 namespace Application.Sliders.Commands.DeleteSliderCommand;
 
-internal class DeleteSliderCommandHandler : IRequestHandler<DeleteSliderCommand, Slider>
+internal class DeleteSliderCommandHandler(
+    ISliderRepository sliderRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<DeleteSliderCommand, Result<Slider>>
 {
-    private readonly ISliderRepository _sliderRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteSliderCommandHandler(
-        ISliderRepository sliderRepository,
-        IUnitOfWork unitOfWork)
+public async Task<Result<Slider>> Handle(DeleteSliderCommand request, CancellationToken cancellationToken)
     {
-        _sliderRepository = sliderRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<Slider> Handle(DeleteSliderCommand request, CancellationToken cancellationToken)
-    {
-        var slider = await _sliderRepository.GetSingleAsync(s => s.Id == request.Id);
+        var slider = await sliderRepository.GetSingleAsync(s => s.Id == request.Id);
         if (slider is null)
-            throw new Exception("Not found.");
+            return GenericErrors.NotFound;
         slider.Delete(request.IsDeleted);
-        _sliderRepository.Update(slider);
-        await _unitOfWork.SaveAsync();
+        sliderRepository.Update(slider);
+        await unitOfWork.SaveAsync();
         return slider;
     }
 }

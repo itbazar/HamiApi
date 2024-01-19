@@ -10,4 +10,4 @@ public record UpdateUserProfileCommand(
     string? Title = null,
     string? NationalId = null,
     string? PhoneNumber2 = null
-    ) : IRequest<ApplicationUser>;
+    ) : IRequest<Result<ApplicationUser>>;

@@ -1,25 +1,17 @@
-﻿using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Errors;
+using Application.Common.Interfaces.Persistence;
 using Domain.Models.WebContents;
 using MediatR;
 
 namespace Application.WebContents.Queries.GetWebContentByTitleQuery;
 
-internal sealed class GetWebContentByTitleQueryHandler : IRequestHandler<GetWebContentByTitleQuery, WebContent>
+internal sealed class GetWebContentByTitleQueryHandler(IWebContentRepository webContentRepository) : IRequestHandler<GetWebContentByTitleQuery, Result<WebContent>>
 {
-    private readonly IWebContentRepository _webContentRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public GetWebContentByTitleQueryHandler(IWebContentRepository webContentRepository, IUnitOfWork unitOfWork)
+    public async Task<Result<WebContent>> Handle(GetWebContentByTitleQuery request, CancellationToken cancellationToken)
     {
-        _webContentRepository = webContentRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<WebContent> Handle(GetWebContentByTitleQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _webContentRepository.GetFirstAsync(wc => wc.Title == request.Title);
+        var result = await webContentRepository.GetFirstAsync(wc => wc.Title == request.Title);
         if (result is null)
-            throw new Exception("Not found!");
+            return GenericErrors.NotFound;
         return result;
     }
 }

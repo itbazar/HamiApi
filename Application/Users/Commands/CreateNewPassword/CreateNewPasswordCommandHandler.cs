@@ -3,18 +3,11 @@ using MediatR;
 
 namespace Application.Users.Commands.CreateNewPassword;
 
-internal class CreateNewPasswordCommandHandler : IRequestHandler<CreateNewPasswordCommand, bool>
+internal class CreateNewPasswordCommandHandler(IUserRepository userRepository) : IRequestHandler<CreateNewPasswordCommand, Result<bool>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public CreateNewPasswordCommandHandler(IUserRepository userRepository)
+    public async Task<Result<bool>> Handle(CreateNewPasswordCommand request, CancellationToken cancellationToken)
     {
-        _userRepository = userRepository;
-    }
-
-    public Task<bool> Handle(CreateNewPasswordCommand request, CancellationToken cancellationToken)
-    {
-        var result = _userRepository.CreateNewPasswordAsync(request.UserId, request.Password);
+        var result = await userRepository.CreateNewPasswordAsync(request.UserId, request.Password);
         return result;
     }
 }

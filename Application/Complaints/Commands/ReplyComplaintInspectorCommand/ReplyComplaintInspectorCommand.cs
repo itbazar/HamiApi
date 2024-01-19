@@ -10,4 +10,4 @@ public record ReplyComplaintInspectorCommand(
     List<MediaRequest> Medias,
     ComplaintOperation Operation,
     bool IsPublic,
-    string EncodedKey) : IRequest<bool>;
+    string EncodedKey) : IRequest<Result<bool>>;

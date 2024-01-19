@@ -7,7 +7,8 @@ using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintInspectorQuery;
 
-internal class ComplaintInspectorResponseHandler : IRequestHandler<GetComplaintInspectorQuery, ComplaintInspectorResponse>
+internal class ComplaintInspectorResponseHandler : 
+    IRequestHandler<GetComplaintInspectorQuery, Result<ComplaintInspectorResponse>>
 {
     private readonly IComplaintRepository _complaintRepository;
 
@@ -16,7 +17,7 @@ internal class ComplaintInspectorResponseHandler : IRequestHandler<GetComplaintI
         _complaintRepository = complaintRepository;
     }
 
-    public async Task<ComplaintInspectorResponse> Handle(GetComplaintInspectorQuery request, CancellationToken cancellationToken)
+    public async Task<Result<ComplaintInspectorResponse>> Handle(GetComplaintInspectorQuery request, CancellationToken cancellationToken)
     {
         var complaint = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
         if (complaint.ShouldMarkedAsRead())

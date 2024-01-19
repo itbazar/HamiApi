@@ -54,7 +54,9 @@ public class CitizenController : ApiController
             createDto.OrganizationId);
         var result = await Sender.Send(command);
 
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize]
@@ -72,7 +74,9 @@ public class CitizenController : ApiController
             createDto.OrganizationId);
         var result = await Sender.Send(command);
 
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost("Operate")]
@@ -86,7 +90,9 @@ public class CitizenController : ApiController
             operateDto.Password);
         var result = await Sender.Send(command);
 
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost("Get")]
@@ -94,7 +100,9 @@ public class CitizenController : ApiController
     {
         var query = new GetComplaintCitizenQuery(complaintDto.TrackingNumber, complaintDto.Password);
         var result = await Sender.Send(query);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize]
@@ -106,6 +114,8 @@ public class CitizenController : ApiController
         var userId = User.GetUserId();
         var query = new GetComplaintListCitizenQuery(pagingInfo, filters, userId);
         var result = await Sender.Send(query);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 }

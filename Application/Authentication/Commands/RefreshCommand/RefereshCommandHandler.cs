@@ -3,17 +3,14 @@ using MediatR;
 
 namespace Application.Authentication.Commands.RefreshCommand;
 
-internal sealed class RefreshCommandHandler : IRequestHandler<RefreshCommand, AuthToken>
+internal sealed class RefreshCommandHandler(
+    IAuthenticationService authenticationService) : IRequestHandler<RefreshCommand, Result<AuthToken>>
 {
-    private readonly IAuthenticationService _authenticationService;
-
-    public RefreshCommandHandler(IAuthenticationService authenticationService)
+    public async Task<Result<AuthToken>> Handle(
+        RefreshCommand request,
+        CancellationToken cancellationToken)
     {
-        _authenticationService = authenticationService;
-    }
-    public async Task<AuthToken> Handle(RefreshCommand request, CancellationToken cancellationToken)
-    {
-        var result = await _authenticationService.Refresh(request.Token, request.RefreshToken);
+        var result = await authenticationService.Refresh(request.Token, request.RefreshToken);
         return result;
     }
 }

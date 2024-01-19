@@ -5,4 +5,4 @@ namespace Application.NewsApp.Commands.DeleteNewsCommand;
 
 public record DeleteNewsCommand(
     Guid Id,
-    bool? IsDeleted = null) : IRequest<News>;
+    bool? IsDeleted = null) : IRequest<Result<News>>;

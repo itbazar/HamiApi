@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.Complaint;
+using Api.Contracts.ComplaintCategory;
 using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Commands.AddComplaintCommand;
@@ -60,7 +61,9 @@ public class InspectorController : ApiController
     {
         var query = new GetComplaintListInspectorQuery(pagingInfo, filters);
         var result = await Sender.Send(query);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost("Get")]
@@ -68,7 +71,9 @@ public class InspectorController : ApiController
     {
         var query = new GetComplaintInspectorQuery(complaintDto.TrackingNumber, complaintDto.Password);
         var result = await Sender.Send(query);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost("Operate")]
@@ -83,8 +88,8 @@ public class InspectorController : ApiController
             operateDto.EncodedKey);
         var result = await Sender.Send(command);
 
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 }
-
-public record PossibleStateDto(string Title, int Value);

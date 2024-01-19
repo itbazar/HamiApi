@@ -4,18 +4,11 @@ using MediatR;
 
 namespace Application.Sliders.Queries.GetSlidersQuery;
 
-internal class GetSlidersQueryHandler : IRequestHandler<GetSlidersQuery, List<Slider>>
+internal class GetSlidersQueryHandler(ISliderRepository sliderRepository) : IRequestHandler<GetSlidersQuery, Result<List<Slider>>>
 {
-    private readonly ISliderRepository _sliderRepository;
-
-    public GetSlidersQueryHandler(ISliderRepository sliderRepository)
+    public async Task<Result<List<Slider>>> Handle(GetSlidersQuery request, CancellationToken cancellationToken)
     {
-        _sliderRepository = sliderRepository;
-    }
-
-    public async Task<List<Slider>> Handle(GetSlidersQuery request, CancellationToken cancellationToken)
-    {
-        var sliders = await _sliderRepository.GetAsync(s => s.IsDeleted == false, false);
+        var sliders = await sliderRepository.GetAsync(s => s.IsDeleted == false, false);
         return sliders.ToList();
     }
 }

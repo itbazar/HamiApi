@@ -4,18 +4,11 @@ using MediatR;
 
 namespace Application.Users.Queries.GetUsers;
 
-internal class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedList<ApplicationUser>>
+internal class GetUsersQueryHandler(IUserRepository userRepository) : IRequestHandler<GetUsersQuery, Result<PagedList<ApplicationUser>>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public GetUsersQueryHandler(IUserRepository userRepository)
+    public async Task<Result<PagedList<ApplicationUser>>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
-        _userRepository = userRepository;
-    }
-
-    public async Task<PagedList<ApplicationUser>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
-    {
-        var result = await _userRepository.GetPagedAsync(request.PagingInfo);
+        var result = await userRepository.GetPagedAsync(request.PagingInfo);
         return result;
     }
 }

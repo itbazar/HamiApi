@@ -1,4 +1,6 @@
 ﻿using Api.Abstractions;
+using Api.Contracts.ComplaintCategory;
+using Api.ExtensionMethods;
 using Application.ComplaintCategories.Commands.AddComplaintCategory;
 using Application.ComplaintCategories.Commands.DeleteComplaintCategory;
 using Application.ComplaintCategories.Commands.EditComplaintCategory;
@@ -22,7 +24,10 @@ public class ComplaintCategoriesController : ApiController
     public async Task<ActionResult<List<ComplaintCategory>>> GetAll()
     {
         var command = new GetComplaintCategoriesAdminQuery();
-        return await Sender.Send(command);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -30,7 +35,10 @@ public class ComplaintCategoriesController : ApiController
     public async Task<ActionResult<ComplaintCategory>> Get(Guid id)
     {
         var command = new GetComplaintCategoryByIdQuery(id);
-        return await Sender.Send(command);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -38,8 +46,10 @@ public class ComplaintCategoriesController : ApiController
     public async Task<IActionResult> Create([FromBody] CreateComplaintCategoryRequest createDto)
     {
         var command = new AddComplaintCategoryCommand(createDto.Title, createDto.Description);
-        var category = await Sender.Send(command);
-        return CreatedAtAction(nameof(Get), new { id = category.Id }, category);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => CreatedAtAction(nameof(Get), new { id = s.Id }, s),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -47,8 +57,10 @@ public class ComplaintCategoriesController : ApiController
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateComplaintCategoryRequest createDto)
     {
         var command = new EditComplaintCategoryCommand(id, createDto.Title, createDto.Description);
-        await Sender.Send(command);
-        return NoContent();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
+            () => Problem());
     }
 
     [Authorize(Roles = "Admin")]
@@ -56,11 +68,9 @@ public class ComplaintCategoriesController : ApiController
     public async Task<IActionResult> Delete(Guid id, [FromBody] bool isDeleted)
     {
         var command = new DeleteComplaintCategoryCommand(id, isDeleted);
-        await Sender.Send(command);
-        return NoContent();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
+            () => Problem());
     }
 }
-
-
-public record CreateComplaintCategoryRequest(string Title, string Description);
-public record UpdateComplaintCategoryRequest(string? Title, string? Description);

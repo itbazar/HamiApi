@@ -5,4 +5,4 @@ namespace Application.Authentication.Commands.LoginCommand;
 
 public sealed record TwoFactorLoginCommand(
     string OtpToken,
-    string Code) :IRequest<AuthToken>;
+    string Code) :IRequest<Result<AuthToken>>;

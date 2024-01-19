@@ -27,8 +27,10 @@ public class AuthenticateController : ApiController
     public async Task<ActionResult> LoginStaff(LoginStaffDto loginDto)
     {
         var command = new LoginCommand(loginDto.Username, loginDto.Password, loginDto.Captcha);
-        await Sender.Send(command);
-        return StatusCode(StatusCodes.Status428PreconditionRequired, "");
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
+            () => Problem());
     }
 
     [HttpPost("VerifyStaff")]
@@ -38,7 +40,9 @@ public class AuthenticateController : ApiController
             verificationDto.OtpToken,
             verificationDto.VerificationCode);
         var result = await Sender.Send(command);
-        return Ok(result.Adapt<LoginResultDto>());
+        return result.Match(
+            s => Ok(s.Adapt<LoginResultDto>()), 
+            () => Problem());
     }
 
     [HttpPost("Refresh")]
@@ -48,7 +52,9 @@ public class AuthenticateController : ApiController
             refreshDto.Token,
             refreshDto.RefreshToken);
         var result = await Sender.Send(command);
-        return Ok(result.Adapt<LoginResultDto>());
+        return result.Match(
+            s => Ok(s.Adapt<LoginResultDto>()), 
+            () => Problem());
     }
 
     [Authorize]
@@ -59,7 +65,9 @@ public class AuthenticateController : ApiController
             User.GetUserId(),
             revokeDto.RefreshToken);
         var result = await Sender.Send(command);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost("LogisterCitizen")]
@@ -67,7 +75,9 @@ public class AuthenticateController : ApiController
     {
         var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, logisterDto.Captcha);
         var result = await Sender.Send(command);
-        return StatusCode(StatusCodes.Status428PreconditionRequired, result);
+        return result.Match(
+            s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
+            () => Problem());
     }
 
     [HttpPost("VerifyCitizen")]
@@ -75,7 +85,9 @@ public class AuthenticateController : ApiController
     {
         var command = new TwoFactorLoginCommand(logisterDto.OtpToken, logisterDto.VerificationCode);
         var result = await Sender.Send(command);
-        return Ok(result.Adapt<LoginResultDto>());
+        return result.Match(
+            s => Ok(s.Adapt<LoginResultDto>()), 
+            () => Problem());
     }
 
     [Authorize]
@@ -89,14 +101,9 @@ public class AuthenticateController : ApiController
         }
         var command = new ChangePasswordCommand(userName, changePasswordDto.OldPassword, changePasswordDto.NewPassword);
         var result = await Sender.Send(command);
-        if (result)
-        {
-            return NoContent();
-        }
-        else
-        {
-            return Problem();
-        }
+        return result.Match(
+            s => NoContent(), 
+            () => Problem());
     }
 
 
@@ -111,8 +118,9 @@ public class AuthenticateController : ApiController
         }
         var query = new GetUserProfileQuery(userId);
         var result = await Sender.Send(query);
-        var mappedUser = result.Adapt<GetProfileDto>();
-        return Ok(mappedUser);
+        return result.Match(
+            s => Ok(s.Adapt<GetProfileDto>()),
+            () => Problem());
     }
 
     [Authorize]
@@ -132,10 +140,9 @@ public class AuthenticateController : ApiController
             updateDto.PhoneNumber2);
 
         var result = await Sender.Send(command);
-        if (result == null)
-            return Problem();
-
-        return NoContent();
+        return result.Match(
+            s => NoContent(),
+            () => Problem());
     }
 }
 

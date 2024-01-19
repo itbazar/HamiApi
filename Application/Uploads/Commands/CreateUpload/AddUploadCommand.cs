@@ -6,5 +6,5 @@ using Microsoft.AspNetCore.Http;
 namespace Application.Uploads.Commands.CreateUpload;
 
 public sealed record AddUploadCommand(
-    string UserId, IFormFile File, AttachmentType AttachmentType) : IRequest<StorageMedia>;
+    string UserId, IFormFile File, AttachmentType AttachmentType) : IRequest<Result<StorageMedia>>;
 

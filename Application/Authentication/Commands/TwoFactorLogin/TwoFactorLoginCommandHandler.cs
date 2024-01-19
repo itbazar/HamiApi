@@ -3,17 +3,11 @@ using MediatR;
 
 namespace Application.Authentication.Commands.LoginCommand;
 
-internal sealed class TwoFactorLoginCommandHandler : IRequestHandler<TwoFactorLoginCommand, AuthToken>
+internal sealed class TwoFactorLoginCommandHandler(IAuthenticationService authenticationService) : IRequestHandler<TwoFactorLoginCommand, Result<AuthToken>>
 {
-    private readonly IAuthenticationService _authenticationService;
-
-    public TwoFactorLoginCommandHandler(IAuthenticationService authenticationService)
+    public async Task<Result<AuthToken>> Handle(TwoFactorLoginCommand request, CancellationToken cancellationToken)
     {
-        _authenticationService = authenticationService;
-    }
-    public async Task<AuthToken> Handle(TwoFactorLoginCommand request, CancellationToken cancellationToken)
-    {
-        var result = await _authenticationService.VerifyOtp(request.OtpToken, request.Code);
+        var result = await authenticationService.VerifyOtp(request.OtpToken, request.Code);
         return result;
     }
 }

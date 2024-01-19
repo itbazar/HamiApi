@@ -3,18 +3,13 @@ using MediatR;
 
 namespace Application.Authentication.Queries.CaptchaQuery;
 
-internal sealed class CaptchaQueryHandler : IRequestHandler<CaptchaQuery, CaptchaResultModel>
+internal sealed class CaptchaQueryHandler(ICaptchaProvider captchaProvider) : IRequestHandler<CaptchaQuery, Result<CaptchaResultModel>>
 {
-    private readonly ICaptchaProvider _captchaProvider;
-
-    public CaptchaQueryHandler(ICaptchaProvider captchaProvider)
-    {
-        _captchaProvider = captchaProvider;
-    }
-
-    public async Task<CaptchaResultModel> Handle(CaptchaQuery request, CancellationToken cancellationToken)
+    public async Task<Result<CaptchaResultModel>> Handle(
+        CaptchaQuery request,
+        CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        return _captchaProvider.GenerateImage();
+        return captchaProvider.GenerateImage();
     }
 }

@@ -4,22 +4,13 @@ using MediatR;
 
 namespace Application.ComplaintOrganizations.Commands.AddComplaintOrganization;
 
-internal class AddComplaintOrganizationCommandHandler : IRequestHandler<AddComplaintOrganizationCommand, ComplaintOrganization>
+internal class AddComplaintOrganizationCommandHandler(IComplaintOrganizationRepository organizationRepository, IUnitOfWork unitOfWork) : IRequestHandler<AddComplaintOrganizationCommand, Result<ComplaintOrganization>>
 {
-    private readonly IComplaintOrganizationRepository _organizationRepository;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public AddComplaintOrganizationCommandHandler(IComplaintOrganizationRepository organizationRepository, IUnitOfWork unitOfWork)
-    {
-        _organizationRepository = organizationRepository;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<ComplaintOrganization> Handle(AddComplaintOrganizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ComplaintOrganization>> Handle(AddComplaintOrganizationCommand request, CancellationToken cancellationToken)
     {
         var organization = ComplaintOrganization.Create(request.Title, request.Description);
-        _organizationRepository.Insert(organization);
-        await _unitOfWork.SaveAsync();
+        organizationRepository.Insert(organization);
+        await unitOfWork.SaveAsync();
         return organization;
     }
 }

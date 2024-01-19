@@ -1,4 +1,5 @@
 ﻿using Api.Abstractions;
+using Api.ExtensionMethods;
 using Application.Authentication.Queries.CaptchaQuery;
 using Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
 using Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
@@ -26,7 +27,9 @@ public class CommonController : ApiController
     {
         var query = new GetComplaintCategoriesQuery();
         var result = await Sender.Send(query);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("Organizations")]
@@ -34,7 +37,9 @@ public class CommonController : ApiController
     {
         var query = new GetComplaintOrganizationsQuery();
         var result = await Sender.Send(query);
-        return Ok(result);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("Captcha")]
@@ -44,36 +49,50 @@ public class CommonController : ApiController
         var result = await Sender.Send(query);
         if (result is null)
             throw new Exception();
-        Response.Headers.Append("Captcha-Key", result.Key.ToString());
+        Response.Headers.Append("Captcha-Key", result.Value.Key.ToString());
         //return "data:image/jpg;base64," + Convert.ToBase64String(result.Data);
-        return File(result.Data, "image/jpg");
+        return result.Match(
+            s => File(s.Data, "image/jpg"),
+            () => Problem());
     }
 
     [HttpGet("Sliders")]
     public async Task<ActionResult<List<Slider>>> GetSlidersList()
     {
         var query = new GetSlidersQuery();
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("News")]
     public async Task<ActionResult<List<News>>> GetNewsList()
     {
         var query = new GetNewsQuery();
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("Contents")]
     public async Task<ActionResult<List<WebContent>>> GetContentsList()
     {
         var query = new GetWebContentsQuery();
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("Contents/{title}")]
     public async Task<ActionResult<WebContent>> GetContentByTitle(string title)
     {
         var query = new GetWebContentByTitleQuery(title);
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 }

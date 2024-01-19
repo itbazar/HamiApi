@@ -1,42 +1,32 @@
-﻿using Application.Common.Exceptions;
+﻿using Application.Common.Errors;
 using Application.Common.Interfaces.Communication;
 using Application.Common.Interfaces.Security;
 using MediatR;
 
 namespace Application.Authentication.Commands.LogisterCitizenCommand;
 
-internal class LogisterCitizenCommandHandler : IRequestHandler<LogisterCitizenCommand, string>
+internal class LogisterCitizenCommandHandler(IAuthenticationService authenticationService, ICaptchaProvider captchaProvider, ICommunicationService communicationService) : IRequestHandler<LogisterCitizenCommand, Result<string>>
 {
-    private readonly IAuthenticationService _authenticationService;
-    private readonly ICaptchaProvider _captchaProvider;
-    private readonly ICommunicationService _communicationService;
-
-    public LogisterCitizenCommandHandler(IAuthenticationService authenticationService, ICaptchaProvider captchaProvider, ICommunicationService communicationService)
-    {
-        _authenticationService = authenticationService;
-        _captchaProvider = captchaProvider;
-        _communicationService = communicationService;
-    }
-    public async Task<string> Handle(LogisterCitizenCommand request, CancellationToken cancellationToken)
+    public async Task<Result<string>> Handle(LogisterCitizenCommand request, CancellationToken cancellationToken)
     {
         if (request.CaptchaValidateModel is not null)
         {
-            var isCaptchaValid = _captchaProvider.Validate(request.CaptchaValidateModel);
+            var isCaptchaValid = captchaProvider.Validate(request.CaptchaValidateModel);
             if (!isCaptchaValid)
             {
-                throw new InvalidCaptchaException();
+                return AuthenticationErrors.InvalidCaptcha;
             }
         }
 
-        var result = await _authenticationService.LogisterCitizen(request.PhoneNumber);
+        var result = await authenticationService.LogisterCitizen(request.PhoneNumber);
         try
         {
-            await _communicationService.SendVerificationAsync(
+            await communicationService.SendVerificationAsync(
                 result.PhoneNumber, result.Code);
         }
         catch
         {
-            throw new SendSmsException();
+            return CommunicationErrors.SmsError;
         }
 
         return result.Token;

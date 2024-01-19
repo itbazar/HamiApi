@@ -9,4 +9,4 @@ public record UpdateSliderCommand(
     string? Title,
     IFormFile? Image,
     string? Url,
-    string? Description) : IRequest<Slider>;
+    string? Description) : IRequest<Result<Slider>>;

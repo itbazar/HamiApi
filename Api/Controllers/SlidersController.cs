@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.Sliders;
+using Api.ExtensionMethods;
 using Application.Sliders.Commands.AddSliderCommand;
 using Application.Sliders.Commands.DeleteSliderCommand;
 using Application.Sliders.Commands.UpdateSliderCommand;
@@ -23,7 +24,10 @@ public class SlidersController : ApiController
     public async Task<ActionResult<List<Slider>>> GetSlidersList()
     {
         var query = new GetAdminSlidersQuery();
-        return await Sender.Send(query);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpGet("{id:guid}")]
@@ -31,7 +35,9 @@ public class SlidersController : ApiController
     {
         var query = new GetSliderByIdQuery(id);
         var result = await Sender.Send(query);
-        return result;
+        return result.Match(
+            s => Ok(s),
+            () => Problem());
     }
 
     [HttpPost]
@@ -44,7 +50,9 @@ public class SlidersController : ApiController
             sliderDto.Description);
 
         var result = await Sender.Send(command);
-        return CreatedAtAction(nameof(GetSlider), new { id = result.Id }, result);
+        return result.Match(
+            s => CreatedAtAction(nameof(GetSlider), new { id = s.Id }, s),
+            () => Problem());
     }
 
     [HttpPut("{id:guid}")]
@@ -57,8 +65,10 @@ public class SlidersController : ApiController
             sliderDto.Url,
             sliderDto.Description);
 
-        await Sender.Send(command);
-        return NoContent();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(), 
+            () => Problem());
     }
 
     [HttpDelete("{id:guid}")]
@@ -66,8 +76,10 @@ public class SlidersController : ApiController
     {
         var command = new DeleteSliderCommand(id);
 
-        await Sender.Send(command);
-        return NoContent();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
+            () => Problem());
     }
 }
 

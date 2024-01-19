@@ -3,4 +3,4 @@ using MediatR;
 
 namespace Application.Setup.Commands.GenerateKeyPair;
 
-public record GenerateKeyPairCommand : IRequest<AsymmetricKey>;
+public record GenerateKeyPairCommand : IRequest<Result<AsymmetricKey>>;
