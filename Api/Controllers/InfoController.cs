@@ -24,7 +24,7 @@ public class InfoController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize]
@@ -35,6 +35,6 @@ public class InfoController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 }

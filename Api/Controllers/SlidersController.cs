@@ -27,7 +27,7 @@ public class SlidersController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("{id:guid}")]
@@ -37,7 +37,7 @@ public class SlidersController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost]
@@ -52,7 +52,7 @@ public class SlidersController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => CreatedAtAction(nameof(GetSlider), new { id = s.Id }, s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPut("{id:guid}")]
@@ -68,7 +68,7 @@ public class SlidersController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(), 
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpDelete("{id:guid}")]
@@ -79,7 +79,7 @@ public class SlidersController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(),
-            () => Problem());
+            f => Problem(f));
     }
 }
 

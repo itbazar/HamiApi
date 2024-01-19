@@ -28,7 +28,7 @@ public class AdminController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => File(Encoding.ASCII.GetBytes(s), "text/plain", "private.txt"),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -39,7 +39,7 @@ public class AdminController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -50,7 +50,7 @@ public class AdminController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -61,7 +61,7 @@ public class AdminController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -72,6 +72,6 @@ public class AdminController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s), 
-            () => Problem());
+            f => Problem(f));
     }
 }

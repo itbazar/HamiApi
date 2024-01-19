@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FluentResults;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Abstractions;
@@ -12,5 +13,12 @@ public class ApiController : ControllerBase
     protected ApiController(ISender sender)
     {
         Sender = sender;
+    }
+
+    protected ActionResult Problem(Result result)
+    {
+        return Problem(
+            String.Join("\r\n", result.Errors.Select(e=>e.Message).ToList()), 
+            statusCode: StatusCodes.Status500InternalServerError);
     }
 }

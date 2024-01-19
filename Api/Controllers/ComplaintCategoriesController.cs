@@ -27,7 +27,7 @@ public class ComplaintCategoriesController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -38,7 +38,7 @@ public class ComplaintCategoriesController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -49,7 +49,7 @@ public class ComplaintCategoriesController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => CreatedAtAction(nameof(Get), new { id = s.Id }, s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -60,7 +60,7 @@ public class ComplaintCategoriesController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize(Roles = "Admin")]
@@ -71,6 +71,6 @@ public class ComplaintCategoriesController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(),
-            () => Problem());
+            f => Problem(f));
     }
 }

@@ -29,7 +29,7 @@ public class CommonController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("Organizations")]
@@ -39,7 +39,7 @@ public class CommonController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("Captcha")]
@@ -53,7 +53,7 @@ public class CommonController : ApiController
         //return "data:image/jpg;base64," + Convert.ToBase64String(result.Data);
         return result.Match(
             s => File(s.Data, "image/jpg"),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("Sliders")]
@@ -63,7 +63,7 @@ public class CommonController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("News")]
@@ -73,7 +73,7 @@ public class CommonController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("Contents")]
@@ -83,7 +83,7 @@ public class CommonController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("Contents/{title}")]
@@ -93,6 +93,6 @@ public class CommonController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 }

@@ -16,4 +16,15 @@ public static class FluentResultEstensionMethods
         else
             return failure();
     }
+
+    public static ActionResult Match<TValue>(
+        this Result<TValue> result,
+        Func<TValue, ActionResult> success,
+        Func<Result, ActionResult> failure)
+    {
+        if (result.IsSuccess)
+            return success(result.Value);
+        else
+            return failure(result.ToResult());
+    }
 }

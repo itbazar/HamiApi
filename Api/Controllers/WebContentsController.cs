@@ -26,7 +26,7 @@ public class WebContentsController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("{id:guid}")]
@@ -36,7 +36,7 @@ public class WebContentsController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost]
@@ -50,7 +50,7 @@ public class WebContentsController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => CreatedAtAction(nameof(GetWebContentById), new { id = s.Id }, s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPut("{id:guid}")]
@@ -65,7 +65,7 @@ public class WebContentsController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(), 
-            () => Problem());
+            f => Problem(f));
     }
 }
 

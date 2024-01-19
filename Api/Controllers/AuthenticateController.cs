@@ -30,7 +30,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("VerifyStaff")]
@@ -42,7 +42,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s.Adapt<LoginResultDto>()), 
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("Refresh")]
@@ -54,7 +54,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s.Adapt<LoginResultDto>()), 
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize]
@@ -67,7 +67,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("LogisterCitizen")]
@@ -77,7 +77,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("VerifyCitizen")]
@@ -87,7 +87,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s.Adapt<LoginResultDto>()), 
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize]
@@ -103,7 +103,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(), 
-            () => Problem());
+            f => Problem(f));
     }
 
 
@@ -120,7 +120,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s.Adapt<GetProfileDto>()),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize]
@@ -142,7 +142,7 @@ public class AuthenticateController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(),
-            () => Problem());
+            f => Problem(f));
     }
 }
 

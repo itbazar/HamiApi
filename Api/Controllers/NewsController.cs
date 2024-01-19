@@ -27,7 +27,7 @@ public class NewsController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpGet("{id:guid}")]
@@ -37,7 +37,7 @@ public class NewsController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost]
@@ -53,7 +53,7 @@ public class NewsController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => CreatedAtAction(nameof(GetNews), new { id = s.Id }, s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPut("{id:guid}")]
@@ -69,7 +69,7 @@ public class NewsController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpDelete("{id:guid}")]
@@ -80,7 +80,7 @@ public class NewsController : ApiController
         var result = await Sender.Send(command);
         return result.Match(
             s => NoContent(),
-            () => Problem());
+            f => Problem(f));
     }
 }
 

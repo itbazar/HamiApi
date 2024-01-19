@@ -63,7 +63,7 @@ public class InspectorController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("Get")]
@@ -73,7 +73,7 @@ public class InspectorController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("Operate")]
@@ -90,6 +90,6 @@ public class InspectorController : ApiController
 
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 }

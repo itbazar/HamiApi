@@ -56,7 +56,7 @@ public class CitizenController : ApiController
 
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize]
@@ -76,7 +76,7 @@ public class CitizenController : ApiController
 
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("Operate")]
@@ -92,7 +92,7 @@ public class CitizenController : ApiController
 
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [HttpPost("Get")]
@@ -102,7 +102,7 @@ public class CitizenController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 
     [Authorize]
@@ -116,6 +116,6 @@ public class CitizenController : ApiController
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
-            () => Problem());
+            f => Problem(f));
     }
 }
