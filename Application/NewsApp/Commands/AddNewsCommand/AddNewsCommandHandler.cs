@@ -1,8 +1,6 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.News;
 using Infrastructure.Storage;
-using MediatR;
 
 namespace Application.NewsApp.Commands.AddNewsCommand;
 

@@ -1,7 +1,5 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.IdentityAggregate;
-using MediatR;
 
 namespace Application.Users.Queries.GetUserProfile;
 

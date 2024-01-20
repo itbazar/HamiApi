@@ -2,9 +2,11 @@
 using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Common;
 using Domain.Models.ComplaintAggregate;
+using FluentResults;
 using Infrastructure.ExtensionMethods;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SharedKernel.Errors;
 using System.Security.Cryptography;
 
 namespace Infrastructure.Persistence.Repositories;
@@ -15,14 +17,14 @@ public class ComplaintRepository(
     IAsymmetricEncryption asymmetric,
     IHasher hasher) : IComplaintRepository
 {
-    public async Task<bool> Add(Complaint complaint)
+    public async Task<Result<bool>> Add(Complaint complaint)
     {
         complaint.TrackingNumber = GenerateTrackingNumber();
 
         complaint.GenerateCredentials(hasher, symmetric, asymmetric);
-        
+
         if (complaint.Contents.Count != 1)
-            throw new Exception("Inconsistent contents.");
+            return ComplaintErrors.InconsistentContent;
 
         complaint.EncryptContent(hasher, symmetric);
 
@@ -32,42 +34,44 @@ public class ComplaintRepository(
         return true;
     }
 
-    public async Task<Complaint> GetCitizenAsync(string trackingNumber, string password)
+    public async Task<Result<Complaint>> GetCitizenAsync(string trackingNumber, string password)
     {
         password = password.Trim();
         var complaint = getComplaint(trackingNumber);
         await Task.CompletedTask;
 
         if (complaint is null)
-            throw new Exception("Not found");
+            return ComplaintErrors.NotFound;
 
         complaint.LoadEncryptionKeyByCitizenPassword(password, hasher, symmetric);
         complaint.DecryptContent(hasher, symmetric);
         return complaint;
     }
 
-    public async Task<Complaint> GetInspectorAsync(string trackingNumber, string encodedKey)
+    public async Task<Result<Complaint>> GetInspectorAsync(string trackingNumber, string encodedKey)
     {
         var complaint = getComplaint(trackingNumber);
         await Task.CompletedTask;
 
         if (complaint is null)
-            throw new Exception("Not found");
+            return ComplaintErrors.NotFound;
 
         complaint.LoadEncryptionKeyByInspector(encodedKey, hasher);
         complaint.DecryptContent(hasher, symmetric);
         return complaint;
     }
 
-    public async Task<Complaint> GetAsync(string trackingNumber)
+    public async Task<Result<Complaint>> GetAsync(string trackingNumber)
     {
         var complaint = await context.Complaint
             .Where(c => c.TrackingNumber == trackingNumber)
             .SingleOrDefaultAsync();
-        return complaint ?? throw new Exception("Not found.");
+        if (complaint is null)
+            return ComplaintErrors.NotFound;
+        return complaint;
     }
 
-    public async Task<List<Complaint>> GetListCitizenAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string userId)
+    public async Task<Result<List<Complaint>>> GetListCitizenAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string userId)
     {
         var query = context.Complaint.Where(c => c.UserId == userId);
 
@@ -86,7 +90,7 @@ public class ComplaintRepository(
         return complaintList;
     }
 
-    public async Task<List<Complaint>> GetListInspectorAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
+    public async Task<Result<List<Complaint>>> GetListInspectorAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
     {
         var query = context.Complaint.Where(c => true);
 
@@ -105,7 +109,7 @@ public class ComplaintRepository(
         return complaintList;
     }
 
-    public async Task<bool> ReplyInspector(Complaint complaint, string encodedKey)
+    public async Task<Result<bool>> ReplyInspector(Complaint complaint, string encodedKey)
     {
         complaint.LoadEncryptionKeyByInspector(encodedKey, hasher);
         complaint.EncryptContent(hasher, symmetric);
@@ -113,7 +117,7 @@ public class ComplaintRepository(
         return true;
     }
 
-    public async Task<bool> ReplyCitizen(Complaint complaint, string password)
+    public async Task<Result<bool>> ReplyCitizen(Complaint complaint, string password)
     {
         password = password.Trim();
         complaint.LoadEncryptionKeyByCitizenPassword(password, hasher, symmetric);
@@ -122,7 +126,7 @@ public class ComplaintRepository(
         return true;
     }
 
-    public async Task<bool> ChangeInspectorKey(string privateKey, Guid toKeyId, Guid? fromKeyId)
+    public async Task<Result<bool>> ChangeInspectorKey(string privateKey, Guid toKeyId, Guid? fromKeyId)
     {
         //TODO: Consider using transactions and improve the performance by pagination
         var publicKeys = await context.PublicKey.ToListAsync();
@@ -131,7 +135,7 @@ public class ComplaintRepository(
         var fromPublicKey = publicKeys.Where(p => fromKeyId == null || p.Id == fromKeyId).SingleOrDefault();
         var toPublicKey = publicKeys.Where(p => p.Id == toKeyId).SingleOrDefault();
         if (fromPublicKey is null || toPublicKey is null)
-            throw new Exception("Public key not found.");
+            return ComplaintErrors.PublicKeyNotFound;
         toPublicKey.IsActive = true;
 
         //TODO: Consider pagination

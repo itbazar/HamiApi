@@ -1,6 +1,4 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Security;
-using MediatR;
+﻿using Application.Common.Interfaces.Security;
 
 namespace Application.Authentication.Commands.ChangePasswordCommand;
 

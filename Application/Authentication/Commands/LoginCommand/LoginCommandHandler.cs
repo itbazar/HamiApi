@@ -1,7 +1,5 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Communication;
+﻿using Application.Common.Interfaces.Communication;
 using Application.Common.Interfaces.Security;
-using MediatR;
 
 namespace Application.Authentication.Commands.LoginCommand;
 
@@ -21,7 +19,11 @@ internal sealed class LoginCommandHandler(
             }
         }
 
-        var result = await authenticationService.Login(request.Username, request.Password, true);
+        var loginResult = await authenticationService.Login(request.Username, request.Password, true);
+        if (loginResult.IsFailed)
+            return loginResult.ToResult();
+        
+        var result = loginResult.Value;
         if(result.AuthToken is not null)
         {
             return new LoginResponse(result.AuthToken, null);

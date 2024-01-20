@@ -1,4 +1,4 @@
-﻿namespace Application.Common.Statics;
+﻿namespace SharedKernel.Statics;
 
 public static class RoleNames
 {

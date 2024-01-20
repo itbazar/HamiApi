@@ -8,7 +8,10 @@ internal class GetUserRolesQueryHandler(IUserRepository userRepository) : IReque
 {
     public async Task<Result<List<IsInRoleModel>>> Handle(GetUserRolesQuery request, CancellationToken cancellationToken)
     {
-        var userRoles = await userRepository.GetUserRoles(request.UserId);
+        var userRolesResult = await userRepository.GetUserRoles(request.UserId);
+        if (userRolesResult.IsFailed)
+            return userRolesResult.ToResult();
+        var userRoles = userRolesResult.Value;
         var result = (await userRepository.GetRoles())
             .Select(role => new IsInRoleModel(role.Name ?? "", role.Title,
                 role.Name != null && userRoles.Contains(role.Name)))

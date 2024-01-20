@@ -1,4 +1,4 @@
-﻿namespace Application.Common.Exceptions;
+﻿namespace SharedKernel.Exceptions;
 public class PhoneNumberNotConfirmedException : Exception { }
 public class InvalidUsernameException : Exception { }
 public class UserAlreadyExsistsException : Exception { }

@@ -10,13 +10,24 @@ public class ReplyComplaintInspectorCommandHandler(IComplaintRepository complain
 {
     public async Task<Result<bool>> Handle(ReplyComplaintInspectorCommand request, CancellationToken cancellationToken)
     {
-        var complaint = await complaintRepository.GetAsync(request.TrackingNumber);
-        complaint.AddContent(
+        var result = await complaintRepository.GetAsync(request.TrackingNumber);
+        if (result.IsFailed)
+            return result.ToResult();
+        var complaint = result.Value;
+        try
+        {
+            complaint.AddContent(
             request.Text,
             request.Medias.Adapt<List<Media>>(),
             Actor.Inspector,
             request.Operation,
             request.IsPublic ? ComplaintContentVisibility.Everyone : ComplaintContentVisibility.Inspector);
+        }
+        catch
+        {
+            return ComplaintErrors.InvalidOperation;
+        }
+        
         await complaintRepository.ReplyInspector(complaint, request.EncodedKey);
         return true;
     }

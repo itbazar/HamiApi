@@ -17,7 +17,12 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
 
     public async Task<Result<ComplaintCitizenResponse>> Handle(GetComplaintCitizenQuery request, CancellationToken cancellationToken)
     {
-        var complaint = await _complaintRepository.GetCitizenAsync(request.TrackingNumber, request.Password);
+        var complaintResult = await _complaintRepository.GetCitizenAsync(request.TrackingNumber, request.Password);
+        if (complaintResult.IsFailed)
+            return complaintResult.ToResult();
+        
+        var complaint = complaintResult.Value;
+
         complaint.Contents.RemoveAll(cc => cc.Visibility == ComplaintContentVisibility.Inspector);
         
         var result = new ComplaintCitizenResponse(

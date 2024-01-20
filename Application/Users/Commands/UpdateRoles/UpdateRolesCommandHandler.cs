@@ -1,6 +1,4 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Persistence;
-using MediatR;
+﻿using Application.Common.Interfaces.Persistence;
 
 namespace Application.Users.Commands.UpdateRoles;
 
@@ -13,6 +11,8 @@ internal class UpdateRolesCommandHandler(IUserRepository userRepository) : IRequ
         if (roles is null)
             return UserErrors.UnExpected;
         var result = await userRepository.UpdateRolesAsync(request.UserId, roles);
+        if(!result)
+            return UserErrors.RoleUpdateFailed;
         return result;
     }
 }

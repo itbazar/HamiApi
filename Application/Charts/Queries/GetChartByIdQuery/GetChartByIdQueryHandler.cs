@@ -1,8 +1,5 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Persistence;
-using Domain.Models.ChartAggregate;
+﻿using Application.Common.Interfaces.Persistence;
 using Mapster;
-using MediatR;
 
 namespace Application.Charts.Queries.GetChartByIdQuery;
 

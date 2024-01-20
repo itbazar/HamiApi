@@ -1,12 +1,11 @@
 ﻿using Application.Common.Interfaces.Encryption;
 using Application.Common.Interfaces.Persistence;
-using Application.Common.Statics;
 using Domain.Models.ChartAggregate;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using Domain.Models.WebContents;
-using MediatR;
+using SharedKernel.Statics;
 
 namespace Application.Setup.Commands.Init;
 

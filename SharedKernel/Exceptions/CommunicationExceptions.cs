@@ -1,3 +1,3 @@
-﻿namespace Application.Common.Exceptions;
+﻿namespace SharedKernel.Exceptions;
 
 public class SendSmsException : Exception { }

@@ -1,5 +1,5 @@
-﻿using Application.Common.ExtensionMethods;
-using Domain.Models.ComplaintAggregate;
+﻿using Domain.Models.ComplaintAggregate;
+using SharedKernel.ExtensionMethods;
 
 namespace Application.Complaints.Common;
 

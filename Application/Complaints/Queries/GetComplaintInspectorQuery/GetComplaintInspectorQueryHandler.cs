@@ -3,7 +3,6 @@ using Application.Complaints.Common;
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Mapster;
-using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintInspectorQuery;
 
@@ -19,18 +18,36 @@ internal class ComplaintInspectorResponseHandler :
 
     public async Task<Result<ComplaintInspectorResponse>> Handle(GetComplaintInspectorQuery request, CancellationToken cancellationToken)
     {
-        var complaint = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
+        var complaintResult = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
+        if (complaintResult.IsFailed)
+            return complaintResult.ToResult();
+        var complaint = complaintResult.Value;
         if (complaint.ShouldMarkedAsRead())
         {
-            var complaintToUpdate = await _complaintRepository.GetAsync(request.TrackingNumber);
-            complaintToUpdate.AddContent(
+            var complaintToUpdateResult = await _complaintRepository.GetAsync(request.TrackingNumber);
+            if(complaintToUpdateResult.IsFailed)
+                return complaintToUpdateResult.ToResult();
+
+            var complaintToUpdate = complaintToUpdateResult.Value;
+            try
+            {
+                complaintToUpdate.AddContent(
                 "",
                 new List<Media>(),
                 Actor.Inspector,
                 ComplaintOperation.Open,
                 ComplaintContentVisibility.Inspector);
+            }
+            catch
+            {
+                return ComplaintErrors.InvalidOperation;
+            }
+            
             await _complaintRepository.ReplyInspector(complaintToUpdate, request.EncodedKey);
-            complaint = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
+            complaintResult = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
+            if (complaintResult.IsFailed)
+                return complaintResult.ToResult();
+            complaint = complaintResult.Value;
         }
 
         var result = new ComplaintInspectorResponse(

@@ -1,10 +1,7 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.Common;
 using Domain.Models.Sliders;
 using Infrastructure.Storage;
-using MediatR;
-using Microsoft.AspNetCore.Http;
 
 namespace Application.Sliders.Commands.UpdateSliderCommand;
 

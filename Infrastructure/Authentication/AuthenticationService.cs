@@ -1,6 +1,4 @@
-﻿using Application.Common.Exceptions;
-using Application.Common.Interfaces.Security;
-using Application.Common.Statics;
+﻿using Application.Common.Interfaces.Security;
 using Domain.Models.IdentityAggregate;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -8,6 +6,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
+using SharedKernel.Statics;
+using FluentResults;
+using SharedKernel.Errors;
 
 namespace Infrastructure.Authentication;
 
@@ -30,15 +31,21 @@ public class AuthenticationService : IAuthenticationService
         _authenticateRepository = authenticateRepository;
     }
 
-    public async Task<LoginResultModel> Login(string username, string password, bool twoFactorEnabled = false)
+    public async Task<Result<LoginResultModel>> Login(string username, string password, bool twoFactorEnabled = false)
     {
-        var user = await GetUser(username);
+        var result = await GetUser(username);
+        if (result.IsFailed)
+            return result.ToResult();
 
+        var user = result.Value;
         if (await _userManager.CheckPasswordAsync(user, password))
         {
             if (twoFactorEnabled)
             {
-                return new LoginResultModel(null, await GetVerificationCode(user));
+                var verificationCodeResult = await GetVerificationCode(user);
+                if(verificationCodeResult.IsFailed) 
+                    return result.ToResult();
+                return new LoginResultModel(null, verificationCodeResult.Value);
             }
             else
             {
@@ -47,15 +54,15 @@ public class AuthenticationService : IAuthenticationService
         }
         else
         {
-            throw new InvalidLoginException();
+            return AuthenticationErrors.InvalidCredentials;
         }
     }
 
-    public async Task<AuthToken> VerifyOtp(string otpToken, string code)
+    public async Task<Result<AuthToken>> VerifyOtp(string otpToken, string code)
     {
         var storedOtp = await _authenticateRepository.GetOtpAsync(otpToken);
         if (storedOtp is null)
-            throw new Exception("Otp not found");
+            return AuthenticationErrors.InvalidOtp;
 
         if (await ValidateOtp(storedOtp.User, code))
         {
@@ -66,16 +73,16 @@ public class AuthenticationService : IAuthenticationService
             }
             return await GenerateToken(storedOtp.User);
         }
-            
-        throw new InvalidVerificationCode();
+
+        return AuthenticationErrors.InvalidOtp;
     }
 
-    public async Task<VerificationToken> LogisterCitizen(string phoneNumber)
+    public async Task<Result<VerificationToken>> LogisterCitizen(string phoneNumber)
     {
         Regex regex = new Regex(@"^09[0-9]{9}$");
         if (!regex.IsMatch(phoneNumber))
         {
-            throw new InvalidUsernameException();
+            return AuthenticationErrors.InvalidUsername;
         }
         var user = await _userManager.FindByNameAsync(phoneNumber);
         var isNew = user is null;
@@ -90,12 +97,12 @@ public class AuthenticationService : IAuthenticationService
         return await GetVerificationCode(user, isNew);
     }
 
-    public async Task<AuthToken> Refresh(string token, string refreshToken)
+    public async Task<Result<AuthToken>> Refresh(string token, string refreshToken)
     {
         var validatedToken = GetPrincipalFromToken(token);
         if (validatedToken == null)
         {
-            throw new Exception("Invalid token");
+            return AuthenticationErrors.InvalidAccessToken;
         }
 
         var now = DateTime.UtcNow;
@@ -105,46 +112,53 @@ public class AuthenticationService : IAuthenticationService
             .AddSeconds(expiryDateUnix);
         if (expiryDateUtc > now)
         {
-            throw new Exception("Token not expired yet");
+            return AuthenticationErrors.TokenNotExpiredYet;
         }
 
         var storedRefreshToken = await _authenticateRepository.GetRefreshTokenAsync(refreshToken);
         if (storedRefreshToken is null)
-            throw new Exception("Refresh token not exsists");
+            return AuthenticationErrors.InvalidRefereshToken;
 
         // We don't need this when using Redis but is kept for compatibility
         if (now > storedRefreshToken.CreationDate.Add(storedRefreshToken.Expiry))
-            throw new Exception("Refresh token is expired");
+            return AuthenticationErrors.InvalidRefereshToken;
 
         var jti = validatedToken.Claims.Single(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
         if (storedRefreshToken.JwtId != jti)
-            throw new Exception("Jwt id not matched");
+            return AuthenticationErrors.InvalidRefereshToken;
 
         await _authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
 
         var userName = validatedToken.FindFirstValue(ClaimTypes.Name);
         if (userName is null)
-            throw new Exception("Invalid username");
-        var user = await GetUser(userName);
-        return await GenerateToken(user);
+            return AuthenticationErrors.InvalidUsername;
+
+        var result = await GetUser(userName);
+        if (result.IsFailed)
+            return result.ToResult();
+        return await GenerateToken(result.Value);
     }
 
-    public async Task<bool> Revoke(string userId, string refreshToken)
+    public async Task<Result<bool>> Revoke(string userId, string refreshToken)
     {
         var storedRefreshToken = await _authenticateRepository.GetRefreshTokenAsync(refreshToken);
         if (storedRefreshToken is null)
-            throw new Exception("Refresh token not exsists");
+            return AuthenticationErrors.InvalidRefereshToken;
 
         if (storedRefreshToken.UserId != userId)
-            throw new Exception("User not matched");
+            return AuthenticationErrors.InvalidRefereshToken;
         await _authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
 
         return true;
     }
 
-    public async Task<bool> ChangePassword(string username, string oldPassword, string newPassword)
+    public async Task<Result<bool>> ChangePassword(string username, string oldPassword, string newPassword)
     {
-        var user = await GetUser(username);
+        var userResult = await GetUser(username);
+        if (userResult.IsFailed)
+            return userResult.ToResult();
+        var user = userResult.Value;
+
         var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
         if (result.Succeeded)
         {
@@ -155,33 +169,34 @@ public class AuthenticationService : IAuthenticationService
 
     /////////////////////////
     /// Private methods
-    private async Task CreateCitizen(ApplicationUser user)
+    private async Task<Result> CreateCitizen(ApplicationUser user)
     {
         try
         {
             user.PhoneNumberConfirmed = true;
             var result = await _userManager.CreateAsync(user, "ADGJL';khfs12");
             if (!result.Succeeded)
-                throw new UserRegisterException();
+                return AuthenticationErrors.UserCreationFailed;
 
             var result2 = await _userManager.AddToRoleAsync(user, RoleNames.Citizen);
 
             if (!result2.Succeeded)
             {
                 await _userManager.DeleteAsync(user);
-                throw new UserRegisterException();
+                return AuthenticationErrors.UserCreationFailed;
             }
         }
         catch
         {
-            throw new UserRegisterException();
+            return AuthenticationErrors.UserCreationFailed;
         }
+        return Result.Ok();
     }
 
-    private async Task<VerificationToken> GetVerificationCode(ApplicationUser user, bool isNew = false)
+    private async Task<Result<VerificationToken>> GetVerificationCode(ApplicationUser user, bool isNew = false)
     {
         if (await _authenticateRepository.IsSentAsync(user.UserName!))
-            throw new Exception("Verification can't be sent in less than 2 minutes.");
+            return AuthenticationErrors.TooManyRequestsForOtp;
 
         var otp = new Otp(Guid.NewGuid().ToString(), user, isNew);
         await _authenticateRepository.InsertOtpAsync(otp);
@@ -189,12 +204,12 @@ public class AuthenticationService : IAuthenticationService
         return new VerificationToken(user.PhoneNumber ?? "", otp.Token, await GenerateOtp(user));
     }
 
-    private async Task<ApplicationUser> GetUser(string username)
+    private async Task<Result<ApplicationUser>> GetUser(string username)
     {
         var user = await _userManager.FindByNameAsync(username);
         if (user == null)
         {
-            throw new UserNotExistException();
+            return AuthenticationErrors.UserNotFound;
         }
 
         return user;

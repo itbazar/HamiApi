@@ -1,7 +1,9 @@
 ﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.IdentityAggregate;
+using FluentResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Errors;
 using System.Linq.Expressions;
 
 namespace Infrastructure.Persistence.Repositories;
@@ -120,7 +122,7 @@ public class UserRepository(
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
-            throw new Exception("User not found.");
+            return false;
         var result = await userManager.RemovePasswordAsync(user);
         if (result is null || !result.Succeeded)
             return false;
@@ -134,7 +136,7 @@ public class UserRepository(
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
-            throw new Exception("User not found");
+            return false;
         var currentRoles = await userManager.GetRolesAsync(user);
         var inRoles = roles.Where(r => !currentRoles.Contains(r)).ToList();
         var outRoles = currentRoles.Where(r => !roles.Contains(r)).ToList();
@@ -153,14 +155,14 @@ public class UserRepository(
         return true;
     }
 
-    public async Task<List<string>> GetUserRoles(string userId)
+    public async Task<Result<List<string>>> GetUserRoles(string userId)
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user is null)
-            throw new Exception("User not found.");
+            return UserErrors.UserNotExsists;
         var roles = await userManager.GetRolesAsync(user);
         if (roles is null)
-            throw new Exception("Unknown problem!");
+            return UserErrors.UnExpected;
         return roles.ToList();
     }
 

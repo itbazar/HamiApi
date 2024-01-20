@@ -5,16 +5,16 @@ namespace Api.Services;
 
 public class GlobalExceptionHandler : IExceptionHandler
 {
-    private readonly ILogger<GlobalExceptionHandler> logger;
+    private readonly ILogger<GlobalExceptionHandler> _logger;
 
     public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
     {
-        logger = logger;
+        _logger = logger;
     }
 
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
-        logger.LogError(exception, "Exception occured: {Message}", exception.Message);
+        _logger.LogError(exception, "Exception occured: {Message}", exception.Message);
         var problemDetails = new ProblemDetails
         {
             Status = StatusCodes.Status500InternalServerError,

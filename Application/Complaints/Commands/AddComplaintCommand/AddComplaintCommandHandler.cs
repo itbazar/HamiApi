@@ -1,6 +1,4 @@
-﻿using Application.Common.Errors;
-using Application.Common.Exceptions;
-using Application.Common.ExtensionMethods;
+﻿using Application.Common.ExtensionMethods;
 using Application.Common.Interfaces.Communication;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
@@ -8,7 +6,6 @@ using Application.Complaints.Commands.Common;
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Mapster;
-using MediatR;
 
 namespace Application.Complaints.Commands.AddComplaintCommand;
 
@@ -26,7 +23,7 @@ public async Task<Result<AddComplaintResult>> Handle(AddComplaintCommand request
             var isCaptchaValid = captchaProvider.Validate(request.CaptchaValidateModel);
             if (!isCaptchaValid)
             {
-                throw new InvalidCaptchaException();
+                return AuthenticationErrors.InvalidCaptcha;
             }
         }
         var publicKey = (await publicKeyRepository.GetAll())

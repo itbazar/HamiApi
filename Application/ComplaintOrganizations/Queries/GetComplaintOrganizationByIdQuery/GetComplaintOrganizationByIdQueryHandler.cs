@@ -1,7 +1,5 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.ComplaintAggregate;
-using MediatR;
 
 namespace Application.ComplaintOrganizations.Queries.GetComplaintOrganizationByIdQuery;
 

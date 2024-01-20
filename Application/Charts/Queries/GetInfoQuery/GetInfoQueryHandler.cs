@@ -1,12 +1,11 @@
-﻿using Application.Common.ExtensionMethods;
-using Application.Common.Interfaces.Persistence;
-using Application.Common.Statics;
+﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Statics;
 using System.Globalization;
 using System.Linq.Expressions;
+using SharedKernel.ExtensionMethods;
 
 namespace Application.Charts.Queries.GetInfoQuery;
 

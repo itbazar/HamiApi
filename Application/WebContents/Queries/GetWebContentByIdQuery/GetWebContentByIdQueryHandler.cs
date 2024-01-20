@@ -1,11 +1,9 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.WebContents;
-using MediatR;
 
 namespace Application.WebContents.Queries.GetWebContentByIdQuery;
 
-internal sealed class GetWebContentByIdQueryHandler(IWebContentRepository webContentRepository, IUnitOfWork unitOfWork) : IRequestHandler<GetWebContentByIdQuery, Result<WebContent>>
+internal sealed class GetWebContentByIdQueryHandler(IWebContentRepository webContentRepository) : IRequestHandler<GetWebContentByIdQuery, Result<WebContent>>
 {
     public async Task<Result<WebContent>> Handle(GetWebContentByIdQuery request, CancellationToken cancellationToken)
     {

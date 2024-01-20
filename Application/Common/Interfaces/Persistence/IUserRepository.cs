@@ -9,7 +9,7 @@ public interface IUserRepository
 {
     public Task<ApplicationUser> GetOrCreateCitizen(string phoneNumber, string firstName, string lastName);
     public Task<List<ApplicationUser>> GetUsersInRole(string roleName);
-    public Task<List<string>> GetUserRoles(string userId);
+    public Task<Result<List<string>>> GetUserRoles(string userId);
     public Task<List<ApplicationRole>> GetRoles();
     public Task<bool> IsInRoleAsync(ApplicationUser user, string role);
     public Task<IdentityResult> CreateAsync(ApplicationUser user, string password);

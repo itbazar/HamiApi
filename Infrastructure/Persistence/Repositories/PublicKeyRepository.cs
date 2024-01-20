@@ -24,18 +24,17 @@ public class PublicKeyRepository : IPublicKeyRepository
     public async Task<bool> Delete(Guid id)
     {
         var publicKey = await Get(id);
+        if (publicKey is null)
+            return false;
         publicKey.IsActive = true;
         await _context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<PublicKey> Get(Guid id)
+    public async Task<PublicKey?> Get(Guid id)
     {
         var publicKey = await _context.Set<PublicKey>().Where(p => p.Id == id).SingleOrDefaultAsync();
-        if (publicKey is null)
-        {
-            throw new Exception("Not found.");
-        }
+        
         return publicKey;
     }
 

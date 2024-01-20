@@ -1,6 +1,4 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Encryption;
-using MediatR;
+﻿using Application.Common.Interfaces.Encryption;
 
 namespace Application.Setup.Commands.GenerateKeyPair;
 

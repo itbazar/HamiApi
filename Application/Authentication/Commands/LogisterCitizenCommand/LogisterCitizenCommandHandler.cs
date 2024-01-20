@@ -1,7 +1,5 @@
-﻿using Application.Common.Errors;
-using Application.Common.Interfaces.Communication;
+﻿using Application.Common.Interfaces.Communication;
 using Application.Common.Interfaces.Security;
-using MediatR;
 
 namespace Application.Authentication.Commands.LogisterCitizenCommand;
 
@@ -18,7 +16,10 @@ internal class LogisterCitizenCommandHandler(IAuthenticationService authenticati
             }
         }
 
-        var result = await authenticationService.LogisterCitizen(request.PhoneNumber);
+        var tokenResult = await authenticationService.LogisterCitizen(request.PhoneNumber);
+        if (tokenResult.IsFailed)
+            return tokenResult.ToResult();
+        var result = tokenResult.Value;
         try
         {
             await communicationService.SendVerificationAsync(
