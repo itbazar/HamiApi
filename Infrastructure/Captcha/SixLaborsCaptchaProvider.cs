@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces.Security;
+using SixLabors.ImageSharp;
 using SixLaborsCaptcha.Core;
 
 namespace Infrastructure.Captcha;

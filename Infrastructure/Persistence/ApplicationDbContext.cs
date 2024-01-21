@@ -2,6 +2,7 @@
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
+using Domain.Models.News;
 using Domain.Models.PublicKeys;
 using Domain.Models.Sliders;
 using Domain.Models.WebContents;
@@ -33,4 +34,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<PublicKey> PublicKey { get; set; }
     public DbSet<Slider> Slider { get; set; }
     public DbSet<WebContent> WebContent { get; set; }
+    public DbSet<News> News { get; set; }
 }
