@@ -269,9 +269,11 @@ public class AuthenticationService : IAuthenticationService
         var tokenHandler = new JwtSecurityTokenHandler();
         try
         {
+            var noExpiryTokenValidationParameters = _tokenValidationParameters.Clone();
+            noExpiryTokenValidationParameters.ValidateLifetime = false;
             var principal = tokenHandler.ValidateToken(
                 token,
-                _tokenValidationParameters,
+                noExpiryTokenValidationParameters,
                 out var validatedToken);
             if (!IsJwtWithValidSecurityAlgorithm(validatedToken))
             {

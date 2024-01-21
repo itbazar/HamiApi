@@ -108,7 +108,8 @@ public static class DependencyInjection
             ValidateAudience = true,
             ValidAudience = configuration["JWT:Audience"],
             ValidIssuer = configuration["JWT:Issuer"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"] ?? throw new Exception("Jwt secret cannot be null.")))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"] ?? throw new Exception("Jwt secret cannot be null."))),
+            ClockSkew = TimeSpan.Zero
         };
         services.AddSingleton(tokenValidationParameters);
         services.AddAuthentication(options =>
