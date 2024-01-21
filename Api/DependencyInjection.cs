@@ -105,7 +105,7 @@ public static class DependencyInjection
         var tokenValidationParameters = new TokenValidationParameters()
         {
             ValidateIssuer = true,
-            ValidateAudience = false,
+            ValidateAudience = true,
             ValidAudience = configuration["JWT:Audience"],
             ValidIssuer = configuration["JWT:Issuer"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"] ?? throw new Exception("Jwt secret cannot be null.")))
