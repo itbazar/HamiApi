@@ -29,7 +29,7 @@ public class AuthenticateController : ApiController
         var command = new LoginCommand(loginDto.Username, loginDto.Password, loginDto.Captcha);
         var result = await Sender.Send(command);
         return result.Match(
-            s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
+            s => Ok(s),
             f => Problem(f));
     }
 
@@ -76,7 +76,7 @@ public class AuthenticateController : ApiController
         var command = new LogisterCitizenCommand(logisterDto.PhoneNumber, logisterDto.Captcha);
         var result = await Sender.Send(command);
         return result.Match(
-            s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
+            s => Ok(s),
             f => Problem(f));
     }
 
