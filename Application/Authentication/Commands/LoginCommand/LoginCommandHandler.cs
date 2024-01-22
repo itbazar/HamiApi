@@ -6,9 +6,9 @@ namespace Application.Authentication.Commands.LoginCommand;
 internal sealed class LoginCommandHandler(
     IAuthenticationService authenticationService,
     ICaptchaProvider captchaProvider,
-    ICommunicationService communicationService) : IRequestHandler<LoginCommand, Result<LoginResponse>>
+    ICommunicationService communicationService) : IRequestHandler<LoginCommand, Result<string>>
 {
-    public async Task<Result<LoginResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<Result<string>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         if(request.CaptchaValidateModel is not null)
         {
@@ -24,10 +24,7 @@ internal sealed class LoginCommandHandler(
             return loginResult.ToResult();
         
         var result = loginResult.Value;
-        if(result.AuthToken is not null)
-        {
-            return new LoginResponse(result.AuthToken, null);
-        }
+
         if(result.VerificationToken is not null)
         {
             try
@@ -40,7 +37,7 @@ internal sealed class LoginCommandHandler(
                 return CommunicationErrors.SmsError;
             }
 
-            return new LoginResponse(null, result.VerificationToken.Token);
+            return result.VerificationToken.Token;
         }
 
         throw new Exception("Unpredictable behaviour.");
