@@ -21,6 +21,9 @@ internal class GetComplaintListCitizenQueryHandler :
         var complaintList = await _complaintRepository.GetListInspectorAsync(
             request.pagingInfo,
             request.Filters);
-        return complaintList.Adapt<List<ComplaintListCitizenResponse>>();
+        if (complaintList.IsFailed)
+            return complaintList.ToResult();
+
+        return complaintList.Value.Adapt<List<ComplaintListCitizenResponse>>();
     }
 }
