@@ -25,6 +25,11 @@ internal class GetComplaintListCitizenQueryHandler :
         if (complaintList.IsFailed)
             return complaintList.ToResult();
 
-        return complaintList.Value.Adapt<PagedList<ComplaintListCitizenResponse>>();
+        var result = complaintList.Value.Adapt<List<ComplaintListCitizenResponse>>();
+        return new PagedList<ComplaintListCitizenResponse>(
+            result,
+            complaintList.Value.Count,
+            complaintList.Value.CurrentPage,
+            complaintList.Value.PageSize);
     }
 }

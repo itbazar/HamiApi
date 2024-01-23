@@ -23,7 +23,11 @@ internal class GetComplaintListInspectorQueryHandler :
             request.Filters);
         if (complaintList.IsFailed)
             return complaintList.ToResult();
-
-        return complaintList.Value.Adapt<PagedList<ComplaintListInspectorResponse>>();
+        var result = complaintList.Value.Adapt<List<ComplaintListInspectorResponse>>();
+        return new PagedList<ComplaintListInspectorResponse>(
+            result,
+            complaintList.Value.Count,
+            complaintList.Value.CurrentPage,
+            complaintList.Value.PageSize);
     }
 }
