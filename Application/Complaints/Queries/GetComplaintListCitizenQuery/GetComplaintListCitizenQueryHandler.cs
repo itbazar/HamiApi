@@ -28,7 +28,7 @@ internal class GetComplaintListCitizenQueryHandler :
         var result = complaintList.Value.Adapt<List<ComplaintListCitizenResponse>>();
         return new PagedList<ComplaintListCitizenResponse>(
             result,
-            complaintList.Value.Count,
+            complaintList.Value.TotalCount,
             complaintList.Value.CurrentPage,
             complaintList.Value.PageSize);
     }

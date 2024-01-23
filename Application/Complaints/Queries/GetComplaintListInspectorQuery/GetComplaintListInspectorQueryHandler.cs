@@ -26,7 +26,7 @@ internal class GetComplaintListInspectorQueryHandler :
         var result = complaintList.Value.Adapt<List<ComplaintListInspectorResponse>>();
         return new PagedList<ComplaintListInspectorResponse>(
             result,
-            complaintList.Value.Count,
+            complaintList.Value.TotalCount,
             complaintList.Value.CurrentPage,
             complaintList.Value.PageSize);
     }
