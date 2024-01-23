@@ -61,9 +61,11 @@ public class InspectorController : ApiController
     {
         var query = new GetComplaintListInspectorQuery(pagingInfo, filters);
         var result = await Sender.Send(query);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
+        if (result.IsFailed)
+            return Problem(result.ToResult());
+
+        Response.AddPaginationHeaders(result.Value.Meta);
+        return Ok(result.Value);
     }
 
     [HttpPost("Get")]

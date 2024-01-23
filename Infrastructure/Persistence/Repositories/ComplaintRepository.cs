@@ -71,7 +71,7 @@ public class ComplaintRepository(
         return complaint;
     }
 
-    public async Task<Result<List<Complaint>>> GetListCitizenAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string userId)
+    public async Task<Result<PagedList<Complaint>>> GetListCitizenAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string userId)
     {
         var query = context.Complaint.Where(c => c.UserId == userId);
 
@@ -81,16 +81,15 @@ public class ComplaintRepository(
         if(filters.TrackingNumber is not null && !filters.TrackingNumber.IsNullOrEmpty())
             query = query.Where(c => c.TrackingNumber.Contains(filters.TrackingNumber));
 
-        var complaintList = await query
-            .Skip(pagingInfo.PageSize * (pagingInfo.PageNumber -1))
-            .Take(pagingInfo.PageSize)
+        query = query
             .Include(c => c.Category)
-            .Include(c => c.ComplaintOrganization)
-            .ToListAsync();
+            .Include(c => c.ComplaintOrganization);
+        var complaintList = await PagedList<Complaint>.ToPagedList(query, pagingInfo.PageNumber, pagingInfo.PageSize);
+        
         return complaintList;
     }
 
-    public async Task<Result<List<Complaint>>> GetListInspectorAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
+    public async Task<Result<PagedList<Complaint>>> GetListInspectorAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
     {
         var query = context.Complaint.Where(c => true);
 
@@ -100,12 +99,11 @@ public class ComplaintRepository(
         if (filters.TrackingNumber is not null && !filters.TrackingNumber.IsNullOrEmpty())
             query = query.Where(c => c.TrackingNumber.Contains(filters.TrackingNumber));
 
-        var complaintList = await query
-            .Skip(pagingInfo.PageSize * (pagingInfo.PageNumber - 1))
-            .Take(pagingInfo.PageSize)
+        query = query
             .Include(c => c.Category)
-            .Include(c => c.ComplaintOrganization)
-            .ToListAsync();
+            .Include(c => c.ComplaintOrganization);
+        var complaintList = await PagedList<Complaint>.ToPagedList(query, pagingInfo.PageNumber, pagingInfo.PageSize);
+        
         return complaintList;
     }
 

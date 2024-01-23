@@ -7,4 +7,4 @@ namespace Application.Complaints.Queries.GetComplaintListQuery;
 public record GetComplaintListCitizenQuery(
     PagingInfo pagingInfo,
     ComplaintListFilters Filters,
-    string UserId) : IRequest<Result<List<ComplaintListCitizenResponse>>>;
+    string UserId) : IRequest<Result<PagedList<ComplaintListCitizenResponse>>>;

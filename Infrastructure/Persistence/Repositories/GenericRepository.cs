@@ -58,7 +58,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         Expression<Func<TEntity, bool>>? filter = null,
         bool trackChanges = true,
         Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>>? orderBy = null,
-        string includeProperties = "")
+            string includeProperties = "")
     {
         var query = createQuery(filter, trackChanges, includeProperties);
 
