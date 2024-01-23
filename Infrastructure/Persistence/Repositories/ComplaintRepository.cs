@@ -165,4 +165,13 @@ public class ComplaintRepository(
             .AsNoTracking()
             .SingleOrDefault();
     }
+
+    public async Task<Result<List<StatesHistogram>>> GetStatesHistogram()
+    {
+        var result = await context.Complaint
+            .GroupBy(c => c.Status)
+            .Select(g => new StatesHistogram(g.Key, g.Count()))
+            .ToListAsync();
+        return result;
+    }
 }

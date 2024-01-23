@@ -14,4 +14,7 @@ public interface IComplaintRepository
     public Task<Result<bool>> ReplyInspector(Complaint complaint, string encodedKey);
     public Task<Result<bool>> ReplyCitizen(Complaint complaint, string password);
     public Task<Result<bool>> ChangeInspectorKey(string privateKey, Guid toKeyId, Guid? fromKeyId);
+    public Task<Result<List<StatesHistogram>>> GetStatesHistogram();
 }
+
+public record StatesHistogram(ComplaintState State, int Count);

@@ -1,3 +1,3 @@
 ﻿namespace Api.Contracts.ComplaintCategory;
 
-public record PossibleStateDto(string Title, int Value);
+public record PossibleStateDto(string Title, int Value, int Count);

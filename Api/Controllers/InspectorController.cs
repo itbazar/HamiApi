@@ -7,7 +7,10 @@ using Application.Complaints.Commands.AddComplaintCommand;
 using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintInspectorQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
+using Application.Complaints.Queries.GetPossibleStatesCountQuery;
 using Domain.Models.ComplaintAggregate;
+using FluentResults;
+using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,14 +47,13 @@ public class InspectorController : ApiController
     }
 
     [HttpGet("PossibleStates")]
-    public ActionResult<List<PossibleStateDto>> GetPossibleStates()
+    public async Task<ActionResult<List<PossibleStateDto>>> GetPossibleStates()
     {
-        var result = new List<PossibleStateDto>();
-        foreach(var item in Enum.GetValues(typeof(ComplaintState)))
-        {
-            result.Add(new PossibleStateDto(((ComplaintState)item).GetDescription() ?? "", (int)item));
-        }
-        return result;
+        var query = new GetPossibleStatesCountQuery();
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s.Adapt<List<PossibleStateDto>>()),
+            f => Problem(f));
     }
 
     [HttpGet("List")]
