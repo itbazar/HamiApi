@@ -1,7 +1,10 @@
-﻿namespace Domain.Primitives;
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace Domain.Primitives;
 
 public abstract class Entity : IEquatable<Entity>
 {
+    private readonly List<DomainEvent> _domainEvents = new();
     protected Entity(Guid id)
     {
         Id = id;
@@ -42,5 +45,10 @@ public abstract class Entity : IEquatable<Entity>
     public override int GetHashCode()
     {
         return Id.GetHashCode();
+    }
+
+    protected void Raise(DomainEvent domainEvent)
+    {
+        _domainEvents.Add(domainEvent);
     }
 }

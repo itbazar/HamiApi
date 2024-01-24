@@ -1,6 +1,7 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.Sliders;
 using Api.ExtensionMethods;
+using Application.Common.Interfaces.Persistence;
 using Application.Sliders.Commands.AddSliderCommand;
 using Application.Sliders.Commands.DeleteSliderCommand;
 using Application.Sliders.Commands.UpdateSliderCommand;
@@ -21,13 +22,15 @@ public class SlidersController : ApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Slider>>> GetSlidersList()
+    public async Task<ActionResult<List<Slider>>> GetSlidersList(PagingInfo pagingInfo)
     {
-        var query = new GetAdminSlidersQuery();
+        var query = new GetAdminSlidersQuery(pagingInfo);
         var result = await Sender.Send(query);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
+        if (result.IsFailed)
+            return Problem(result.ToResult());
+
+        Response.AddPaginationHeaders(result.Value.Meta);
+        return Ok(result.Value);
     }
 
     [HttpGet("{id:guid}")]

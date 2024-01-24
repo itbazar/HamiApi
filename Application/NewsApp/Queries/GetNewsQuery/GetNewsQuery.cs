@@ -1,6 +1,6 @@
-﻿using Domain.Models.News;
-using MediatR;
+﻿using Application.Common.Interfaces.Persistence;
+using Domain.Models.News;
 
 namespace Application.NewsApp.Queries.GetNewsQuery;
 
-public record GetNewsQuery() : IRequest<Result<List<News>>>;
+public record GetNewsQuery(PagingInfo PagingInfo) : IRequest<Result<PagedList<News>>>;

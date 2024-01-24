@@ -1,4 +1,5 @@
 ﻿using Domain.Models.Common;
+using Domain.Models.ComplaintAggregate.Events;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using Domain.Primitives;
@@ -67,6 +68,7 @@ public class Complaint : Entity
         complaint.ComplaintOrganizationId = organizationId;
         complaint.Contents.Add(ComplaintContent.Create(text, medias, Actor.Citizen, ComplaintContentVisibility.Everyone));
 
+        complaint.Raise(new ComplaintCreatedDomainEvent(Guid.NewGuid(), complaint.Id));
         return complaint;
     }
 
@@ -94,6 +96,8 @@ public class Complaint : Entity
         };
         var content = ComplaintContent.Create(text, medias, sender, visibility);
         Contents.Add(content);
+
+        Raise(new ComplaintUpdatedDomainEvent(Guid.NewGuid(), Id));
 
         return true;
     }

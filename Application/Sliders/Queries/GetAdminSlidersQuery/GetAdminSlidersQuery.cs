@@ -1,6 +1,6 @@
-﻿using Domain.Models.Sliders;
-using MediatR;
+﻿using Application.Common.Interfaces.Persistence;
+using Domain.Models.Sliders;
 
 namespace Application.Sliders.Queries.GetAdminSlidersQuery;
 
-public record GetAdminSlidersQuery() : IRequest<Result<List<Slider>>>;
+public record GetAdminSlidersQuery(PagingInfo PagingInfo) : IRequest<Result<PagedList<Slider>>>;

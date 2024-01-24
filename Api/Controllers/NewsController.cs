@@ -1,6 +1,7 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.NewsContract;
 using Api.ExtensionMethods;
+using Application.Common.Interfaces.Persistence;
 using Application.NewsApp.Commands.AddNewsCommand;
 using Application.NewsApp.Commands.DeleteNewsCommand;
 using Application.NewsApp.Commands.UpdateNewsCommand;
@@ -21,13 +22,15 @@ public class NewsController : ApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<News>>> GetNewsList()
+    public async Task<ActionResult<List<News>>> GetNewsList(PagingInfo pagingInfo)
     {
-        var query = new GetAdminNewsQuery();
+        var query = new GetAdminNewsQuery(pagingInfo);
         var result = await Sender.Send(query);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
+        if (result.IsFailed)
+            return Problem(result.ToResult());
+
+        Response.AddPaginationHeaders(result.Value.Meta);
+        return Ok(result.Value);
     }
 
     [HttpGet("{id:guid}")]

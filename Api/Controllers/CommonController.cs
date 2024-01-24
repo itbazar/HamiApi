@@ -1,6 +1,7 @@
 ﻿using Api.Abstractions;
 using Api.ExtensionMethods;
 using Application.Authentication.Queries.CaptchaQuery;
+using Application.Common.Interfaces.Persistence;
 using Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
 using Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
 using Application.NewsApp.Queries.GetNewsQuery;
@@ -67,13 +68,15 @@ public class CommonController : ApiController
     }
 
     [HttpGet("News")]
-    public async Task<ActionResult<List<News>>> GetNewsList()
+    public async Task<ActionResult<List<News>>> GetNewsList(PagingInfo pagingInfo)
     {
-        var query = new GetNewsQuery();
+        var query = new GetNewsQuery(pagingInfo);
         var result = await Sender.Send(query);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
+        if (result.IsFailed)
+            return Problem(result.ToResult());
+
+        Response.AddPaginationHeaders(result.Value.Meta);
+        return Ok(result.Value);
     }
 
     [HttpGet("Contents")]

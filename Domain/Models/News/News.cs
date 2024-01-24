@@ -17,6 +17,7 @@ public class News : Entity
         var news = new News(Guid.Empty);
         news.Title = title;
         news.Description = description;
+        news.DateTime = DateTime.UtcNow;
         news.Image = image;
         news.Url = url;
         news.Content = content;
@@ -45,6 +46,7 @@ public class News : Entity
     public StorageMedia Image { get; set; } = null!;
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public DateTime DateTime { get; set; }
     public string Url { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public bool IsDeleted { get; set; } = false;
