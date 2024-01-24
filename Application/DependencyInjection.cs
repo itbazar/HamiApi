@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Application.Abstractions.Behaviors;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
 
@@ -8,8 +9,12 @@ public static class DependencyInjection
     {
         var assembly = typeof(DependencyInjection).Assembly;
 
-        services.AddMediatR(configuration => 
-            configuration.RegisterServicesFromAssembly(assembly));
+        services.AddMediatR(configuration =>
+        {
+            configuration.RegisterServicesFromAssembly(assembly);
+            configuration.AddOpenBehavior(typeof(RequestLoggingPipelineBehavior<,>));
+        });
+
         //services.AddValidatorsFromAssembly(assembly);
         return services;
     }

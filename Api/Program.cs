@@ -49,6 +49,8 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 //app.UseAccessControlMiddleware();
+app.UseMiddleware<RequestLogContextMiddleware>();
+app.UseSerilogRequestLogging();
 app.UseExceptionHandler();
 app.UseStaticFiles();
 app.MapControllers();
