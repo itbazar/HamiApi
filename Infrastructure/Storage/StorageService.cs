@@ -150,7 +150,7 @@ public class StorageService : IStorageService
     {
         var extension = fileName.Split('.').Last().ToUpper();
 
-        return _allowedExtensions.Contains(extension.ToLower());
+        return _allowedExtensions.Contains(extension);
     }
 
     private async Task<StorageMedia> writeImage(Image image, string destinationPath, string relativePath, string fileName, List<Size> imageQualities)
