@@ -22,7 +22,7 @@ public class SlidersController : ApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<Slider>>> GetSlidersList(PagingInfo pagingInfo)
+    public async Task<ActionResult<List<Slider>>> GetSlidersList([FromQuery] PagingInfo pagingInfo)
     {
         var query = new GetAdminSlidersQuery(pagingInfo);
         var result = await Sender.Send(query);

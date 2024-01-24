@@ -22,7 +22,7 @@ public class NewsController : ApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<News>>> GetNewsList(PagingInfo pagingInfo)
+    public async Task<ActionResult<List<News>>> GetNewsList([FromQuery] PagingInfo pagingInfo)
     {
         var query = new GetAdminNewsQuery(pagingInfo);
         var result = await Sender.Send(query);

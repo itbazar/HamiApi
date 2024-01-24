@@ -68,7 +68,7 @@ public class CommonController : ApiController
     }
 
     [HttpGet("News")]
-    public async Task<ActionResult<List<News>>> GetNewsList(PagingInfo pagingInfo)
+    public async Task<ActionResult<List<News>>> GetNewsList([FromQuery] PagingInfo pagingInfo)
     {
         var query = new GetNewsQuery(pagingInfo);
         var result = await Sender.Send(query);
