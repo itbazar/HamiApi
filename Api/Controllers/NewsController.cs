@@ -67,7 +67,8 @@ public class NewsController : ApiController
             newsDto.Title,
             newsDto.Image,
             newsDto.Url,
-            newsDto.Description);
+            newsDto.Description,
+            newsDto.Content);
 
         var result = await Sender.Send(command);
         return result.Match(

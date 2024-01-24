@@ -9,4 +9,5 @@ public record UpdateNewsCommand(
     string? Title,
     IFormFile? Image,
     string? Url,
-    string? Description) : IRequest<Result<News>>;
+    string? Description,
+    string? Content) : IRequest<Result<News>>;

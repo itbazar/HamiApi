@@ -16,7 +16,7 @@ internal class AddNewsCommandHandler(
         {
             return GenericErrors.AttachmentFailed;
         }
-        var news = News.Create(request.Title, image, request.Url, request.Description);
+        var news = News.Create(request.Title, image, request.Url, request.Description, request.Content);
         newsRepository.Insert(news);
         await unitOfWork.SaveAsync();
         return news;

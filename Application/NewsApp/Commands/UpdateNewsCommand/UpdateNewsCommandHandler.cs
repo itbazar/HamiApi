@@ -25,7 +25,7 @@ internal class UpdateNewsCommandHandler(
         var news = await newsRepository.GetSingleAsync(s => s.Id == request.Id);
         if (news is null)
             throw new Exception("Not found.");
-        news.Update(request.Title, image, request.Url, request.Description);
+        news.Update(request.Title, image, request.Url, request.Description, request.Content);
         newsRepository.Update(news);
         await unitOfWork.SaveAsync();
         return news;
