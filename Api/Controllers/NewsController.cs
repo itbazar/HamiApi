@@ -5,9 +5,10 @@ using Application.Common.Interfaces.Persistence;
 using Application.NewsApp.Commands.AddNewsCommand;
 using Application.NewsApp.Commands.DeleteNewsCommand;
 using Application.NewsApp.Commands.UpdateNewsCommand;
+using Application.NewsApp.Queries.GetAdminNewsByIdQuery;
 using Application.NewsApp.Queries.GetAdminNewsQuery;
-using Application.NewsApp.Queries.GetNewsByIdQuery;
 using Domain.Models.News;
+using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ public class NewsController : ApiController
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<News>>> GetNewsList([FromQuery] PagingInfo pagingInfo)
+    public async Task<ActionResult<List<NewsListItemDto>>> GetNewsList([FromQuery] PagingInfo pagingInfo)
     {
         var query = new GetAdminNewsQuery(pagingInfo);
         var result = await Sender.Send(query);
@@ -30,13 +31,13 @@ public class NewsController : ApiController
             return Problem(result.ToResult());
 
         Response.AddPaginationHeaders(result.Value.Meta);
-        return Ok(result.Value);
+        return Ok(result.Value.Adapt<List<NewsListItemDto>>());
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<News>> GetNews(Guid id)
     {
-        var query = new GetNewsByIdQuery(id);
+        var query = new GetAdminNewsByIdQuery(id);
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
@@ -87,4 +88,3 @@ public class NewsController : ApiController
             f => Problem(f));
     }
 }
-

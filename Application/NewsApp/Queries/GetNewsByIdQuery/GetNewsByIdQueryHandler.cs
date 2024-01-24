@@ -14,7 +14,7 @@ internal class GetNewsByIdQueryHandler : IRequestHandler<GetNewsByIdQuery, Resul
 
     public async Task<Result<News>> Handle(GetNewsByIdQuery request, CancellationToken cancellationToken)
     {
-        var news = await _newsRepository.GetSingleAsync(s => s.Id == request.Id, false);
+        var news = await _newsRepository.GetSingleAsync(s => s.Id == request.Id && s.IsDeleted != true, false);
         if (news is null)
             return GenericErrors.NotFound;
         return news;

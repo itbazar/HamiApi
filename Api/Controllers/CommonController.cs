@@ -1,9 +1,11 @@
 ﻿using Api.Abstractions;
+using Api.Contracts.NewsContract;
 using Api.ExtensionMethods;
 using Application.Authentication.Queries.CaptchaQuery;
 using Application.Common.Interfaces.Persistence;
 using Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
 using Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
+using Application.NewsApp.Queries.GetNewsByIdQuery;
 using Application.NewsApp.Queries.GetNewsQuery;
 using Application.Sliders.Queries.GetSlidersQuery;
 using Application.WebContents.Queries.GetWebContentByTitleQuery;
@@ -12,6 +14,7 @@ using Domain.Models.ComplaintAggregate;
 using Domain.Models.News;
 using Domain.Models.Sliders;
 using Domain.Models.WebContents;
+using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -68,7 +71,7 @@ public class CommonController : ApiController
     }
 
     [HttpGet("News")]
-    public async Task<ActionResult<List<News>>> GetNewsList([FromQuery] PagingInfo pagingInfo)
+    public async Task<ActionResult<List<NewsListItemDto>>> GetNewsList([FromQuery] PagingInfo pagingInfo)
     {
         var query = new GetNewsQuery(pagingInfo);
         var result = await Sender.Send(query);
@@ -76,7 +79,17 @@ public class CommonController : ApiController
             return Problem(result.ToResult());
 
         Response.AddPaginationHeaders(result.Value.Meta);
-        return Ok(result.Value);
+        return Ok(result.Value.Adapt<List<NewsListItemDto>>());
+    }
+
+    [HttpGet("News/{id:guid}")]
+    public async Task<ActionResult<News>> GetNews(Guid id)
+    {
+        var query = new GetNewsByIdQuery(id);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            f => Problem(f));
     }
 
     [HttpGet("Contents")]
