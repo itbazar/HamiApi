@@ -28,7 +28,9 @@ public class ReplyComplaintInspectorCommandHandler(IComplaintRepository complain
             return ComplaintErrors.InvalidOperation;
         }
         
-        await complaintRepository.ReplyInspector(complaint, request.EncodedKey);
+        complaint.ReplyInspector(request.EncodedKey);
+
+        await complaintRepository.Update(complaint);
         return true;
     }
 }

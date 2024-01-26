@@ -13,7 +13,7 @@ internal class InitCommandHandler(
     IComplaintCategoryRepository categoryRepository,
     IUserRepository userRepository,
     IUnitOfWork unitOfWork,
-    IAsymmetricEncryption asymmetric,
+    //IAsymmetricEncryption asymmetric,
     IPublicKeyRepository publicKeyRepository,
     IComplaintOrganizationRepository organizationRepository,
     IChartRepository chartRepository,
@@ -26,8 +26,9 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
         await initRolesAndUsers();
         await initCharts();
         await initWebContents();
-        var privateKey = await initPublicKey();
-        return privateKey;
+        //var privateKey = await initPublicKey();
+        //return privateKey;
+        return "";
     }
 
     private async Task initCategories()
@@ -127,6 +128,7 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
         }
     }
 
+    /*
     private async Task<string> initPublicKey()
     {
         if (unitOfWork.DbContext.Set<PublicKey>().Any())
@@ -141,7 +143,7 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
         await publicKeyRepository.Add(publicKey);
         return keyPair.PrivateKey;
     }
-
+    */
     private async Task initCharts()
     {
         if (unitOfWork.DbContext.Set<Chart>().Any())

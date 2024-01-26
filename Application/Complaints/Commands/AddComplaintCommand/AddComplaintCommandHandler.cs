@@ -16,7 +16,9 @@ public class AddComplaintCommandHandler(
     ICommunicationService communicatorService,
     IUserRepository userRepository) : IRequestHandler<AddComplaintCommand, Result<AddComplaintResult>>
 {
-public async Task<Result<AddComplaintResult>> Handle(AddComplaintCommand request, CancellationToken cancellationToken)
+public async Task<Result<AddComplaintResult>> Handle(
+    AddComplaintCommand request,
+    CancellationToken cancellationToken)
     {
         if (request.CaptchaValidateModel is not null)
         {
@@ -41,7 +43,7 @@ public async Task<Result<AddComplaintResult>> Handle(AddComplaintCommand request
             request.Complaining,
             request.OrganizationId);
 
-        await complaintRepository.Add(complaint);
+        await complaintRepository.Insert(complaint);
         if(complaint.UserId is not null)
         {
             var user = await userRepository.FindByIdAsync(complaint.UserId);

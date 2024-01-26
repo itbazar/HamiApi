@@ -1,10 +1,8 @@
-﻿using Application.Common.Interfaces.Encryption;
-using Domain.Models.ComplaintAggregate;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
 
-namespace Infrastructure.Encryption;
-/*
+namespace Domain.Models.ComplaintAggregate.Encryption;
+
 public class Hasher : IHasher
 {
     const int keySize = 64;
@@ -46,4 +44,3 @@ public class Hasher : IHasher
         return SHA512.HashData(data).SequenceEqual(hash);
     }
 }
-*/

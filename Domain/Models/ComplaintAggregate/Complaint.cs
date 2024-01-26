@@ -1,16 +1,27 @@
-﻿using Domain.Models.Common;
+﻿using Domain.ExtensionMethods;
+using Domain.Models.Common;
+using Domain.Models.ComplaintAggregate.Encryption;
 using Domain.Models.ComplaintAggregate.Events;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using Domain.Primitives;
+using FluentResults;
+using MediatR;
+using SharedKernel.Errors;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Security.Cryptography;
 
 namespace Domain.Models.ComplaintAggregate;
 
 public class Complaint : Entity
 {
-    private Complaint(Guid id) : base(id) { }
+    private readonly IHasher hasher = new Hasher();
+    private readonly ISymmetricEncryption symmetricEncryption = new AesEncryption();
+    private readonly IAsymmetricEncryption asymmetricEncryption = new RsaEncryption();
+    private Complaint(Guid id) : base(id) 
+    {
+    }
     public string TrackingNumber { get; set; } = null!;
     public string? UserId { get; set; }
     public ApplicationUser? User { get; set; } = null;
@@ -68,8 +79,32 @@ public class Complaint : Entity
         complaint.ComplaintOrganizationId = organizationId;
         complaint.Contents.Add(ComplaintContent.Create(text, medias, Actor.Citizen, ComplaintContentVisibility.Everyone));
 
+        complaint.GenerateTrackingNumber();
+
+        complaint.GenerateCredentials();
+
+        if (complaint.Contents.Count != 1)
+            throw new Exception();
+
+        complaint.EncryptContent();
+
         complaint.Raise(new ComplaintCreatedDomainEvent(Guid.NewGuid(), complaint.Id));
         return complaint;
+    }
+
+    public bool ReplyInspector(string encodedKey)
+    {
+        LoadEncryptionKeyByInspector(encodedKey);
+        EncryptContent();
+        return true;
+    }
+
+    public bool ReplyCitizen(string password)
+    {
+        password = password.Trim();
+        LoadEncryptionKeyByCitizenPassword(password);
+        EncryptContent();
+        return true;
     }
 
     public bool AddContent(
@@ -141,8 +176,118 @@ public class Complaint : Entity
             _ => new List<ComplaintMessage>()
         };
     }
+
+    
+    #region PrivateMethods
+    private void GenerateTrackingNumber()
+    {
+        TrackingNumber = RandomNumberGenerator.GetInt32(10000000, 99999999).ToString();
+    }
+
+    private bool GenerateCredentials()
+    {
+        // Generate citizen key and password
+        SymmetricKeyComponents encryptionKeyCitizen = new SymmetricKeyComponents(symmetricEncryption);
+        ServerPassword = encryptionKeyCitizen.PasswordServer;
+        PlainPassword = encryptionKeyCitizen.PasswordCitizen;
+        CitizenPassword = hasher.HashPasword(PlainPassword);
+        EncryptionIvCitizen = encryptionKeyCitizen.IV;
+
+        //Generate report encryption key
+        SymmetricKeyComponents encryptionKey = new SymmetricKeyComponents(symmetricEncryption);
+        EncryptionKey = encryptionKey.Key;
+        EncryptionIv = encryptionKey.IV;
+        EncryptionKeyPassword = hasher.HashPasword(EncryptionKey.ToBase64());
+
+        // Store report encryption key as encrypted by citizen and inspector keys
+        CipherKeyInspector = asymmetricEncryption.EncryptAsymmetricByPublic(PublicKey.Key, EncryptionKey);
+        CipherKeyCitizen = symmetricEncryption.Encrypt(encryptionKeyCitizen, encryptionKey.Key);
+
+        return true;
+    }
+
+    private bool EncryptContent(int index = 0)
+    {
+        if (EncryptionKey is null || EncryptionIv is null)
+            throw new Exception("Encryption key or iv is null");
+        Contents[index].Encrypt(EncryptionKey, EncryptionIv, hasher, symmetricEncryption);
+        return true;
+    }
+
+    private bool DecryptContent()
+    {
+        if (EncryptionKey is null || EncryptionIv is null)
+            throw new Exception("Encryption key or iv is null");
+        foreach (var content in Contents)
+        {
+            content.Decrypt(EncryptionKey, EncryptionIv, hasher, symmetricEncryption);
+        }
+
+        return true;
+    }
+
+    public bool LoadEncryptionKeyByCitizenPassword(string password)
+    {
+        if (!hasher.VerifyPassword(password, CitizenPassword))
+            throw new Exception("Wrong password");
+        PlainPassword = password;
+        var citizenEncryptionKey = new SymmetricKeyComponents(password, ServerPassword, EncryptionIvCitizen);
+        EncryptionKey = symmetricEncryption.Decrypt(citizenEncryptionKey, CipherKeyCitizen);
+        if (!hasher.VerifyPassword(EncryptionKey.ToBase64(), EncryptionKeyPassword))
+            throw new Exception("Invalid encryption key");
+        return true;
+    }
+
+    public bool LoadEncryptionKeyByInspector(string encodedKey)
+    {
+        EncryptionKey = encodedKey.ParseBytes();
+        if (!hasher.VerifyPassword(EncryptionKey.ToBase64(), EncryptionKeyPassword))
+            throw new Exception("Invalid encryption key");
+        return true;
+    }
+
+    public bool ChangeInspectorKey(
+        string fromPrivateKey,
+        string toPublicKey)
+    {
+        EncryptionKey = asymmetricEncryption.DecryptAsymmetricByPrivate(fromPrivateKey, CipherKeyInspector);
+        if (!hasher.VerifyPassword(EncryptionKey.ToBase64(), EncryptionKeyPassword))
+            throw new Exception("Invalid encryption key");
+        CipherKeyInspector = asymmetricEncryption.EncryptAsymmetricByPublic(toPublicKey, EncryptionKey);
+        return true;
+    }
+
+    public bool GetCitizen(string password)
+    {
+        password = password.Trim();
+        LoadEncryptionKeyByCitizenPassword(password);
+        DecryptContent();
+        return true;
+    }
+
+    public bool GetInspector(string encodedKey)
+    {
+        LoadEncryptionKeyByInspector(encodedKey);
+        DecryptContent();
+
+        if (ShouldMarkedAsRead())
+        {
+            AddContent(
+                "",
+                new List<Media>(),
+                Actor.Inspector,
+                ComplaintOperation.Open,
+                ComplaintContentVisibility.Inspector);
+            ReplyInspector(encodedKey);
+            return false;
+        }
+
+        return true;
+    }
+    #endregion
 }
 
+#region Enums
 public enum Actor
 {
     [Description("شهروند")]
@@ -186,3 +331,5 @@ public enum ComplaintOperation
 }
 
 public record ComplaintMessage(Actor To, string Message);
+
+#endregion

@@ -8,6 +8,8 @@ public sealed class ChangeInspectorKeyCommandHandler(
 {
     public async Task<Result<bool>> Handle(ChangeInspectorKeyCommand request, CancellationToken cancellationToken)
     {
-        return await complaintRepository.ChangeInspectorKey(request.PrivateKey, request.ToKeyId, request.FromKeyId);
+        //return await complaintRepository.ChangeInspectorKey(request.PrivateKey, request.ToKeyId, request.FromKeyId);
+        await Task.CompletedTask;
+        return new Result();
     }
 }

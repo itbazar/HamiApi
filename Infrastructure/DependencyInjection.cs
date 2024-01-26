@@ -94,9 +94,9 @@ public static class DependencyInjection
 
     public static IServiceCollection AddEncryption(this IServiceCollection services)
     {
-        services.AddScoped<ISymmetricEncryption, AesEncryption>();
-        services.AddScoped<IAsymmetricEncryption, RsaEncryption>();
-        services.AddScoped<IHasher, Hasher>();
+        //services.AddScoped<ISymmetricEncryption, AesEncryption>();
+        //services.AddScoped<IAsymmetricEncryption, RsaEncryption>();
+        //services.AddScoped<IHasher, Hasher>();
 
         return services;
     }

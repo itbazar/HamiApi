@@ -1,6 +1,8 @@
 ﻿using Domain.Models.Common;
+using Domain.Models.ComplaintAggregate.Encryption;
 using Domain.Primitives;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text;
 
 namespace Domain.Models.ComplaintAggregate;
 
@@ -39,6 +41,51 @@ public class ComplaintContent : Entity
     public DateTime DateTime { get; set; }
     public bool IsEncrypted { get; set; }
     public ComplaintContentVisibility Visibility { get; set; }
+
+    #region PrivateMethods
+    public bool Encrypt(
+        byte[] key,
+        byte[] iv,
+        IHasher hasher,
+        ISymmetricEncryption symmetricEncryption)
+    {
+        UnicodeEncoding unicodeEncoding = new UnicodeEncoding();
+        var textBytes = unicodeEncoding.GetBytes(Text);
+        Cipher = symmetricEncryption.Encrypt(key, iv, textBytes) ?? throw new Exception("Symmetric encryption error.");
+        IntegrityHash = hasher.Hash(textBytes);
+        IsEncrypted = true;
+
+        foreach (var media in Media)
+        {
+            media.Cipher = symmetricEncryption.Encrypt(key, iv, media.Data);
+            media.IntegrityHash = hasher.Hash(media.Data);
+        }
+        return true;
+    }
+
+    public bool Decrypt(
+        byte[] key, byte[] iv,
+        IHasher hasher,
+        ISymmetricEncryption symmetricEncryption)
+    {
+        UnicodeEncoding unicodeEncoding = new UnicodeEncoding();
+        if (Cipher is null)
+            throw new Exception("Cipher is null");
+        var textBytes = symmetricEncryption.Decrypt(key, iv, Cipher) ?? throw new Exception("Symmetric encryption error.");
+        if (!hasher.Verify(textBytes, IntegrityHash))
+            throw new Exception("Invalid hash");
+        Text = unicodeEncoding.GetString(textBytes);
+        IsEncrypted = false;
+
+        foreach (var media in Media)
+        {
+            media.Data = symmetricEncryption.Decrypt(key, iv, media.Cipher);
+            if (!hasher.Verify(media.Data, media.IntegrityHash))
+                throw new Exception("Invalid hash");
+        }
+        return true;
+    }
+    #endregion
 }
 
 public enum ComplaintContentVisibility

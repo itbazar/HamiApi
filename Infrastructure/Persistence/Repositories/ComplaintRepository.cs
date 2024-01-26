@@ -1,22 +1,17 @@
-﻿using Application.Common.Interfaces.Encryption;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Common;
 using Domain.Models.ComplaintAggregate;
 using FluentResults;
-using Infrastructure.ExtensionMethods;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SharedKernel.Errors;
-using System.Security.Cryptography;
 
 namespace Infrastructure.Persistence.Repositories;
 
 public class ComplaintRepository(
-    ApplicationDbContext context,
-    ISymmetricEncryption symmetric,
-    IAsymmetricEncryption asymmetric,
-    IHasher hasher) : IComplaintRepository
+    ApplicationDbContext context) : IComplaintRepository
 {
+    /*
     public async Task<Result<bool>> Add(Complaint complaint)
     {
         complaint.TrackingNumber = GenerateTrackingNumber();
@@ -33,7 +28,8 @@ public class ComplaintRepository(
         await context.SaveChangesAsync();
         return true;
     }
-
+    */
+    /*
     public async Task<Result<Complaint>> GetCitizenAsync(string trackingNumber, string password)
     {
         password = password.Trim();
@@ -47,7 +43,8 @@ public class ComplaintRepository(
         complaint.DecryptContent(hasher, symmetric);
         return complaint;
     }
-
+    */
+    /*
     public async Task<Result<Complaint>> GetInspectorAsync(string trackingNumber, string encodedKey)
     {
         var complaint = getComplaint(trackingNumber);
@@ -59,6 +56,23 @@ public class ComplaintRepository(
         complaint.LoadEncryptionKeyByInspector(encodedKey, hasher);
         complaint.DecryptContent(hasher, symmetric);
         return complaint;
+    }
+    */
+
+    public async Task<Result<bool>> Insert(Complaint complaint)
+    {
+        context.Add(complaint);
+
+        await context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Result<bool>> Update(Complaint complaint)
+    {
+        context.Update(complaint);
+
+        await context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<Result<Complaint>> GetAsync(string trackingNumber)
@@ -106,7 +120,8 @@ public class ComplaintRepository(
         
         return complaintList;
     }
-
+    
+    /*
     public async Task<Result<bool>> ReplyInspector(Complaint complaint, string encodedKey)
     {
         complaint.LoadEncryptionKeyByInspector(encodedKey, hasher);
@@ -114,7 +129,8 @@ public class ComplaintRepository(
         await context.SaveChangesAsync();
         return true;
     }
-
+    */
+    /*
     public async Task<Result<bool>> ReplyCitizen(Complaint complaint, string password)
     {
         password = password.Trim();
@@ -123,7 +139,8 @@ public class ComplaintRepository(
         await context.SaveChangesAsync();
         return true;
     }
-
+    */
+    /*
     public async Task<Result<bool>> ChangeInspectorKey(string privateKey, Guid toKeyId, Guid? fromKeyId)
     {
         //TODO: Consider using transactions and improve the performance by pagination
@@ -147,13 +164,15 @@ public class ComplaintRepository(
         await context.SaveChangesAsync();
         return true;
     }
-
+    */
+    /*
     private string GenerateTrackingNumber()
     {
         return RandomNumberGenerator.GetInt32(10000000, 99999999).ToString();
     }
+    */
 
-    private Complaint? getComplaint(string trackingNumber)
+    public Complaint? GetComplaint(string trackingNumber)
     {
         return context.Complaint
             .Where(c => c.TrackingNumber == trackingNumber)

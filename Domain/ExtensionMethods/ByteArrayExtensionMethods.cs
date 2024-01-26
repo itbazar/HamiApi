@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.ExtensionMethods;
+﻿namespace Domain.ExtensionMethods;
 
 public static class ByteArrayExtensionMethods
 {

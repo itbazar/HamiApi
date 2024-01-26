@@ -18,36 +18,14 @@ internal class ComplaintInspectorResponseHandler :
 
     public async Task<Result<ComplaintInspectorResponse>> Handle(GetComplaintInspectorQuery request, CancellationToken cancellationToken)
     {
-        var complaintResult = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
-        if (complaintResult.IsFailed)
-            return complaintResult.ToResult();
-        var complaint = complaintResult.Value;
-        if (complaint.ShouldMarkedAsRead())
+        var complaint = _complaintRepository.GetComplaint(request.TrackingNumber);
+        if (complaint == null)
         {
-            var complaintToUpdateResult = await _complaintRepository.GetAsync(request.TrackingNumber);
-            if(complaintToUpdateResult.IsFailed)
-                return complaintToUpdateResult.ToResult();
-
-            var complaintToUpdate = complaintToUpdateResult.Value;
-            try
-            {
-                complaintToUpdate.AddContent(
-                "",
-                new List<Media>(),
-                Actor.Inspector,
-                ComplaintOperation.Open,
-                ComplaintContentVisibility.Inspector);
-            }
-            catch
-            {
-                return ComplaintErrors.InvalidOperation;
-            }
-            
-            await _complaintRepository.ReplyInspector(complaintToUpdate, request.EncodedKey);
-            complaintResult = await _complaintRepository.GetInspectorAsync(request.TrackingNumber, request.EncodedKey);
-            if (complaintResult.IsFailed)
-                return complaintResult.ToResult();
-            complaint = complaintResult.Value;
+            return ComplaintErrors.NotFound;
+        }
+        if (!complaint.GetInspector(request.EncodedKey))
+        {
+            await _complaintRepository.Update(complaint);
         }
 
         var result = new ComplaintInspectorResponse(
@@ -63,6 +41,7 @@ internal class ComplaintInspectorResponseHandler :
             complaint.GetPossibleOperations(Actor.Inspector),
             complaint.User.Adapt<UserResponse>());
 
+        await Task.CompletedTask;
         return result;
     }
 }
