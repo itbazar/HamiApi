@@ -1,11 +1,37 @@
 ﻿using Domain.Models.ComplaintAggregate;
+using Mapster;
 using SharedKernel.ExtensionMethods;
 
 namespace Application.Complaints.Common;
 
 public class ComplaintCitizenResponse
 {
-    public ComplaintCitizenResponse(string trackingNumber, string title, ComplaintCategoryResponse complaintCategoryResponse, ComplaintState status, DateTime registeredAt, DateTime lastChanged, string complaining, ComplaintOrganizationResponse complaintOrganizationResponse, List<ComplaintContentResponse> complaintContentResponses, List<ComplaintOperation> complaintOperations)
+    public static ComplaintCitizenResponse FromComplaint(Complaint complaint)
+    {
+        return new ComplaintCitizenResponse(
+            complaint.TrackingNumber,
+            complaint.Title,
+            complaint.Category.Adapt<ComplaintCategoryResponse>(),
+            complaint.Status,
+            complaint.RegisteredAt,
+            complaint.LastChanged,
+            complaint.Complaining,
+            complaint.ComplaintOrganization.Adapt<ComplaintOrganizationResponse>(),
+            complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
+            complaint.GetPossibleOperations(Actor.Citizen));
+    }
+
+    private ComplaintCitizenResponse(
+        string trackingNumber,
+        string title,
+        ComplaintCategoryResponse complaintCategoryResponse,
+        ComplaintState status,
+        DateTime registeredAt,
+        DateTime lastChanged,
+        string complaining,
+        ComplaintOrganizationResponse complaintOrganizationResponse,
+        List<ComplaintContentResponse> complaintContentResponses,
+        List<ComplaintOperation> complaintOperations)
     {
         TrackingNumber = trackingNumber;
         Title = title;

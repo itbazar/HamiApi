@@ -5,9 +5,6 @@ using Domain.Models.ComplaintAggregate.Events;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.PublicKeys;
 using Domain.Primitives;
-using FluentResults;
-using MediatR;
-using SharedKernel.Errors;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Security.Cryptography;
@@ -19,9 +16,7 @@ public class Complaint : Entity
     private readonly IHasher hasher = new Hasher();
     private readonly ISymmetricEncryption symmetricEncryption = new AesEncryption();
     private readonly IAsymmetricEncryption asymmetricEncryption = new RsaEncryption();
-    private Complaint(Guid id) : base(id) 
-    {
-    }
+    private Complaint(Guid id) : base(id) { }
     public string TrackingNumber { get; set; } = null!;
     public string? UserId { get; set; }
     public ApplicationUser? User { get; set; } = null;
@@ -77,64 +72,107 @@ public class Complaint : Entity
         complaint.CategoryId = categoryId;
         complaint.Complaining = complaining;
         complaint.ComplaintOrganizationId = organizationId;
-        complaint.Contents.Add(ComplaintContent.Create(text, medias, Actor.Citizen, ComplaintContentVisibility.Everyone));
+        complaint.Contents.Add(
+            ComplaintContent.Create(
+                text,
+                medias,
+                Actor.Citizen,
+                ComplaintContentVisibility.Everyone));
 
-        complaint.GenerateTrackingNumber();
+        complaint.generateTrackingNumber();
 
-        complaint.GenerateCredentials();
+        complaint.generateCredentials();
 
         if (complaint.Contents.Count != 1)
             throw new Exception();
 
-        complaint.EncryptContent();
+        complaint.encryptContent();
 
         complaint.Raise(new ComplaintCreatedDomainEvent(Guid.NewGuid(), complaint.Id));
         return complaint;
     }
 
-    public bool ReplyInspector(string encodedKey)
-    {
-        LoadEncryptionKeyByInspector(encodedKey);
-        EncryptContent();
-        return true;
-    }
-
-    public bool ReplyCitizen(string password)
-    {
-        password = password.Trim();
-        LoadEncryptionKeyByCitizenPassword(password);
-        EncryptContent();
-        return true;
-    }
-
-    public bool AddContent(
+    public bool ReplyInspector(
         string text,
         List<Media> medias,
         Actor sender,
         ComplaintOperation operation,
-        ComplaintContentVisibility visibility)
+        ComplaintContentVisibility visibility,
+        string encodedKey)
     {
-        var now = DateTime.UtcNow;
-        LastChanged = now;
-        Status = (Status, sender, operation) switch
+        addContent(text, medias, sender, operation, visibility);
+        loadEncryptionKeyByInspector(encodedKey);
+        encryptContent();
+        return true;
+    }
+
+    public bool ReplyCitizen(
+        string text,
+        List<Media> medias,
+        Actor sender,
+        ComplaintOperation operation,
+        ComplaintContentVisibility visibility,
+        string password)
+    {
+        addContent(text, medias, sender, operation, visibility);
+        password = password.Trim();
+        loadEncryptionKeyByCitizenPassword(password);
+        encryptContent();
+        return true;
+    }
+
+    public bool ChangeInspectorKey(
+        string fromPrivateKey,
+        string toPublicKey)
+    {
+        EncryptionKey = asymmetricEncryption.DecryptAsymmetricByPrivate(fromPrivateKey, CipherKeyInspector);
+        if (!hasher.VerifyPassword(EncryptionKey.ToBase64(), EncryptionKeyPassword))
+            throw new Exception("Invalid encryption key");
+        CipherKeyInspector = asymmetricEncryption.EncryptAsymmetricByPublic(toPublicKey, EncryptionKey);
+        return true;
+    }
+
+    public bool GetCitizen(string password)
+    {
+        password = password.Trim();
+        loadEncryptionKeyByCitizenPassword(password);
+        decryptContent();
+        return true;
+    }
+
+    public bool GetInspector(string encodedKey)
+    {
+        loadEncryptionKeyByInspector(encodedKey);
+        decryptContent();
+
+        if (ShouldMarkedAsRead())
         {
-            (ComplaintState.Registered, Actor.Inspector, ComplaintOperation.Open) => ComplaintState.InProgress,
-            (ComplaintState.InProgress, Actor.Inspector, ComplaintOperation.RequestForDescription) => ComplaintState.WaitingForCitizenResponse,
-            (ComplaintState.WaitingForCitizenResponse, Actor.Citizen, ComplaintOperation.CitizenReply) => ComplaintState.CitizenReplied,
-            (ComplaintState.CitizenReplied, Actor.Inspector, ComplaintOperation.Open) => ComplaintState.InProgress,
-            (ComplaintState.WaitingForCitizenResponse, Actor.Inspector, ComplaintOperation.CancelRequest) => ComplaintState.InProgress,
-            (ComplaintState.InProgress, Actor.Inspector, ComplaintOperation.AddDetails) => ComplaintState.InProgress,
-            (ComplaintState.InProgress, Actor.Inspector, ComplaintOperation.Finish) => ComplaintState.Finished,
-            (ComplaintState.Finished, Actor.Inspector, ComplaintOperation.StartAgain) => ComplaintState.InProgress,
-
-            _ => throw new Exception("Invalid operation")
-        };
-        var content = ComplaintContent.Create(text, medias, sender, visibility);
-        Contents.Add(content);
-
-        Raise(new ComplaintUpdatedDomainEvent(Guid.NewGuid(), Id));
+            ReplyInspector(
+                "",
+                new List<Media>(),
+                Actor.Inspector,
+                ComplaintOperation.Open,
+                ComplaintContentVisibility.Inspector,
+                encodedKey);
+            return false;
+        }
 
         return true;
+    }
+
+    public void MarkAsRead(string encodedKey)
+    {
+        if (!ShouldMarkedAsRead())
+        {
+            return;
+        }
+        ReplyInspector(
+            "",
+            new List<Media>(),
+            Actor.Inspector,
+            ComplaintOperation.Open,
+            ComplaintContentVisibility.Inspector,
+            encodedKey);
     }
 
     public bool ShouldMarkedAsRead()
@@ -177,14 +215,40 @@ public class Complaint : Entity
         };
     }
 
-    
-    #region PrivateMethods
-    private void GenerateTrackingNumber()
+    private void addContent(
+        string text,
+        List<Media> medias,
+        Actor sender,
+        ComplaintOperation operation,
+        ComplaintContentVisibility visibility)
+    {
+        var now = DateTime.UtcNow;
+        LastChanged = now;
+        Status = (Status, sender, operation) switch
+        {
+            (ComplaintState.Registered, Actor.Inspector, ComplaintOperation.Open) => ComplaintState.InProgress,
+            (ComplaintState.InProgress, Actor.Inspector, ComplaintOperation.RequestForDescription) => ComplaintState.WaitingForCitizenResponse,
+            (ComplaintState.WaitingForCitizenResponse, Actor.Citizen, ComplaintOperation.CitizenReply) => ComplaintState.CitizenReplied,
+            (ComplaintState.CitizenReplied, Actor.Inspector, ComplaintOperation.Open) => ComplaintState.InProgress,
+            (ComplaintState.WaitingForCitizenResponse, Actor.Inspector, ComplaintOperation.CancelRequest) => ComplaintState.InProgress,
+            (ComplaintState.InProgress, Actor.Inspector, ComplaintOperation.AddDetails) => ComplaintState.InProgress,
+            (ComplaintState.InProgress, Actor.Inspector, ComplaintOperation.Finish) => ComplaintState.Finished,
+            (ComplaintState.Finished, Actor.Inspector, ComplaintOperation.StartAgain) => ComplaintState.InProgress,
+
+            _ => throw new Exception("Invalid operation")
+        };
+        var content = ComplaintContent.Create(text, medias, sender, visibility);
+        Contents.Add(content);
+
+        Raise(new ComplaintUpdatedDomainEvent(Guid.NewGuid(), Id));
+    }
+
+    private void generateTrackingNumber()
     {
         TrackingNumber = RandomNumberGenerator.GetInt32(10000000, 99999999).ToString();
     }
 
-    private bool GenerateCredentials()
+    private void generateCredentials()
     {
         // Generate citizen key and password
         SymmetricKeyComponents encryptionKeyCitizen = new SymmetricKeyComponents(symmetricEncryption);
@@ -202,19 +266,16 @@ public class Complaint : Entity
         // Store report encryption key as encrypted by citizen and inspector keys
         CipherKeyInspector = asymmetricEncryption.EncryptAsymmetricByPublic(PublicKey.Key, EncryptionKey);
         CipherKeyCitizen = symmetricEncryption.Encrypt(encryptionKeyCitizen, encryptionKey.Key);
-
-        return true;
     }
 
-    private bool EncryptContent(int index = 0)
+    private void encryptContent(int index = 0)
     {
         if (EncryptionKey is null || EncryptionIv is null)
             throw new Exception("Encryption key or iv is null");
         Contents[index].Encrypt(EncryptionKey, EncryptionIv, hasher, symmetricEncryption);
-        return true;
     }
 
-    private bool DecryptContent()
+    private void decryptContent()
     {
         if (EncryptionKey is null || EncryptionIv is null)
             throw new Exception("Encryption key or iv is null");
@@ -222,11 +283,9 @@ public class Complaint : Entity
         {
             content.Decrypt(EncryptionKey, EncryptionIv, hasher, symmetricEncryption);
         }
-
-        return true;
     }
 
-    public bool LoadEncryptionKeyByCitizenPassword(string password)
+    private void loadEncryptionKeyByCitizenPassword(string password)
     {
         if (!hasher.VerifyPassword(password, CitizenPassword))
             throw new Exception("Wrong password");
@@ -235,56 +294,16 @@ public class Complaint : Entity
         EncryptionKey = symmetricEncryption.Decrypt(citizenEncryptionKey, CipherKeyCitizen);
         if (!hasher.VerifyPassword(EncryptionKey.ToBase64(), EncryptionKeyPassword))
             throw new Exception("Invalid encryption key");
-        return true;
     }
 
-    public bool LoadEncryptionKeyByInspector(string encodedKey)
+    private void loadEncryptionKeyByInspector(string encodedKey)
     {
         EncryptionKey = encodedKey.ParseBytes();
         if (!hasher.VerifyPassword(EncryptionKey.ToBase64(), EncryptionKeyPassword))
             throw new Exception("Invalid encryption key");
-        return true;
     }
 
-    public bool ChangeInspectorKey(
-        string fromPrivateKey,
-        string toPublicKey)
-    {
-        EncryptionKey = asymmetricEncryption.DecryptAsymmetricByPrivate(fromPrivateKey, CipherKeyInspector);
-        if (!hasher.VerifyPassword(EncryptionKey.ToBase64(), EncryptionKeyPassword))
-            throw new Exception("Invalid encryption key");
-        CipherKeyInspector = asymmetricEncryption.EncryptAsymmetricByPublic(toPublicKey, EncryptionKey);
-        return true;
-    }
-
-    public bool GetCitizen(string password)
-    {
-        password = password.Trim();
-        LoadEncryptionKeyByCitizenPassword(password);
-        DecryptContent();
-        return true;
-    }
-
-    public bool GetInspector(string encodedKey)
-    {
-        LoadEncryptionKeyByInspector(encodedKey);
-        DecryptContent();
-
-        if (ShouldMarkedAsRead())
-        {
-            AddContent(
-                "",
-                new List<Media>(),
-                Actor.Inspector,
-                ComplaintOperation.Open,
-                ComplaintContentVisibility.Inspector);
-            ReplyInspector(encodedKey);
-            return false;
-        }
-
-        return true;
-    }
-    #endregion
+    
 }
 
 #region Enums

@@ -1,11 +1,26 @@
 ﻿using Domain.Models.ComplaintAggregate;
+using Mapster;
 using SharedKernel.ExtensionMethods;
 
 namespace Application.Complaints.Common;
 
 public class ComplaintInspectorResponse
 {
-    public ComplaintInspectorResponse(
+    public static ComplaintInspectorResponse FromComplaint(Complaint complaint)
+    {
+        return new ComplaintInspectorResponse(complaint.TrackingNumber,
+            complaint.Title,
+            complaint.Category.Adapt<ComplaintCategoryResponse>(),
+            complaint.Status,
+            complaint.RegisteredAt,
+            complaint.LastChanged,
+            complaint.Complaining,
+            complaint.ComplaintOrganization.Adapt<ComplaintOrganizationResponse>(),
+            complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
+            complaint.GetPossibleOperations(Actor.Inspector),
+            complaint.User.Adapt<UserResponse>());
+    }
+    private ComplaintInspectorResponse(
         string trackingNumber,
         string title,
         ComplaintCategoryResponse complaintCategoryResponse,

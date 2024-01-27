@@ -1,8 +1,6 @@
 ﻿using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Common;
 using Domain.Models.ComplaintAggregate;
-using Mapster;
-using MediatR;
 
 namespace Application.Complaints.Queries.GetComplaintCitizenQuery;
 
@@ -25,17 +23,7 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
         complaint.GetCitizen(request.Password);
         complaint.Contents.RemoveAll(cc => cc.Visibility == ComplaintContentVisibility.Inspector);
         
-        var result = new ComplaintCitizenResponse(
-            complaint.TrackingNumber,
-            complaint.Title,
-            complaint.Category.Adapt<ComplaintCategoryResponse>(),
-            complaint.Status,
-            complaint.RegisteredAt,
-            complaint.LastChanged,
-            complaint.Complaining,
-            complaint.ComplaintOrganization.Adapt<ComplaintOrganizationResponse>(),
-            complaint.Contents.Adapt<List<ComplaintContentResponse>>(),
-            complaint.GetPossibleOperations(Actor.Citizen));
+        var result = ComplaintCitizenResponse.FromComplaint(complaint);
 
         await Task.CompletedTask;
         return result;

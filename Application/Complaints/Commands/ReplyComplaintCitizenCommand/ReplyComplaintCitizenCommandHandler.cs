@@ -15,19 +15,19 @@ public async Task<Result<bool>> Handle(ReplyComplaintCitizenCommand request, Can
         var complaint = result.Value;
         try
         {
-            complaint.AddContent(
+            complaint.ReplyCitizen(
                 request.Text,
                 request.Medias.Adapt<List<Media>>(),
                 Actor.Citizen,
                 request.Operation,
-                ComplaintContentVisibility.Everyone);
+                ComplaintContentVisibility.Everyone,
+                request.Password);
         }
         catch
         {
             return ComplaintErrors.InvalidOperation;
         }
         
-        complaint.ReplyCitizen(request.Password);
         await complaintRepository.Update(complaint);
 
         return true;

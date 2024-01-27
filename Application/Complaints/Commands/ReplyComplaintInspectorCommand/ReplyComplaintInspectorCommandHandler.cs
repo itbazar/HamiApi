@@ -16,20 +16,19 @@ public class ReplyComplaintInspectorCommandHandler(IComplaintRepository complain
         var complaint = result.Value;
         try
         {
-            complaint.AddContent(
-            request.Text,
-            request.Medias.Adapt<List<Media>>(),
-            Actor.Inspector,
-            request.Operation,
-            request.IsPublic ? ComplaintContentVisibility.Everyone : ComplaintContentVisibility.Inspector);
+            complaint.ReplyInspector(
+                request.Text,
+                request.Medias.Adapt<List<Media>>(),
+                Actor.Inspector,
+                request.Operation,
+                request.IsPublic ? ComplaintContentVisibility.Everyone : ComplaintContentVisibility.Inspector,
+                request.EncodedKey);
         }
         catch
         {
             return ComplaintErrors.InvalidOperation;
         }
         
-        complaint.ReplyInspector(request.EncodedKey);
-
         await complaintRepository.Update(complaint);
         return true;
     }
