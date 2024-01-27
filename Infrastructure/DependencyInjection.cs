@@ -1,11 +1,9 @@
 ﻿using Application.Common.Interfaces.Communication;
-using Application.Common.Interfaces.Encryption;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
 using Infrastructure.Authentication;
 using Infrastructure.Captcha;
 using Infrastructure.Communications;
-using Infrastructure.Encryption;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Storage;

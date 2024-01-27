@@ -1,12 +1,14 @@
-﻿using Application.Common.Interfaces.Encryption;
+﻿using Domain.Models.ComplaintAggregate.Encryption;
+using Domain.Models.PublicKeys;
 
 namespace Application.Setup.Commands.GenerateKeyPair;
 
-internal class GenerateKeyPairCommandHandler(IAsymmetricEncryption asymmetricEncryption) : IRequestHandler<GenerateKeyPairCommand, Result<AsymmetricKey>>
+internal class GenerateKeyPairCommandHandler
+    : IRequestHandler<GenerateKeyPairCommand, Result<AsymmetricKey>>
 {
     public async Task<Result<AsymmetricKey>> Handle(GenerateKeyPairCommand request, CancellationToken cancellationToken)
     {
-        var result = asymmetricEncryption.Generate();
+        var result = PublicKey.GenerateKeyPair();
         if (result is null)
             return EncryptionErrors.KeyGenerationFailed;
         await Task.CompletedTask;

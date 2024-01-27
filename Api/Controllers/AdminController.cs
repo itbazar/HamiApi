@@ -1,13 +1,12 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.KeyManagement;
 using Api.ExtensionMethods;
-using Application.Common.Interfaces.Encryption;
 using Application.Setup.Commands.AddPublicKey;
 using Application.Setup.Commands.ChangeInspectorKey;
 using Application.Setup.Commands.GenerateKeyPair;
 using Application.Setup.Commands.Init;
 using Application.Setup.Queries.GetPublicKeys;
-using Domain.Models.Sliders;
+using Domain.Models.ComplaintAggregate.Encryption;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

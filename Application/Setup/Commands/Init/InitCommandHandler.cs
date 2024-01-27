@@ -1,5 +1,4 @@
-﻿using Application.Common.Interfaces.Encryption;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.ChartAggregate;
 using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
@@ -13,7 +12,6 @@ internal class InitCommandHandler(
     IComplaintCategoryRepository categoryRepository,
     IUserRepository userRepository,
     IUnitOfWork unitOfWork,
-    //IAsymmetricEncryption asymmetric,
     IPublicKeyRepository publicKeyRepository,
     IComplaintOrganizationRepository organizationRepository,
     IChartRepository chartRepository,
@@ -26,9 +24,8 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
         await initRolesAndUsers();
         await initCharts();
         await initWebContents();
-        //var privateKey = await initPublicKey();
-        //return privateKey;
-        return "";
+        var privateKey = await initPublicKey();
+        return privateKey;
     }
 
     private async Task initCategories()
@@ -128,7 +125,7 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
         }
     }
 
-    /*
+    
     private async Task<string> initPublicKey()
     {
         if (unitOfWork.DbContext.Set<PublicKey>().Any())
@@ -138,12 +135,12 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
         {
             throw new Exception("No inspector found.");
         }
-        var keyPair = asymmetric.Generate();
+        var keyPair = PublicKey.GenerateKeyPair();
         var publicKey = PublicKey.Create("Initial", keyPair.PublicKey, inspector.Id, true);
         await publicKeyRepository.Add(publicKey);
         return keyPair.PrivateKey;
     }
-    */
+    
     private async Task initCharts()
     {
         if (unitOfWork.DbContext.Set<Chart>().Any())

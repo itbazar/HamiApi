@@ -1,5 +1,4 @@
-﻿using Application.Common.Interfaces.Encryption;
-using MediatR;
+﻿using Domain.Models.ComplaintAggregate.Encryption;
 
 namespace Application.Setup.Commands.GenerateKeyPair;
 

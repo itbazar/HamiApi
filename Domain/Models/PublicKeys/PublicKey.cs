@@ -1,4 +1,5 @@
 ﻿using Domain.Models.ComplaintAggregate;
+using Domain.Models.ComplaintAggregate.Encryption;
 using Domain.Models.IdentityAggregate;
 using Domain.Primitives;
 
@@ -22,5 +23,11 @@ public class PublicKey : Entity
         publicKey.InspectorId = inspectorId;
         publicKey.IsActive = isActive;
         return publicKey;
+    }
+
+    public static AsymmetricKey GenerateKeyPair()
+    {
+        IAsymmetricEncryption asymmetricEncryption = new RsaEncryption();
+        return asymmetricEncryption.Generate();
     }
 }
