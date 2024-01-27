@@ -22,8 +22,9 @@ internal class ComplaintInspectorResponseHandler(IComplaintRepository complaintR
             complaint = (await complaintRepository.GetAsync(request.TrackingNumber)).Value;
             complaint.MarkAsRead(request.EncodedKey);
             await complaintRepository.Update(complaint);
+            complaint = complaintRepository.GetComplaint(request.TrackingNumber)!;
         }
-
+        complaint.GetInspector(request.EncodedKey);
         var result = ComplaintInspectorResponse.FromComplaint(complaint);
 
         await Task.CompletedTask;
