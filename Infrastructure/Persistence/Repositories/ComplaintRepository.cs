@@ -87,7 +87,7 @@ public class ComplaintRepository(
             .Include(c => c.User)
             .Include(c => c.ComplaintOrganization)
             .Include(c => c.Category)
-            .Include(c => c.Contents)
+            .Include(c => c.Contents.OrderByDescending(cc => cc.DateTime))
             .ThenInclude(cc => cc.Media)
             .AsNoTracking()
             .SingleOrDefault();
