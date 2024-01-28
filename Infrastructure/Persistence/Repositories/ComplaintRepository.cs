@@ -11,54 +11,6 @@ namespace Infrastructure.Persistence.Repositories;
 public class ComplaintRepository(
     ApplicationDbContext context) : IComplaintRepository
 {
-    /*
-    public async Task<Result<bool>> Add(Complaint complaint)
-    {
-        complaint.TrackingNumber = GenerateTrackingNumber();
-
-        complaint.GenerateCredentials(hasher, symmetric, asymmetric);
-
-        if (complaint.Contents.Count != 1)
-            return ComplaintErrors.InconsistentContent;
-
-        complaint.EncryptContent(hasher, symmetric);
-
-        context.Add(complaint);
-
-        await context.SaveChangesAsync();
-        return true;
-    }
-    */
-    /*
-    public async Task<Result<Complaint>> GetCitizenAsync(string trackingNumber, string password)
-    {
-        password = password.Trim();
-        var complaint = getComplaint(trackingNumber);
-        await Task.CompletedTask;
-
-        if (complaint is null)
-            return ComplaintErrors.NotFound;
-
-        complaint.LoadEncryptionKeyByCitizenPassword(password, hasher, symmetric);
-        complaint.DecryptContent(hasher, symmetric);
-        return complaint;
-    }
-    */
-    /*
-    public async Task<Result<Complaint>> GetInspectorAsync(string trackingNumber, string encodedKey)
-    {
-        var complaint = getComplaint(trackingNumber);
-        await Task.CompletedTask;
-
-        if (complaint is null)
-            return ComplaintErrors.NotFound;
-
-        complaint.LoadEncryptionKeyByInspector(encodedKey, hasher);
-        complaint.DecryptContent(hasher, symmetric);
-        return complaint;
-    }
-    */
-
     public async Task<Result<bool>> Insert(Complaint complaint)
     {
         context.Add(complaint);
@@ -85,7 +37,10 @@ public class ComplaintRepository(
         return complaint;
     }
 
-    public async Task<Result<PagedList<Complaint>>> GetListCitizenAsync(PagingInfo pagingInfo, ComplaintListFilters filters, string userId)
+    public async Task<Result<PagedList<Complaint>>> GetListCitizenAsync(
+        PagingInfo pagingInfo,
+        ComplaintListFilters filters,
+        string userId)
     {
         var query = context.Complaint.Where(c => c.UserId == userId);
 
@@ -97,13 +52,16 @@ public class ComplaintRepository(
 
         query = query
             .Include(c => c.Category)
-            .Include(c => c.ComplaintOrganization);
+            .Include(c => c.ComplaintOrganization)
+            .OrderByDescending(c => c.LastChanged);
         var complaintList = await PagedList<Complaint>.ToPagedList(query, pagingInfo.PageNumber, pagingInfo.PageSize);
         
         return complaintList;
     }
 
-    public async Task<Result<PagedList<Complaint>>> GetListInspectorAsync(PagingInfo pagingInfo, ComplaintListFilters filters)
+    public async Task<Result<PagedList<Complaint>>> GetListInspectorAsync(
+        PagingInfo pagingInfo,
+        ComplaintListFilters filters)
     {
         var query = context.Complaint.Where(c => true);
 
@@ -115,62 +73,12 @@ public class ComplaintRepository(
 
         query = query
             .Include(c => c.Category)
-            .Include(c => c.ComplaintOrganization);
+            .Include(c => c.ComplaintOrganization)
+            .OrderByDescending(c => c.LastChanged);
         var complaintList = await PagedList<Complaint>.ToPagedList(query, pagingInfo.PageNumber, pagingInfo.PageSize);
         
         return complaintList;
     }
-    
-    /*
-    public async Task<Result<bool>> ReplyInspector(Complaint complaint, string encodedKey)
-    {
-        complaint.LoadEncryptionKeyByInspector(encodedKey, hasher);
-        complaint.EncryptContent(hasher, symmetric);
-        await context.SaveChangesAsync();
-        return true;
-    }
-    */
-    /*
-    public async Task<Result<bool>> ReplyCitizen(Complaint complaint, string password)
-    {
-        password = password.Trim();
-        complaint.LoadEncryptionKeyByCitizenPassword(password, hasher, symmetric);
-        complaint.EncryptContent(hasher, symmetric);
-        await context.SaveChangesAsync();
-        return true;
-    }
-    */
-    /*
-    public async Task<Result<bool>> ChangeInspectorKey(string privateKey, Guid toKeyId, Guid? fromKeyId)
-    {
-        //TODO: Consider using transactions and improve the performance by pagination
-        var publicKeys = await context.PublicKey.ToListAsync();
-        fromKeyId = fromKeyId ?? publicKeys.Where(p => p.IsActive).Select(p => p.Id).SingleOrDefault();
-        publicKeys.ForEach(p => p.IsActive = false);
-        var fromPublicKey = publicKeys.Where(p => fromKeyId == null || p.Id == fromKeyId).SingleOrDefault();
-        var toPublicKey = publicKeys.Where(p => p.Id == toKeyId).SingleOrDefault();
-        if (fromPublicKey is null || toPublicKey is null)
-            return ComplaintErrors.PublicKeyNotFound;
-        toPublicKey.IsActive = true;
-
-        //TODO: Consider pagination
-        var complaints = await context.Set<Complaint>().Where(c => c.PublicKeyId == fromKeyId).ToListAsync();
-        foreach (var complaint in complaints)
-        {
-            complaint.ChangeInspectorKey(privateKey, toPublicKey.Key, hasher, asymmetric);
-            complaint.PublicKeyId = toKeyId;
-        }
-
-        await context.SaveChangesAsync();
-        return true;
-    }
-    */
-    /*
-    private string GenerateTrackingNumber()
-    {
-        return RandomNumberGenerator.GetInt32(10000000, 99999999).ToString();
-    }
-    */
 
     public Complaint? GetComplaint(string trackingNumber)
     {

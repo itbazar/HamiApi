@@ -88,7 +88,12 @@ public class Complaint : Entity
 
         complaint.encryptContent();
 
-        complaint.Raise(new ComplaintCreatedDomainEvent(Guid.NewGuid(), complaint.Id));
+        complaint.Raise(new ComplaintCreatedDomainEvent(
+            Guid.NewGuid(),
+            complaint.Id,
+            complaint.TrackingNumber,
+            complaint.PlainPassword,
+            complaint.UserId));
         return complaint;
     }
 
@@ -240,7 +245,7 @@ public class Complaint : Entity
         var content = ComplaintContent.Create(text, medias, sender, visibility);
         Contents.Add(content);
 
-        Raise(new ComplaintUpdatedDomainEvent(Guid.NewGuid(), Id));
+        Raise(new ComplaintUpdatedDomainEvent(Guid.NewGuid(), Id, TrackingNumber, sender, Status, UserId));
     }
 
     private void generateTrackingNumber()
@@ -335,11 +340,11 @@ public enum ComplaintOperation
     Register,
     [Description("مشاهده")]
     Open,
-    [Description("درخواست توضیحات")]
+    [Description("درخواست تکمیل گزارش")]
     RequestForDescription,
     [Description("پاسخ")]
     CitizenReply,
-    [Description("انصراف از درخواست توضیحات")]
+    [Description("انصراف از تکمیل گزارش")]
     CancelRequest,
     [Description("افزودن جزئیات")]
     AddDetails,

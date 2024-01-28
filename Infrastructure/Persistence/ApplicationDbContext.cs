@@ -6,6 +6,8 @@ using Domain.Models.News;
 using Domain.Models.PublicKeys;
 using Domain.Models.Sliders;
 using Domain.Models.WebContents;
+using Domain.Primitives;
+using MediatR;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +15,11 @@ namespace Infrastructure.Persistence;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    private readonly IPublisher _publisher;
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IPublisher publisher)
         : base(options)
     {
+        _publisher = publisher;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -23,6 +27,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         base.OnModelCreating(builder);
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
+    {
+        var domainEvents = ChangeTracker.Entries<Entity>()
+            .Select(e => e.Entity)
+            .Where(e => e.DomainEvents.Any())
+            .SelectMany(e => e.DomainEvents);
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+        foreach (var domainEvent in domainEvents)
+        {
+            await _publisher.Publish(domainEvent, cancellationToken);
+        }
+        return result;
     }
     //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //    => optionsBuilder.LogTo(Console.WriteLine);
