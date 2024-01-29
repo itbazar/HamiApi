@@ -14,21 +14,17 @@ public class ReplyComplaintInspectorCommandHandler(IComplaintRepository complain
         if (result.IsFailed)
             return result.ToResult();
         var complaint = result.Value;
-        try
-        {
-            complaint.ReplyInspector(
+        
+        var replyResult = complaint.ReplyInspector(
                 request.Text,
                 request.Medias.Adapt<List<Media>>(),
                 Actor.Inspector,
                 request.Operation,
                 request.IsPublic ? ComplaintContentVisibility.Everyone : ComplaintContentVisibility.Inspector,
                 request.EncodedKey);
-        }
-        catch
-        {
-            return ComplaintErrors.InvalidOperation;
-        }
-        
+        if (replyResult.IsFailed)
+            return replyResult;
+
         await complaintRepository.Update(complaint);
         return true;
     }

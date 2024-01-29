@@ -31,9 +31,9 @@ public async Task<Result<AddComplaintResult>> Handle(
         var publicKey = (await publicKeyRepository.GetAll())
             .Where(p => p.IsActive == true).FirstOrDefault();
         if (publicKey is null)
-            throw new Exception("There is no active public key.");
+            return EncryptionErrors.KeyNotFound;
 
-        var complaint = Complaint.Register(
+        var registerResult = Complaint.Register(
             request.UserId,
             publicKey,
             request.Title,
@@ -43,15 +43,13 @@ public async Task<Result<AddComplaintResult>> Handle(
             request.Complaining,
             request.OrganizationId);
 
-        await complaintRepository.Insert(complaint);
-        if(complaint.UserId is not null)
+        if (registerResult.IsFailed)
         {
-            var user = await userRepository.FindByIdAsync(complaint.UserId);
-            if (user?.PhoneNumber is null)
-                return GenericErrors.NotFound;
-            var messages = complaint.GetMessages(ComplaintOperation.Register);
-            await messages.SendMessages(communicatorService, user, null);
+            return registerResult.ToResult();
         }
+        var complaint = registerResult.Value;
+        await complaintRepository.Insert(complaint);
+        
         return new AddComplaintResult(complaint.TrackingNumber, complaint.PlainPassword);
     }
 }

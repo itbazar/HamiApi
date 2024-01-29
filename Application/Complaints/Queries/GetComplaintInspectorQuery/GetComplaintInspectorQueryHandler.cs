@@ -20,14 +20,21 @@ internal class ComplaintInspectorResponseHandler(IComplaintRepository complaintR
         if (complaint.ShouldMarkedAsRead())
         {
             complaint = (await complaintRepository.GetAsync(request.TrackingNumber)).Value;
-            complaint.MarkAsRead(request.EncodedKey);
+            
+            var markAsReadResult = complaint.MarkAsRead(request.EncodedKey);
+            if (markAsReadResult.IsFailed)
+                return markAsReadResult;
+
             await complaintRepository.Update(complaint);
             complaint = complaintRepository.GetComplaint(request.TrackingNumber)!;
         }
-        complaint.GetInspector(request.EncodedKey);
+        var getResult = complaint.GetInspector(request.EncodedKey);
+        if (getResult.IsFailed)
+        {
+            return getResult;
+        }
         var result = ComplaintInspectorResponse.FromComplaint(complaint);
 
-        await Task.CompletedTask;
         return result;
     }
 }

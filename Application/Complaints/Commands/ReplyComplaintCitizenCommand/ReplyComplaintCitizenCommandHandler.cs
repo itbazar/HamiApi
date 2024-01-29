@@ -12,22 +12,19 @@ public async Task<Result<bool>> Handle(ReplyComplaintCitizenCommand request, Can
         var result = await complaintRepository.GetAsync(request.TrackingNumber);
         if (result.IsFailed)
             return result.ToResult();
+        
         var complaint = result.Value;
-        try
-        {
-            complaint.ReplyCitizen(
+
+        var replyResult = complaint.ReplyCitizen(
                 request.Text,
                 request.Medias.Adapt<List<Media>>(),
                 Actor.Citizen,
                 request.Operation,
                 ComplaintContentVisibility.Everyone,
                 request.Password);
-        }
-        catch
-        {
-            return ComplaintErrors.InvalidOperation;
-        }
-        
+        if (replyResult.IsFailed)
+            return replyResult;
+
         await complaintRepository.Update(complaint);
 
         return true;

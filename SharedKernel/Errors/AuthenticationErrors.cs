@@ -30,6 +30,12 @@ public static class GenericErrors
 public static class EncryptionErrors
 {
     public static readonly Error KeyGenerationFailed = new Error("KeyGenerationFailed");
+    public static readonly Error InvalidKey = new Error("InvalidKey");
+    public static readonly Error WrongPassword = new Error("WrongPassword");
+    public static readonly Error KeyNotFound = new Error("KeyNotFound");
+    public static readonly Error Failed = new Error("Failed");
+    public static readonly Error NullCipher = new Error("NullCipher");
+    public static readonly Error InvalidHash = new Error("InvalidHash");
 }
 
 public static class UserErrors

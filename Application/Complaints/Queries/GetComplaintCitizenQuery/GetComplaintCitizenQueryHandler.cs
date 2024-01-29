@@ -20,7 +20,11 @@ internal class GetComplaintCitizenQueryHandler : IRequestHandler<GetComplaintCit
         {
             return ComplaintErrors.NotFound;
         }
-        complaint.GetCitizen(request.Password);
+        
+        var getResult = complaint.GetCitizen(request.Password);
+        if (getResult.IsFailed)
+            return getResult;
+
         complaint.Contents.RemoveAll(cc => cc.Visibility == ComplaintContentVisibility.Inspector);
         
         var result = ComplaintCitizenResponse.FromComplaint(complaint);
