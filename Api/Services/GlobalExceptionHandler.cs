@@ -19,7 +19,8 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             Status = StatusCodes.Status500InternalServerError,
             Title = "Server Error",
-            Type = ""
+            Type = "",
+            Detail = "خطایی غیر منتظره پیش آمد"
         };
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
         await httpContext.Response.WriteAsJsonAsync(problemDetails);
