@@ -8,12 +8,12 @@ using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintInspectorQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
 using Application.Complaints.Queries.GetPossibleStatesCountQuery;
-using Domain.Models.ComplaintAggregate;
-using FluentResults;
+using Infrastructure.Options;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using SixLabors.ImageSharp;
 
 namespace Api.Controllers;
@@ -21,29 +21,10 @@ namespace Api.Controllers;
 [Authorize(Roles = "Inspector")]
 public class InspectorController : ApiController
 {
-    private readonly long _maxFileSize;
-    private readonly int _maxFileCount;
-    private readonly List<string> _allowedExtensions;
-    public InspectorController(ISender sender, IConfiguration configuration) : base(sender)
+    private readonly StorageOptions _storageOptions;
+    public InspectorController(ISender sender, IOptions<StorageOptions> storageOptions) : base(sender)
     {
-        _maxFileSize = configuration
-            .GetSection("General")
-            .GetSection("Files")
-            .GetSection("MaxFileSize")
-            .Get<long>();
-        _maxFileCount = configuration
-            .GetSection("General")
-            .GetSection("Files")
-            .GetSection("MaxFileCount")
-            .Get<int>();
-        var allowedExtensions = configuration
-            .GetSection("General")
-            .GetSection("Files")
-            .GetSection("AllowedExtensions")
-            .Get<string>();
-        _allowedExtensions = allowedExtensions?.Split(',').ToList() ??
-            new List<string> { "jpg", "png", "doc", "docx", "mp3", "avi", "mp4" };
-        _allowedExtensions = _allowedExtensions.Select(x => x.Trim().ToUpper()).ToList();
+        _storageOptions = storageOptions.Value;
     }
 
     [HttpGet("PossibleStates")]
@@ -86,7 +67,7 @@ public class InspectorController : ApiController
         var command = new ReplyComplaintInspectorCommand(
             operateDto.TrackingNumber,
             operateDto.Text,
-            operateDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
+            operateDto.Medias.GetMedia(_storageOptions),
             operateDto.Operation,
             operateDto.IsPublic,
             operateDto.EncodedKey);

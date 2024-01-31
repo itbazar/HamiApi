@@ -4,6 +4,7 @@ using Application.Common.Interfaces.Security;
 using Infrastructure.Authentication;
 using Infrastructure.Captcha;
 using Infrastructure.Communications;
+using Infrastructure.Options;
 using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Storage;
@@ -19,14 +20,16 @@ namespace Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
+    public static IServiceCollection AddInfrastructure(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.AddPersistence(configuration.GetConnectionString("DefaultConnection"));
         services.AddRedis(configuration);
         services.AddRepositories();
         services.AddSecurity(configuration);
         services.AddEncryption();
-        services.AddStorage(configuration, webHostEnvironment);
+        services.AddStorage(configuration);
         services.AddCommunication(configuration);
         return services;
     }
@@ -99,18 +102,13 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddStorage(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
+    public static IServiceCollection AddStorage(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
-        var imageSizes = configuration.GetSection("Storage")
-            .GetSection("ImageQualities").Get<List<Size>>();
-        var allowedExtensions = configuration.GetSection("Storage")
-            .GetSection("AllowedExtensions")
-            .Get<string>();
-        var maxFileSize = configuration.GetSection("Storage")
-            .GetSection("MaxFileSize")
-            .Get<long>();
-        services.AddScoped<IStorageService>(x => 
-            new StorageService(webHostEnvironment.WebRootPath, imageSizes, allowedExtensions, maxFileSize));
+        services.Configure<StorageOptions>(
+            configuration.GetSection(StorageOptions.Name));
+        services.AddScoped<IStorageService, StorageService>();
 
         return services;
     }

@@ -7,37 +7,20 @@ using Application.Complaints.Commands.ReplyComplaintCitizenCommand;
 using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintCitizenQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
+using Infrastructure.Options;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Api.Controllers;
 
 public class CitizenController : ApiController
 {
-    private readonly long _maxFileSize;
-    private readonly int _maxFileCount;
-    private readonly List<string> _allowedExtensions;
-    public CitizenController(ISender sender, IConfiguration configuration) : base(sender)
+    private readonly StorageOptions _storageOptions;
+    public CitizenController(ISender sender, IOptions<StorageOptions> storageOptions) : base(sender)
     {
-        _maxFileSize = configuration
-            .GetSection("General")
-            .GetSection("Files")
-            .GetSection("MaxFileSize")
-            .Get<long>();
-        _maxFileCount = configuration
-            .GetSection("General")
-            .GetSection("Files")
-            .GetSection("MaxFileCount")
-            .Get<int>();
-        var allowedExtensions = configuration
-            .GetSection("General")
-            .GetSection("Files")
-            .GetSection("AllowedExtensions")
-            .Get<string>();
-        _allowedExtensions = allowedExtensions?.Split(',').ToList() ?? 
-            new List<string> { "jpg", "png", "doc", "docx", "mp3", "avi", "mp4" };
-        _allowedExtensions = _allowedExtensions.Select(x => x.Trim().ToUpper()).ToList();
+        _storageOptions = storageOptions.Value;
     }
 
     [HttpPost]
@@ -48,7 +31,7 @@ public class CitizenController : ApiController
             createDto.Title,
             createDto.Text,
             createDto.CategoryId,
-            createDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
+            createDto.Medias.GetMedia(_storageOptions),
             createDto.Captcha,
             createDto.Complaining,
             createDto.OrganizationId);
@@ -68,7 +51,7 @@ public class CitizenController : ApiController
             createDto.Title,
             createDto.Text,
             createDto.CategoryId,
-            createDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
+            createDto.Medias.GetMedia(_storageOptions),
             createDto.Captcha,
             createDto.Complaining,
             createDto.OrganizationId);
@@ -85,7 +68,7 @@ public class CitizenController : ApiController
         var command = new ReplyComplaintCitizenCommand(
             operateDto.TrackingNumber,
             operateDto.Text,
-            operateDto.Medias.GetMedia(_maxFileSize, _maxFileCount, _allowedExtensions),
+            operateDto.Medias.GetMedia(_storageOptions),
             operateDto.Operation,
             operateDto.Password);
         var result = await Sender.Send(command);

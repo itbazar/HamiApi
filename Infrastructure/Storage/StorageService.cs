@@ -1,9 +1,11 @@
 ﻿using Domain.Models.Common;
+using Infrastructure.Options;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Processing;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure.Storage;
 
@@ -15,21 +17,15 @@ public class StorageService : IStorageService
     private long _maxAllowdFileSize;
 
     public StorageService(
-        string destinationPath,
-        List<Size>? imageQualities = null,
-        string? allowdExtensions = null,
-        long? maxAllowedFileSize = null)
+        IOptions<StorageOptions> oooo,
+        IWebHostEnvironment webHostEnvironment)
     {
-        _destinationPath = destinationPath;
-        _imageQualities = imageQualities ?? new List<Size>() { new Size(100, 100), new Size(200, 200), new Size(300, 300) };
-        _allowedExtensions = allowdExtensions?.Split(',').ToList() ?? new List<string>()
-        {
-            "jpg", "jpeg", "jpe", "jif", "jfif", "jfi", "png", "gif", "tiff", "tif", "svg", "svgz",
-            "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx",
-            "mkv", "mp4", "mov", "3gp", "ogg"
-        };
+        _destinationPath = webHostEnvironment.WebRootPath;
+        var so = oooo.Value;
+        _imageQualities = so.ImageQualities;
+        _allowedExtensions = so.AllowedExtensions.Split(',').ToList();
         _allowedExtensions = _allowedExtensions.Select(x => x.Trim().ToUpper()).ToList();
-        _maxAllowdFileSize = maxAllowedFileSize ?? 5 * 1024 * 1024;
+        _maxAllowdFileSize = so.MaxFileSize;
     }
 
     public async Task<ICollection<StorageMedia>> WriteFileAsync(ICollection<IFormFile> files, AttachmentType attachmentType)

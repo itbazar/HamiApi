@@ -14,16 +14,20 @@ using Domain.Models.ComplaintAggregate;
 using Domain.Models.News;
 using Domain.Models.Sliders;
 using Domain.Models.WebContents;
+using Infrastructure.Options;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Api.Controllers;
 
 public class CommonController : ApiController
 {
-    public CommonController(ISender sender) : base(sender)
+    private readonly StorageOptions _storageOptions;
+    public CommonController(ISender sender, IOptions<StorageOptions> storageOptions) : base(sender)
     {
+        _storageOptions = storageOptions.Value;
     }
 
     [HttpGet("Categories")]
@@ -111,4 +115,12 @@ public class CommonController : ApiController
             s => Ok(s),
             f => Problem(f));
     }
+
+    [HttpGet("Options")]
+    public ActionResult<OptionsGetDto> GetOptions()
+    {
+        return _storageOptions.Adapt<OptionsGetDto>();
+    }
 }
+
+public record OptionsGetDto(string AllowedExtensions, int MaxFileCount, long MaxFileSize, int MaxTextLength);

@@ -11,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services
     .AddApplication()
-    .AddInfrastructure(builder.Configuration, builder.Environment)
+    .AddInfrastructure(builder.Configuration)
     .AddApi(builder.Configuration);
 
 var maxFileSize = builder.Configuration.GetSection("Storage")
@@ -24,7 +24,6 @@ builder.Host.UseSerilog((context, configuration) =>
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-
 
 var app = builder.Build();
 
