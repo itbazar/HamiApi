@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces.Communication;
+using Application.Common.Interfaces.Maintenance;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
 using Infrastructure.Authentication;
@@ -76,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<IWebContentRepository, WebContentRepository>();
         services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<IAuthenticateRepository, AuthenticateRepository>();
+        services.AddScoped<IMaintenanceService, MaintenanceService>();
 
         return services;
     }
