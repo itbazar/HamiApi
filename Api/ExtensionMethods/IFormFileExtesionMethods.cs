@@ -52,7 +52,7 @@ public static class IFormFileExtesionMethods
     {
         var allowedExtensions = storageOptions.AllowedExtensions.Split(',')
             .ToList()
-            .Select(x => x.Trim())
+            .Select(x => x.Trim().ToUpper())
             .ToList();
         List<MediaRequest> data = new List<MediaRequest>();
         if (files is null)
@@ -66,7 +66,7 @@ public static class IFormFileExtesionMethods
         {
             if (file.Length > storageOptions.MaxFileSize)
                 throw new Exception("Max file size limit exceeded.");
-            if (!allowedExtensions.Contains(file.FileName.Split(',').Last().ToUpper()))
+            if (!allowedExtensions.Contains(file.FileName.Split('.').Last().ToUpper()))
             {
                 throw new Exception("Unacceptable file type.");
             }
