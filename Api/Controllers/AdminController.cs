@@ -65,7 +65,7 @@ public class AdminController : ApiController
 
     [Authorize(Roles = "Admin")]
     [HttpPost("ChangeKey")]
-    public async Task<ActionResult<bool>> ChangeKey([FromBody] ChangeInspectorKeyDto changeKeyDto)
+    public async Task<ActionResult<ChangeInspectorKeyResponse>> ChangeKey([FromBody] ChangeInspectorKeyDto changeKeyDto)
     {
         var command = new ChangeInspectorKeyCommand(changeKeyDto.PrivateKey, changeKeyDto.PublicKeyId);
         var result = await Sender.Send(command);

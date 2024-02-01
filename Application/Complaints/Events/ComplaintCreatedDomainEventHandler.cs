@@ -19,6 +19,7 @@ internal sealed class ComplaintCreatedDomainEventHandler(
             if (inspector?.PhoneNumber is null)
                 continue;
             await communicationService.SendAsync(inspector.PhoneNumber, message);
+            await communicationService.SendNotification(inspector.Id, "Created", message);
         }
 
         // Citizen

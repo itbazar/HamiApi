@@ -24,6 +24,7 @@ internal sealed class ComplaintUpdatedDomainEventHandler(
                 var message = $"لطفاً جهت تکمیل اطلاعات مربوط به درخواست با کد رهگیری {notification.TrackingNumber} به سامانه عیون مراجعه نمایید.";
 
                 await communicationService.SendAsync(user.PhoneNumber, message);
+                await communicationService.SendNotification(user.Id, "Updated", message);
             }
         }
         else
@@ -37,6 +38,7 @@ internal sealed class ComplaintUpdatedDomainEventHandler(
                     if (inspector?.PhoneNumber is null)
                         continue;
                     await communicationService.SendAsync(inspector.PhoneNumber, message);
+                    await communicationService.SendNotification(inspector.Id, "Updated", message);
                 }
             }
         }

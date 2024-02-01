@@ -1,50 +1,86 @@
 ﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.PublicKeys;
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using SharedKernel.Errors;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class PublicKeyRepository : IPublicKeyRepository
+public class PublicKeyRepository(ApplicationDbContext context) : IPublicKeyRepository
 {
-    private ApplicationDbContext _context;
-
-    public PublicKeyRepository(ApplicationDbContext context)
+    public async Task<Result<bool>> Add(PublicKey publicKey)
     {
-        _context = context;
-    }
-
-
-    public async Task<bool> Add(PublicKey publicKey)
-    {
-        _context.Add(publicKey);
-        await _context.SaveChangesAsync();
+        context.Add(publicKey);
+        await context.SaveChangesAsync();
         return true;
     }
 
-    public async Task<bool> Delete(Guid id)
+    public async Task<Result<bool>> Delete(Guid id)
     {
-        var publicKey = await Get(id);
+        var result = await Get(id);
+        if (result.IsFailed)
+            return result.ToResult();
+        var publicKey = result.Value;
+        if (await context.Complaint.AnyAsync(c => c.PublicKeyId == id))
+            return PublicKeyErrors.InUsedKeyCannotBeDeleted;
+        publicKey.IsDeleted = true;
+        await context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Result<PublicKey>> Get(Guid id)
+    {
+        var publicKey = await context.PublicKey
+            .Where(p => p.Id == id && p.IsDeleted == false)
+            .SingleOrDefaultAsync();
         if (publicKey is null)
-            return false;
-        publicKey.IsActive = true;
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<PublicKey?> Get(Guid id)
-    {
-        var publicKey = await _context.Set<PublicKey>().Where(p => p.Id == id).SingleOrDefaultAsync();
-        
+            return GenericErrors.NotFound;
         return publicKey;
     }
 
-    public async Task<List<PublicKey>> GetAll()
+    public async Task<Result<PublicKey>> GetActive()
     {
-        var result = await _context.Set<PublicKey>().ToListAsync();
+        var publicKey = await context.PublicKey
+            .Where(p => p.IsActive && p.IsDeleted == false)
+            .SingleOrDefaultAsync();
+        if (publicKey is null)
+            return GenericErrors.NotFound;
+        return publicKey;
+    }
+
+    public async Task<Result<List<PublicKey>>> GetAll()
+    {
+        var result = await context.PublicKey
+            .Where(p => p.IsDeleted == false)
+            .ToListAsync();
         return result;
     }
 
-    public Task<bool> Update(Guid id, string key)
+    public async Task<Result<bool>> SetActive(Guid id)
+    {
+        var result = await Get(id);
+        if (result.IsFailed)
+            return result.ToResult();
+        var toSetKey = result.Value;
+        if (toSetKey.IsActive)
+            return true;
+
+        result = await GetActive();
+        if(result.IsFailed)
+            return result.ToResult();
+        var currentKey = result.Value;
+
+        if (toSetKey.IsDeleted)
+            return PublicKeyErrors.DeletedKeyCannotSetAsActive;
+
+        toSetKey.IsActive = true;
+        currentKey.IsActive = false;
+
+        await context.SaveChangesAsync();
+        return true;
+    }
+
+    public Task<Result<bool>> Update(Guid id, string key)
     {
         throw new NotImplementedException();
     }

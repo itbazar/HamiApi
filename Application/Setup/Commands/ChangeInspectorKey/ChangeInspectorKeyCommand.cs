@@ -5,4 +5,7 @@ namespace Application.Setup.Commands.ChangeInspectorKey;
 public sealed record ChangeInspectorKeyCommand(
     string PrivateKey,
     Guid ToKeyId,
-    Guid? FromKeyId = null) : IRequest<Result<bool>>;
+    bool IsPolling = false,
+    Guid? FromKeyId = null) : IRequest<Result<ChangeInspectorKeyResponse>>;
+
+public record ChangeInspectorKeyResponse(long Total, long Done);

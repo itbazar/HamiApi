@@ -12,33 +12,23 @@ using SharedKernel.Errors;
 
 namespace Infrastructure.Authentication;
 
-public class AuthenticationService : IAuthenticationService
+public class AuthenticationService(
+    UserManager<ApplicationUser> userManager,
+    JwtInfo jwtInfo,
+    TokenValidationParameters tokenValidationParameters,
+    IAuthenticateRepository authenticateRepository) : IAuthenticationService
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly JwtInfo _jwtInfo;
-    private readonly TokenValidationParameters _tokenValidationParameters;
-    private readonly IAuthenticateRepository _authenticateRepository;
-
-    public AuthenticationService(
-        UserManager<ApplicationUser> userManager,
-        JwtInfo jwtInfo,
-        TokenValidationParameters tokenValidationParameters,
-        IAuthenticateRepository authenticateRepository)
-    {
-        _userManager = userManager;
-        _jwtInfo = jwtInfo;
-        _tokenValidationParameters = tokenValidationParameters;
-        _authenticateRepository = authenticateRepository;
-    }
-
-    public async Task<Result<LoginResultModel>> Login(string username, string password, bool twoFactorEnabled = false)
+    public async Task<Result<LoginResultModel>> Login(
+        string username,
+        string password,
+        bool twoFactorEnabled = false)
     {
         var result = await GetUser(username);
         if (result.IsFailed)
             return result.ToResult();
 
         var user = result.Value;
-        if (await _userManager.CheckPasswordAsync(user, password))
+        if (await userManager.CheckPasswordAsync(user, password))
         {
             if (twoFactorEnabled)
             {
@@ -60,13 +50,13 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result<AuthToken>> VerifyOtp(string otpToken, string code)
     {
-        var storedOtp = await _authenticateRepository.GetOtpAsync(otpToken);
+        var storedOtp = await authenticateRepository.GetOtpAsync(otpToken);
         if (storedOtp is null)
             return AuthenticationErrors.InvalidOtp;
 
         if (await ValidateOtp(storedOtp.User, code))
         {
-            await _authenticateRepository.DeleteOtpAsync(otpToken);
+            await authenticateRepository.DeleteOtpAsync(otpToken);
             if (storedOtp.IsNew)
             {
                 await CreateCitizen(storedOtp.User);
@@ -84,7 +74,7 @@ public class AuthenticationService : IAuthenticationService
         {
             return AuthenticationErrors.InvalidUsername;
         }
-        var user = await _userManager.FindByNameAsync(phoneNumber);
+        var user = await userManager.FindByNameAsync(phoneNumber);
         var isNew = user is null;
         if (user is null)
             user = new ApplicationUser()
@@ -115,7 +105,7 @@ public class AuthenticationService : IAuthenticationService
             return AuthenticationErrors.TokenNotExpiredYet;
         }
 
-        var storedRefreshToken = await _authenticateRepository.GetRefreshTokenAsync(refreshToken);
+        var storedRefreshToken = await authenticateRepository.GetRefreshTokenAsync(refreshToken);
         if (storedRefreshToken is null)
             return AuthenticationErrors.InvalidRefereshToken;
 
@@ -127,7 +117,7 @@ public class AuthenticationService : IAuthenticationService
         if (storedRefreshToken.JwtId != jti)
             return AuthenticationErrors.InvalidRefereshToken;
 
-        await _authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
+        await authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
 
         var userName = validatedToken.FindFirstValue(ClaimTypes.Name);
         if (userName is null)
@@ -141,13 +131,13 @@ public class AuthenticationService : IAuthenticationService
 
     public async Task<Result<bool>> Revoke(string userId, string refreshToken)
     {
-        var storedRefreshToken = await _authenticateRepository.GetRefreshTokenAsync(refreshToken);
+        var storedRefreshToken = await authenticateRepository.GetRefreshTokenAsync(refreshToken);
         if (storedRefreshToken is null)
             return AuthenticationErrors.InvalidRefereshToken;
 
         if (storedRefreshToken.UserId != userId)
             return AuthenticationErrors.InvalidRefereshToken;
-        await _authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
+        await authenticateRepository.DeleteRefreshTokenAsync(refreshToken);
 
         return true;
     }
@@ -159,7 +149,7 @@ public class AuthenticationService : IAuthenticationService
             return userResult.ToResult();
         var user = userResult.Value;
 
-        var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+        var result = await userManager.ChangePasswordAsync(user, oldPassword, newPassword);
         if (result.Succeeded)
         {
             return true;
@@ -174,15 +164,15 @@ public class AuthenticationService : IAuthenticationService
         try
         {
             user.PhoneNumberConfirmed = true;
-            var result = await _userManager.CreateAsync(user, "ADGJL';khfs12");
+            var result = await userManager.CreateAsync(user, "ADGJL';khfs12");
             if (!result.Succeeded)
                 return AuthenticationErrors.UserCreationFailed;
 
-            var result2 = await _userManager.AddToRoleAsync(user, RoleNames.Citizen);
+            var result2 = await userManager.AddToRoleAsync(user, RoleNames.Citizen);
 
             if (!result2.Succeeded)
             {
-                await _userManager.DeleteAsync(user);
+                await userManager.DeleteAsync(user);
                 return AuthenticationErrors.UserCreationFailed;
             }
         }
@@ -195,18 +185,18 @@ public class AuthenticationService : IAuthenticationService
 
     private async Task<Result<VerificationToken>> GetVerificationCode(ApplicationUser user, bool isNew = false)
     {
-        if (await _authenticateRepository.IsSentAsync(user.UserName!))
+        if (await authenticateRepository.IsSentAsync(user.UserName!))
             return AuthenticationErrors.TooManyRequestsForOtp;
 
         var otp = new Otp(Guid.NewGuid().ToString(), user, isNew);
-        await _authenticateRepository.InsertOtpAsync(otp);
-        await _authenticateRepository.InsertSentAsync(user.UserName!);
+        await authenticateRepository.InsertOtpAsync(otp);
+        await authenticateRepository.InsertSentAsync(user.UserName!);
         return new VerificationToken(user.PhoneNumber ?? "", otp.Token, await GenerateOtp(user));
     }
 
     private async Task<Result<ApplicationUser>> GetUser(string username)
     {
-        var user = await _userManager.FindByNameAsync(username);
+        var user = await userManager.FindByNameAsync(username);
         if (user == null)
         {
             return AuthenticationErrors.UserNotFound;
@@ -219,18 +209,18 @@ public class AuthenticationService : IAuthenticationService
     {
         //TODO: Use purpose for verification, reset password, etc
         PhoneNumberTokenProvider<ApplicationUser> tokenGenerator = new PhoneNumberTokenProvider<ApplicationUser>();
-        return await tokenGenerator.GenerateAsync("Phone number verification", _userManager, user);
+        return await tokenGenerator.GenerateAsync("Phone number verification", userManager, user);
     }
 
     private async Task<bool> ValidateOtp(ApplicationUser user, string token)
     {
         PhoneNumberTokenProvider<ApplicationUser> tokenGenerator = new PhoneNumberTokenProvider<ApplicationUser>();
-        return await tokenGenerator.ValidateAsync("Phone number verification", token, _userManager, user);
+        return await tokenGenerator.ValidateAsync("Phone number verification", token, userManager, user);
     }
 
     private async Task<AuthToken> GenerateToken(ApplicationUser user)
     {
-        var userRoles = await _userManager.GetRolesAsync(user);
+        var userRoles = await userManager.GetRolesAsync(user);
 
         var authClaims = new List<Claim>
         {
@@ -244,12 +234,12 @@ public class AuthenticationService : IAuthenticationService
             authClaims.Add(new Claim(ClaimTypes.Role, userRole));
         }
 
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtInfo.Secret));
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtInfo.Secret));
         var now = DateTime.UtcNow;
         var token = new JwtSecurityToken(
-            issuer: _jwtInfo.Issuer,
-            audience: _jwtInfo.Audience,
-            expires: now.Add(_jwtInfo.AccessTokenValidDuration),
+            issuer: jwtInfo.Issuer,
+            audience: jwtInfo.Audience,
+            expires: now.Add(jwtInfo.AccessTokenValidDuration),
             claims: authClaims,
             signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256));
 
@@ -258,8 +248,8 @@ public class AuthenticationService : IAuthenticationService
             user.Id,
             token.Id,
             now,
-            _jwtInfo.RefreshTokenValidDuration);
-        await _authenticateRepository.InsertRefreshTokenAsync(refreshToken);
+            jwtInfo.RefreshTokenValidDuration);
+        await authenticateRepository.InsertRefreshTokenAsync(refreshToken);
 
         return new AuthToken(new JwtSecurityTokenHandler().WriteToken(token), refreshToken.Token);
     }
@@ -269,7 +259,7 @@ public class AuthenticationService : IAuthenticationService
         var tokenHandler = new JwtSecurityTokenHandler();
         try
         {
-            var noExpiryTokenValidationParameters = _tokenValidationParameters.Clone();
+            var noExpiryTokenValidationParameters = tokenValidationParameters.Clone();
             noExpiryTokenValidationParameters.ValidateLifetime = false;
             var principal = tokenHandler.ValidateToken(
                 token,

@@ -1,6 +1,4 @@
-﻿using Application.Common.ExtensionMethods;
-using Application.Common.Interfaces.Communication;
-using Application.Common.Interfaces.Persistence;
+﻿using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
 using Application.Complaints.Commands.Common;
 using Domain.Models.Common;
@@ -12,9 +10,7 @@ namespace Application.Complaints.Commands.AddComplaintCommand;
 public class AddComplaintCommandHandler(
     IComplaintRepository complaintRepository,
     IPublicKeyRepository publicKeyRepository,
-    ICaptchaProvider captchaProvider,
-    ICommunicationService communicatorService,
-    IUserRepository userRepository) : IRequestHandler<AddComplaintCommand, Result<AddComplaintResult>>
+    ICaptchaProvider captchaProvider) : IRequestHandler<AddComplaintCommand, Result<AddComplaintResult>>
 {
 public async Task<Result<AddComplaintResult>> Handle(
     AddComplaintCommand request,
@@ -28,10 +24,10 @@ public async Task<Result<AddComplaintResult>> Handle(
                 return AuthenticationErrors.InvalidCaptcha;
             }
         }
-        var publicKey = (await publicKeyRepository.GetAll())
-            .Where(p => p.IsActive == true).FirstOrDefault();
-        if (publicKey is null)
-            return EncryptionErrors.KeyNotFound;
+        var publicKeyResult = await publicKeyRepository.GetActive();
+        if (publicKeyResult.IsFailed)
+            return publicKeyResult.ToResult();
+        var publicKey = publicKeyResult.Value;
 
         var registerResult = Complaint.Register(
             request.UserId,

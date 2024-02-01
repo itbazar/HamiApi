@@ -14,6 +14,7 @@ public class PublicKey : Entity
     public ApplicationUser Inspector { get; set; } = null!;
     public List<Complaint> Complaints { get; set; } = new List<Complaint>();
     public bool IsActive { get; set; }
+    public bool IsDeleted { get; set; }
 
     public static PublicKey Create(string title, string key, string inspectorId, bool isActive = false)
     {

@@ -3,6 +3,7 @@ using Api.Contracts.NewsContract;
 using Api.ExtensionMethods;
 using Application.Authentication.Queries.CaptchaQuery;
 using Application.Common.Interfaces.Persistence;
+using Application.Communications.Commands;
 using Application.ComplaintCategories.Queries.GetComplaintCategoriesQuery;
 using Application.ComplaintOrganizations.Queries.GetComplaintOrganizationQuery;
 using Application.NewsApp.Queries.GetNewsByIdQuery;
@@ -17,6 +18,7 @@ using Domain.Models.WebContents;
 using Infrastructure.Options;
 using Mapster;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -120,6 +122,18 @@ public class CommonController : ApiController
     public ActionResult<OptionsGetDto> GetOptions()
     {
         return _storageOptions.Adapt<OptionsGetDto>();
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<ActionResult> AddConnectionId([FromBody] string connectionId)
+    {
+        var userId = User.GetUserId();
+        var command = new AddSignalRConnectionIdCommand(userId, connectionId);
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            f => Problem(f));
     }
 }
 

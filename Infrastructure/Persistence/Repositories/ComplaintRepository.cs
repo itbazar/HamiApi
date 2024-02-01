@@ -5,6 +5,7 @@ using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SharedKernel.Errors;
+using System.Linq.Expressions;
 
 namespace Infrastructure.Persistence.Repositories;
 
@@ -35,6 +36,16 @@ public class ComplaintRepository(
         if (complaint is null)
             return ComplaintErrors.NotFound;
         return complaint;
+    }
+
+    public async Task<Result<List<Complaint>>> GetAsync(Expression<Func<Complaint, bool>>? filter = null, int skip=0, int take=50, bool isTracking = true)
+    {
+        var query = context.Complaint.Where(filter ?? (c => true));
+        var result = await query
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+        return result;
     }
 
     public async Task<Result<PagedList<Complaint>>> GetListCitizenAsync(
@@ -100,5 +111,13 @@ public class ComplaintRepository(
             .Select(g => new StatesHistogram(g.Key, g.Count()))
             .ToListAsync();
         return result;
+    }
+
+    public async Task<Result<long>> CountAsync(Expression<Func<Complaint, bool>>? filter)
+    {
+        IQueryable<Complaint> query = context.Complaint;
+        if(filter is not null)
+            query = query.Where(filter);
+        return await query.LongCountAsync();
     }
 }

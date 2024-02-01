@@ -53,3 +53,11 @@ public static class ComplaintErrors
     public static readonly Error NotFound = new Error("NotFound");
     public static readonly Error PublicKeyNotFound = new Error("PublicKeyNotFound");
 }
+
+public static class PublicKeyErrors
+{
+    public static readonly Error InUsedKeyCannotBeDeleted = new Error("InUsedKeyCannotBeDeleted");
+    public static readonly Error DeletedKeyCannotSetAsActive = new Error("DeletedKeyCannotSetAsActive");
+    public static readonly Error ThisKeyIsActiveAlready = new Error("ThisKeyIsActiveAlready");
+    public static readonly Error ChangeKeyProblem = new Error("ChangeKeyProblem");
+}
