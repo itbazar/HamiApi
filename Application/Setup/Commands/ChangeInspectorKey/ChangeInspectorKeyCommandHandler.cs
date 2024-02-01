@@ -48,7 +48,7 @@ public sealed class ChangeInspectorKeyCommandHandler(
             await maintenanceService.SetTotalAsync(total);
 
             List<Complaint> complaints;
-            int skip = 0, take = 5;
+            int skip = 0, take = 2;
             do
             {
                 var result = await complaintRepository.GetAsync(
@@ -66,6 +66,8 @@ public sealed class ChangeInspectorKeyCommandHandler(
                 await unitOfWork.SaveAsync();
 
                 await maintenanceService.AddDoneAsync(complaints.Count);
+
+                await Task.Delay(TimeSpan.FromSeconds(20));
 
             } while (complaints.Any());
 

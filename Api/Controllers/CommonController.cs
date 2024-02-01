@@ -125,7 +125,7 @@ public class CommonController : ApiController
     }
 
     [Authorize]
-    [HttpPost]
+    [HttpPost("ConnectionId")]
     public async Task<ActionResult> AddConnectionId([FromBody] string connectionId)
     {
         var userId = User.GetUserId();

@@ -67,7 +67,10 @@ public class AdminController : ApiController
     [HttpPost("ChangeKey")]
     public async Task<ActionResult<ChangeInspectorKeyResponse>> ChangeKey([FromBody] ChangeInspectorKeyDto changeKeyDto)
     {
-        var command = new ChangeInspectorKeyCommand(changeKeyDto.PrivateKey, changeKeyDto.PublicKeyId);
+        var command = new ChangeInspectorKeyCommand(
+            changeKeyDto.PrivateKey,
+            changeKeyDto.PublicKeyId,
+            changeKeyDto.IsPolling);
         var result = await Sender.Send(command);
         return result.Match(
             s => Ok(s), 
