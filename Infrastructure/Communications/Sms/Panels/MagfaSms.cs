@@ -32,7 +32,7 @@ public class MagfaSms : ISmsService
 
     public async Task<int> SendVerificationAsync(string receptor, string message)
     {
-        message = "سامانه شهربین\r\nکدورود:\r\n" + message;
+        message = "سامانه عیون\r\nکدورود:\r\n" + message;
         var client = new HttpClient(new HttpClientHandler()
         {
             AllowAutoRedirect = false
