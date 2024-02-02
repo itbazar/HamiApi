@@ -66,7 +66,6 @@ public sealed class ChangeInspectorKeyCommandHandler(
             toKeyResult.Value.Id,
             total);
         await maintenanceService.SetParametersAsync(p);
-        await maintenanceService.SetTotalAsync(total);
         await maintenanceService.EnableMaitenanceModeAsync();
 
         return new ChangeInspectorKeyResponse(total, 0, 0);

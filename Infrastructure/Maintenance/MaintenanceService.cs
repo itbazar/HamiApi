@@ -50,16 +50,12 @@ public class MaintenanceService : IMaintenanceService
 
     public async Task<long> AddDoneAsync(long value)
     {
-        var done = await GetDoneAsync() + value;
-        await setLong(DoneKey, done);
-        return done;
+        return await _database.StringIncrementAsync(DoneKey, value);
     }
 
     public async Task<long> AddFailedAsync(long value)
     {
-        var failed = await GetFailedAsync() + value;
-        await setLong(FailedKey, failed);
-        return failed;
+        return await _database.StringIncrementAsync(FailedKey, value);
     }
 
     public async Task<long> GetDoneAsync()
@@ -106,6 +102,8 @@ public class MaintenanceService : IMaintenanceService
         var value = JsonSerializer.Serialize(parameters);
         await _database.StringSetAsync(ParametersKey, value, null);
         await setLong(DoneKey, 0);
+        await setLong(FailedKey, 0);
+        await setLong(TotalKey, parameters.Total);
     }
 
     public async Task<ChangeInspectorKeyParameters?> GetParametersAsync()

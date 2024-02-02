@@ -1,6 +1,7 @@
 ﻿using Application.Common.Interfaces.Maintenance;
 using Application.Common.Interfaces.Persistence;
 using Domain.Models.ComplaintAggregate;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -53,16 +54,17 @@ public class ChangeInspectorKeyBackgroundService : BackgroundService
             }
 
             List<Complaint> complaints;
+            await unitOfWork.DbContext.Set<Complaint>()
+                .Where(c => c.IsFailed == true)
+                .ExecuteUpdateAsync(c => c.SetProperty(t => t.IsFailed, false));
             int skip = 0, take = 2;
             try
             {
-                List<Guid> failedComplaintIds = new List<Guid>();
                 long done = 0;
                 do
                 {
                     var result = await complaintRepository.GetAsync(
-                        c => c.PublicKeyId == parameters.FromKeyId &&
-                        !failedComplaintIds.Any(f => f == c.Id), 
+                        c => c.PublicKeyId == parameters.FromKeyId && c.IsFailed == false, 
                         skip, take, true);
                     if (result.IsFailed)
                     {
@@ -78,19 +80,22 @@ public class ChangeInspectorKeyBackgroundService : BackgroundService
                             parameters.ToKeyId).IsFailed)
                         {
                             await maintenanceService.AddFailedAsync(1);
-                            failedComplaintIds.Add(complaint.Id);
-                            continue;
+                            complaint.IsFailed = true;
                         }
                     }
                     await unitOfWork.SaveAsync();
 
                     done = await maintenanceService.AddDoneAsync(complaints.Count);
 
-                    await Task.Delay(TimeSpan.FromSeconds(10));
+                    await Task.Delay(TimeSpan.FromSeconds(5));
 
-                } while (complaints.Any() && done < parameters.Total);
+                } while (complaints.Any());
 
-                await publicKeyRepository.SetActive(parameters.ToKeyId);
+                if(await maintenanceService.GetFailedAsync() == 0)
+                {
+                    await publicKeyRepository.SetActive(parameters.ToKeyId);
+                }
+                
                 await maintenanceService.DisableMaitenanceModeAsync();
             } catch (Exception ex)
             {

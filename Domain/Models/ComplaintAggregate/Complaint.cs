@@ -32,6 +32,7 @@ public class Complaint : Entity
     public ComplaintState Status { get; set; }
     public DateTime RegisteredAt { get; set; }
     public DateTime LastChanged { get; set; }
+    public bool IsFailed { get; set; }
 
     // Citizen password
     [NotMapped]
