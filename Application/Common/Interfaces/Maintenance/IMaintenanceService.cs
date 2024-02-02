@@ -1,7 +1,4 @@
-﻿using Domain.Models.PublicKeys;
-using System.Runtime.CompilerServices;
-
-namespace Application.Common.Interfaces.Maintenance;
+﻿namespace Application.Common.Interfaces.Maintenance;
 
 public interface IMaintenanceService
 {
@@ -11,8 +8,10 @@ public interface IMaintenanceService
     Task SetTotalAsync(long total);
     Task<long> GetTotalAsync();
     Task<long> AddDoneAsync(long value);
+    Task<long> AddFailedAsync(long value);
     Task SetDoneAsync(long done);
     Task<long> GetDoneAsync();
+    Task<long> GetFailedAsync();
     Task SetParametersAsync(ChangeInspectorKeyParameters parameters);
     Task<ChangeInspectorKeyParameters?> GetParametersAsync();
 }

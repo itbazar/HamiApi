@@ -10,6 +10,7 @@ public class MaintenanceService : IMaintenanceService
     private const string MainenanceKey = "maintenance_enabled";
     private const string TotalKey = "maintenance_total";
     private const string DoneKey = "maintenance_done";
+    private const string FailedKey = "maintenance_failed";
     private const string ParametersKey = "maintenance_parameters";
     public MaintenanceService(IConnectionMultiplexer connectionMultiplexer)
     {
@@ -54,9 +55,21 @@ public class MaintenanceService : IMaintenanceService
         return done;
     }
 
+    public async Task<long> AddFailedAsync(long value)
+    {
+        var failed = await GetFailedAsync() + value;
+        await setLong(FailedKey, failed);
+        return failed;
+    }
+
     public async Task<long> GetDoneAsync()
     {
         return await getLong(DoneKey);
+    }
+
+    public async Task<long> GetFailedAsync()
+    {
+        return await getLong(FailedKey);
     }
 
 

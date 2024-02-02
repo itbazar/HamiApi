@@ -8,4 +8,4 @@ public sealed record ChangeInspectorKeyCommand(
     bool IsPolling = false,
     Guid? FromKeyId = null) : IRequest<Result<ChangeInspectorKeyResponse>>;
 
-public record ChangeInspectorKeyResponse(long Total, long Done);
+public record ChangeInspectorKeyResponse(long Total, long Done, long Failed);

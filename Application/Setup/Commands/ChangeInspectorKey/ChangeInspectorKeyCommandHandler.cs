@@ -19,11 +19,15 @@ public sealed class ChangeInspectorKeyCommandHandler(
             {
                 return new ChangeInspectorKeyResponse(
                     await maintenanceService.GetTotalAsync(),
-                    await maintenanceService.GetDoneAsync());
+                    await maintenanceService.GetDoneAsync(),
+                    await maintenanceService.GetFailedAsync());
             }
             else
             {
-                return new ChangeInspectorKeyResponse(0, 0);
+                return new ChangeInspectorKeyResponse(
+                    await maintenanceService.GetTotalAsync(),
+                    await maintenanceService.GetDoneAsync(),
+                    await maintenanceService.GetFailedAsync());
             }
 
         }
@@ -65,6 +69,6 @@ public sealed class ChangeInspectorKeyCommandHandler(
         await maintenanceService.SetTotalAsync(total);
         await maintenanceService.EnableMaitenanceModeAsync();
 
-        return new ChangeInspectorKeyResponse(total, 0);
+        return new ChangeInspectorKeyResponse(total, 0, 0);
     }
 }

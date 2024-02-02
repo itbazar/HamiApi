@@ -56,10 +56,14 @@ public class ChangeInspectorKeyBackgroundService : BackgroundService
             int skip = 0, take = 2;
             try
             {
+                List<Guid> failedComplaintIds = new List<Guid>();
+                long done = 0;
                 do
                 {
                     var result = await complaintRepository.GetAsync(
-                        c => c.PublicKeyId == parameters.FromKeyId, skip, take, true);
+                        c => c.PublicKeyId == parameters.FromKeyId &&
+                        !failedComplaintIds.Any(f => f == c.Id), 
+                        skip, take, true);
                     if (result.IsFailed)
                     {
                         throw new Exception();
@@ -68,19 +72,23 @@ public class ChangeInspectorKeyBackgroundService : BackgroundService
 
                     foreach (var complaint in complaints)
                     {
-                        if(complaint.ChangeInspectorKey(
+                        if (complaint.ChangeInspectorKey(
                             parameters.FromPrivateKey,
                             parameters.ToPublicKey,
                             parameters.ToKeyId).IsFailed)
+                        {
+                            await maintenanceService.AddFailedAsync(1);
+                            failedComplaintIds.Add(complaint.Id);
                             continue;
+                        }
                     }
                     await unitOfWork.SaveAsync();
 
-                    await maintenanceService.AddDoneAsync(complaints.Count);
+                    done = await maintenanceService.AddDoneAsync(complaints.Count);
 
                     await Task.Delay(TimeSpan.FromSeconds(10));
 
-                } while (complaints.Any());
+                } while (complaints.Any() && done < parameters.Total);
 
                 await publicKeyRepository.SetActive(parameters.ToKeyId);
                 await maintenanceService.DisableMaitenanceModeAsync();
