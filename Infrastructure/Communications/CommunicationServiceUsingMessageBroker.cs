@@ -72,7 +72,8 @@ public class CommunicationServiceUsingMessageBroker : ICommunicationService
             { 
                 ConnectionIds = connectionIds, 
                 MethodName = method, 
-                Username = "" 
+                Username = "" ,
+                Message = message
             });
     }
 }
