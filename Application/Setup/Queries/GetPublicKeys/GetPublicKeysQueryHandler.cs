@@ -16,6 +16,8 @@ public sealed class GetPublicKeysQueryHandler : IRequestHandler<GetPublicKeysQue
     public async Task<Result<List<PublicKeyResponse>>> Handle(GetPublicKeysQuery request, CancellationToken cancellationToken)
     {
         var result = await _publicKeyRepository.GetAll();
-        return result.Adapt<List<PublicKeyResponse>>();
+        if (result.IsFailed)
+            return result.ToResult();
+        return result.Value.Adapt<List<PublicKeyResponse>>();
     }
 }
