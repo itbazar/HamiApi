@@ -56,7 +56,7 @@ public class CommunicationServiceUsingMessageBroker : ICommunicationService
         await _database.StringSetAsync($"notif:{userId}", updatedValue);
     }
 
-    public async Task SendNotification(string userId, string method, string message)
+    public async Task SendNotification(string userId, string method, string message, Guid id)
     {
         var currentValue = await _database.StringGetAsync($"notif:{userId}");
 
@@ -73,7 +73,8 @@ public class CommunicationServiceUsingMessageBroker : ICommunicationService
                 ConnectionIds = connectionIds, 
                 MethodName = method, 
                 Username = "" ,
-                Message = message
+                Message = message,
+                Id = id.ToString()
             });
     }
 }
