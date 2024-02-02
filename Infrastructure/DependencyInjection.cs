@@ -3,6 +3,7 @@ using Application.Common.Interfaces.Maintenance;
 using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
 using Infrastructure.Authentication;
+using Infrastructure.BackgroundJobs;
 using Infrastructure.Captcha;
 using Infrastructure.Communications;
 using Infrastructure.Options;
@@ -10,11 +11,9 @@ using Infrastructure.Persistence;
 using Infrastructure.Persistence.Repositories;
 using Infrastructure.Storage;
 using MassTransit;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SixLabors.ImageSharp;
 using StackExchange.Redis;
 
 namespace Infrastructure;
@@ -32,6 +31,8 @@ public static class DependencyInjection
         services.AddEncryption();
         services.AddStorage(configuration);
         services.AddCommunication(configuration);
+
+        services.AddHostedService<ChangeInspectorKeyBackgroundService>();
         return services;
     }
 

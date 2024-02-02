@@ -149,7 +149,8 @@ public class Complaint : Entity
 
     public Result<bool> ChangeInspectorKey(
         string fromPrivateKey,
-        string toPublicKey)
+        string toPublicKey,
+        Guid keyId)
     {
         try
         {
@@ -164,6 +165,7 @@ public class Complaint : Entity
         try
         {
             CipherKeyInspector = asymmetricEncryption.EncryptAsymmetricByPublic(toPublicKey, EncryptionKey);
+            PublicKeyId = keyId;
         }
         catch
         {

@@ -1,4 +1,5 @@
 ﻿using StackExchange.Redis;
+using System.Text.Json;
 
 namespace Application.Common.Interfaces.Maintenance;
 
@@ -9,6 +10,7 @@ public class MaintenanceService : IMaintenanceService
     private const string MainenanceKey = "maintenance_enabled";
     private const string TotalKey = "maintenance_total";
     private const string DoneKey = "maintenance_done";
+    private const string ParametersKey = "maintenance_parameters";
     public MaintenanceService(IConnectionMultiplexer connectionMultiplexer)
     {
         _connectionMultiplexer = connectionMultiplexer;
@@ -45,10 +47,11 @@ public class MaintenanceService : IMaintenanceService
         await setLong(DoneKey, done);
     }
 
-    public async Task AddDoneAsync(long value)
+    public async Task<long> AddDoneAsync(long value)
     {
-        var done = await GetDoneAsync();
-        await setLong(DoneKey, done + value);
+        var done = await GetDoneAsync() + value;
+        await setLong(DoneKey, done);
+        return done;
     }
 
     public async Task<long> GetDoneAsync()
@@ -83,5 +86,21 @@ public class MaintenanceService : IMaintenanceService
             return 0;
         var t = long.TryParse(value, out var readValue);
         return t == false ? 0 : readValue;
+    }
+
+    public async Task SetParametersAsync(ChangeInspectorKeyParameters parameters)
+    {
+        var value = JsonSerializer.Serialize(parameters);
+        await _database.StringSetAsync(ParametersKey, value, null);
+        await setLong(DoneKey, 0);
+    }
+
+    public async Task<ChangeInspectorKeyParameters?> GetParametersAsync()
+    {
+        string? serialized = await _database.StringGetAsync(ParametersKey);
+        if (serialized is null)
+            return null;
+        var parameters = JsonSerializer.Deserialize<ChangeInspectorKeyParameters>(serialized);
+        return parameters;
     }
 }
