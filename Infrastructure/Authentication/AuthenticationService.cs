@@ -83,7 +83,10 @@ public class AuthenticationService(
                 PhoneNumber = phoneNumber,
                 PhoneNumberConfirmed = false
             };
-        return await GetVerificationCode(user, isNew);
+        var verificationCodeResult = await GetVerificationCode(user, isNew);
+        if(verificationCodeResult.IsFailed)
+            return verificationCodeResult.ToResult();
+        return verificationCodeResult.Value;
     }
 
     public async Task<Result<AuthToken>> Refresh(string token, string refreshToken)
@@ -167,7 +170,9 @@ public class AuthenticationService(
         var user = await userManager.FindByNameAsync(userName);
         if (user is null)
             return AuthenticationErrors.UserNotFound;
-        var token1 = await GetVerificationCode(user, false);
+        var token1Result = await GetVerificationCode(user, false);
+        if(token1Result.IsFailed)
+            return token1Result.ToResult();
 
         var tmpUser = new ApplicationUser()
         {
@@ -176,9 +181,13 @@ public class AuthenticationService(
             PhoneNumber = newPhoneNumber,
             PhoneNumberConfirmed = false
         };
-        var token2 = await GetVerificationCode(tmpUser, true);
+        var token2Result = await GetVerificationCode(tmpUser, true);
+        if (token2Result.IsFailed)
+        {
+            return token2Result.ToResult();
+        }
 
-        return new RequestToChangePhoneNumberResult(token1.Value, token2.Value);
+        return new RequestToChangePhoneNumberResult(token1Result.Value, token2Result.Value);
     }
 
     public async Task<Result<bool>> ChangePhoneNumber(
