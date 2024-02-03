@@ -9,8 +9,6 @@ using System.Text.RegularExpressions;
 using SharedKernel.Statics;
 using FluentResults;
 using SharedKernel.Errors;
-using MassTransit.Internals.GraphValidation;
-
 namespace Infrastructure.Authentication;
 
 public class AuthenticationService(
@@ -194,6 +192,10 @@ public class AuthenticationService(
         {
             await authenticateRepository.DeleteOtpAsync(otpToken1);
         }
+        else
+        {
+            return AuthenticationErrors.InvalidOtp;
+        }
 
         storedOtp = await authenticateRepository.GetOtpAsync(otpToken2);
         if (storedOtp is null)
@@ -202,6 +204,10 @@ public class AuthenticationService(
         if (await ValidateOtp(storedOtp.User, code2))
         {
             await authenticateRepository.DeleteOtpAsync(otpToken2);
+        }
+        else
+        {
+            return AuthenticationErrors.InvalidOtp;
         }
 
         var userResult = await GetUser(userName);

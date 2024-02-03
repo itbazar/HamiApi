@@ -9,11 +9,15 @@ internal sealed class ChangePasswordCommandHandler(
     public async Task<Result<bool>> Handle(ChangePhoneNumberCommand request, CancellationToken cancellationToken)
     {
 
-        return await authenticationService.ChangePhoneNumber(
+        var result = await authenticationService.ChangePhoneNumber(
             request.Username,
             request.OtpToken1,
             request.Code1,
             request.OtpToken2,
             request.Code2);
+        if (result.IsFailed)
+            return result.ToResult();
+        
+        return result.Value;
     }
 }
