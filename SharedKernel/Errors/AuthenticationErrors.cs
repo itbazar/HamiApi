@@ -8,6 +8,7 @@ public static class AuthenticationErrors
     public static readonly Error InvalidCredentials = new Error("InvalidCredentials");
     public static readonly Error InvalidOtp = new Error("InvalidOtp");
     public static readonly Error InvalidUsername = new Error("InvalidUsername");
+    public static readonly Error InvalidPhoneNumber = new Error("InvalidPhoneNumber");
     public static readonly Error InvalidRefereshToken = new Error("InvalidRefereshToken");
     public static readonly Error InvalidAccessToken = new Error("InvalidAccessToken");
     public static readonly Error TokenNotExpiredYet = new Error("TokenNotExpiredYet");

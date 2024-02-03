@@ -1,5 +1,4 @@
 ﻿using Application.Common.Interfaces.Security;
-using MediatR;
 
 namespace Application.Authentication.Commands.LogisterCitizenCommand;
 

@@ -2,16 +2,20 @@
 using Api.Contracts.Authenticate;
 using Api.ExtensionMethods;
 using Application.Authentication.Commands.ChangePasswordCommand;
+using Application.Authentication.Commands.ChangePhoneNumberCommand;
 using Application.Authentication.Commands.LoginCommand;
 using Application.Authentication.Commands.LogisterCitizenCommand;
 using Application.Authentication.Commands.RefreshCommand;
 using Application.Authentication.Commands.RevokeCommand;
+using Application.Authentication.Queries.ChangePhoneNumberQuery;
+using Application.Common.Interfaces.Security;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
 namespace Api.Controllers;
@@ -144,6 +148,42 @@ public class AuthenticateController : ApiController
             s => NoContent(),
             f => Problem(f));
     }
+
+    [Authorize]
+    [HttpPost("PhoneNumber")]
+    public async Task<ActionResult> ChangePhoneNumberRequest(ChangePhoneNumberRequestDto phoneDto)
+    {
+        var username = User.GetUserName();
+        if (username == null)
+            return Unauthorized();
+
+        var command = new ChangePhoneNumberQuery(
+            username, phoneDto.NewPhoneNumber, phoneDto.Captcha);
+
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            f => Problem(f));
+    }
+
+    [Authorize]
+    [HttpPut("PhoneNumber")]
+    public async Task<ActionResult> ChangePhoneNumber(ChangePhoneNumberDto phoneDto)
+    {
+        var username = User.GetUserName();
+        if (username == null)
+            return Unauthorized();
+
+        var command = new ChangePhoneNumberCommand(
+            username,
+            phoneDto.Token1,
+            phoneDto.Code1,
+            phoneDto.Token2,
+            phoneDto.Code2);
+
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
+            f => Problem(f));
+    }
 }
-
-

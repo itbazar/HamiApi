@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using SharedKernel.Statics;
 using FluentResults;
 using SharedKernel.Errors;
+using MassTransit.Internals.GraphValidation;
 
 namespace Infrastructure.Authentication;
 
@@ -157,6 +158,61 @@ public class AuthenticationService(
         return false;
     }
 
+    public async Task<Result<RequestToChangePhoneNumberResult>> RequestToChangePhoneNumber(
+        string userName, string newPhoneNumber)
+    {
+        Regex regex = new Regex(@"^09[0-9]{9}$");
+        if (!regex.IsMatch(newPhoneNumber))
+        {
+            return AuthenticationErrors.InvalidPhoneNumber;
+        }
+        var user = await userManager.FindByNameAsync(userName);
+        if (user is null)
+            return AuthenticationErrors.UserNotFound;
+        var token1 = await GetVerificationCode(user, false);
+
+        var tmpUser = new ApplicationUser()
+        {
+            SecurityStamp = Guid.NewGuid().ToString(),
+            UserName = newPhoneNumber,
+            PhoneNumber = newPhoneNumber,
+            PhoneNumberConfirmed = false
+        };
+        var token2 = await GetVerificationCode(tmpUser, true);
+
+        return new RequestToChangePhoneNumberResult(token1.Value, token2.Value);
+    }
+
+    public async Task<Result<bool>> ChangePhoneNumber(
+        string userName, string otpToken1, string code1, string otpToken2, string code2)
+    {
+        var storedOtp = await authenticateRepository.GetOtpAsync(otpToken1);
+        if (storedOtp is null)
+            return AuthenticationErrors.InvalidOtp;
+
+        if (await ValidateOtp(storedOtp.User, code1))
+        {
+            await authenticateRepository.DeleteOtpAsync(otpToken1);
+        }
+
+        storedOtp = await authenticateRepository.GetOtpAsync(otpToken2);
+        if (storedOtp is null)
+            return AuthenticationErrors.InvalidOtp;
+
+        if (await ValidateOtp(storedOtp.User, code2))
+        {
+            await authenticateRepository.DeleteOtpAsync(otpToken2);
+        }
+
+        var userResult = await GetUser(userName);
+        if (userResult.IsFailed)
+            return AuthenticationErrors.UserNotFound;
+        var user = userResult.Value;
+        user.PhoneNumber = storedOtp.User.PhoneNumber;
+        await userManager.UpdateAsync(user);
+
+        return true;
+    }
     /////////////////////////
     /// Private methods
     private async Task<Result> CreateCitizen(ApplicationUser user)

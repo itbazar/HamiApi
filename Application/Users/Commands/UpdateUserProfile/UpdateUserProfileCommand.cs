@@ -1,5 +1,4 @@
 ﻿using Domain.Models.IdentityAggregate;
-using MediatR;
 
 namespace Application.Users.Commands.UpdateUserProfile;
 

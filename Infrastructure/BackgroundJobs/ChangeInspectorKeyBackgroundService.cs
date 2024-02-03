@@ -87,7 +87,7 @@ public class ChangeInspectorKeyBackgroundService : BackgroundService
 
                     done = await maintenanceService.AddDoneAsync(complaints.Count);
 
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    //await Task.Delay(TimeSpan.FromSeconds(5));
 
                 } while (complaints.Any());
 
