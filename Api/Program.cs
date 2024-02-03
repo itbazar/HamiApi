@@ -43,7 +43,7 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
-app.UseMiddleware<MaintenanceModeMiddleware>();
+//app.UseMiddleware<MaintenanceModeMiddleware>();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
