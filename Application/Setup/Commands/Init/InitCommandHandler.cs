@@ -114,6 +114,7 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
                 {
                     UserName = user.Item2,
                     Title = user.Item3,
+                    PhoneNumber = "09137473007",
                     PhoneNumberConfirmed = true
                 };
 

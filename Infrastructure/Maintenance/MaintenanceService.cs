@@ -33,6 +33,15 @@ public class MaintenanceService : IMaintenanceService
         return await getBool(MainenanceKey);
     }
 
+    public bool IsMaintenanceEnabled()
+    {
+        var value = _database.StringGet(MainenanceKey);
+        if (value.IsNull)
+            return false;
+        var t = bool.TryParse(value, out var enabled);
+        return t && enabled;
+    }
+
     public async Task SetTotalAsync(long total)
     {
         await setLong(TotalKey, total);

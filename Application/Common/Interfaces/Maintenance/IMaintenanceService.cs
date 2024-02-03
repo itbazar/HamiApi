@@ -5,6 +5,7 @@ public interface IMaintenanceService
     Task EnableMaitenanceModeAsync();
     Task DisableMaitenanceModeAsync();
     Task<bool> IsMaintenanceEnabledAsync();
+    bool IsMaintenanceEnabled();
     Task SetTotalAsync(long total);
     Task<long> GetTotalAsync();
     Task<long> AddDoneAsync(long value);
