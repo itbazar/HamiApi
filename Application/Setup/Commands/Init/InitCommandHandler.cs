@@ -164,7 +164,7 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
 
         chart = Chart.Create(
             ChartCodes.ComplaintCategoryHistogram,
-            "فراوانی درخواست ها بر اساس دسته بندی",
+            "فراوانی گزارش ها بر اساس دسته بندی",
             2,
             1,
             "",
@@ -174,7 +174,7 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
 
         chart = Chart.Create(
             ChartCodes.ComplaintOrganizationHistogram,
-            "فراوانی درخواست ها بر اساس واحد مربوطه",
+            "فراوانی گزارش ها بر اساس واحد مربوطه",
             3,
             1,
             "",
@@ -184,7 +184,7 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
 
         chart = Chart.Create(
             ChartCodes.ComplaintStatusHistogram,
-            "فراوانی درخواست ها بر اساس وضعیت",
+            "فراوانی گزارش ها بر اساس وضعیت",
             4,
             1,
             "",

@@ -126,15 +126,15 @@ internal class GetInfoQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Get
         var anonymousComplaintsCount = await unitOfWork.DbContext.Set<Complaint>()
             .Where(c => c.UserId == null)
             .CountAsync();
-        result.Add(new InfoSingleton(anonymousComplaintsCount.ToString(), "درخواست ناشناس", ""));
+        result.Add(new InfoSingleton(anonymousComplaintsCount.ToString(), "گزارش ناشناس", ""));
 
         var knownComplaintsCount = await unitOfWork.DbContext.Set<Complaint>()
             .Where(c => c.UserId != null)
             .CountAsync();
-        result.Add(new InfoSingleton(knownComplaintsCount.ToString(), "درخواست شناس", ""));
+        result.Add(new InfoSingleton(knownComplaintsCount.ToString(), "گزارش شناس", ""));
 
         var totalComplaintsCount = anonymousComplaintsCount + knownComplaintsCount;
-        result.Add(new InfoSingleton(totalComplaintsCount.ToString(), "درخواست", ""));
+        result.Add(new InfoSingleton(totalComplaintsCount.ToString(), "گزارش", ""));
 
         var totalUsers = await unitOfWork.DbContext.Set<ApplicationUser>().CountAsync();
         result.Add(new InfoSingleton(totalUsers.ToString(), "کاربر", ""));
@@ -166,7 +166,7 @@ internal class GetInfoQueryHandler(IUnitOfWork unitOfWork) : IRequestHandler<Get
                 prpd.Add(new DataItem(dateStr, "0", "0", null));
             }
         }
-        result.Add(new InfoChart("تعداد درخواست ثبت شده در سی روز گذشته", "", false, false).Add(new InfoSerie("درخواست", "").Add(prpd)));
+        result.Add(new InfoChart("تعداد گزارش ثبت شده در سی روز گذشته", "", false, false).Add(new InfoSerie("گزارش", "").Add(prpd)));
 
 
         return result;

@@ -3,6 +3,7 @@ using Api.Contracts.KeyManagement;
 using Api.ExtensionMethods;
 using Application.Setup.Commands.AddPublicKey;
 using Application.Setup.Commands.ChangeInspectorKey;
+using Application.Setup.Commands.EditChartNames;
 using Application.Setup.Commands.GenerateKeyPair;
 using Application.Setup.Commands.Init;
 using Application.Setup.Queries.GetPublicKeys;
@@ -76,4 +77,16 @@ public class AdminController : ApiController
             s => Ok(s), 
             f => Problem(f));
     }
+
+    [Authorize(Roles = "Admin")]
+    [HttpPost("EditChartNames")]
+    public async Task<ActionResult> EditChartNames()
+    {
+        var command = new EditChartNamesCommand();
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => Ok(s),
+            f => Problem(f));
+    }
+
 }
