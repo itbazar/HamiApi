@@ -78,7 +78,7 @@ public class AdminController : ApiController
             f => Problem(f));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "PowerUser")]
     [HttpPost("EditChartNames")]
     public async Task<ActionResult> EditChartNames()
     {
