@@ -12,7 +12,7 @@ public sealed class EditChartNamesCommandHandler(
         foreach (var chart in charts)
         {
             var title = chart.Title;
-            title.Replace("درخواست", "گزارش");
+            title = title.Replace("درخواست", "گزارش");
             chart.Title = title;
             chartRepository.Update(chart);
         }
