@@ -32,7 +32,7 @@ public static class DependencyInjection
             swagger.SwaggerDoc("v1", new OpenApiInfo
             {
                 Version = "v1",
-                Title = "Sootzani Web API",
+                Title = "Hami Web API",
                 Description = ""
             });
             // To Enable authorization using Swagger (JWT)    
