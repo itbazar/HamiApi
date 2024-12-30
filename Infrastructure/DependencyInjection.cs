@@ -79,6 +79,7 @@ public static class DependencyInjection
         services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<IAuthenticateRepository, AuthenticateRepository>();
         services.AddScoped<IMaintenanceService, MaintenanceService>();
+        services.AddScoped<IDiseaseRepository, DiseaseRepository>();
 
         return services;
     }
