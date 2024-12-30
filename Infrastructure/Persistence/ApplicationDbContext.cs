@@ -1,6 +1,7 @@
 ﻿using Domain.Models.ChartAggregate;
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
+using Domain.Models.DiseaseAggregate;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.News;
 using Domain.Models.PublicKeys;
@@ -55,4 +56,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Slider> Slider { get; set; }
     public DbSet<WebContent> WebContent { get; set; }
     public DbSet<News> News { get; set; }
+    public DbSet<Disease> Diseases { get; set; }
 }
