@@ -6,6 +6,7 @@ using Domain.Models.IdentityAggregate;
 using Domain.Models.News;
 using Domain.Models.PublicKeys;
 using Domain.Models.Sliders;
+using Domain.Models.StageAggregate;
 using Domain.Models.WebContents;
 using Domain.Primitives;
 using MediatR;
@@ -57,4 +58,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<WebContent> WebContent { get; set; }
     public DbSet<News> News { get; set; }
     public DbSet<Disease> Diseases { get; set; }
+    public DbSet<Stage> Stages { get; set; }
 }
