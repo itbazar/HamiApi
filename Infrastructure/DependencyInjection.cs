@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticateRepository, AuthenticateRepository>();
         services.AddScoped<IMaintenanceService, MaintenanceService>();
         services.AddScoped<IDiseaseRepository, DiseaseRepository>();
+        services.AddScoped<IStageRepository, StageRepository>();
 
         return services;
     }
