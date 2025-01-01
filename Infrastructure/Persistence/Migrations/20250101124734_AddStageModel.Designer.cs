@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20241231172753_AddStageModel")]
+    [Migration("20250101124734_AddStageModel")]
     partial class AddStageModel
     {
         /// <inheritdoc />
