@@ -11,6 +11,40 @@ public class ApplicationUser : IdentityUser
     public string NationalId { get; set; } = string.Empty;
     public DateTime? VerificationSent { get; set; }
     public string FcmToken { get; set; } = string.Empty;
+
+
+    public DateTime DateOfBirth { get; set; } // تاریخ تولد
+    public Gender Gender { get; set; } // جنسیت (Male, Female, Other)
+    public EducationLevel? Education { get; set; } // تحصیلات
+    public string? City { get; set; } // شهر محل سکونت
+
+    public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.Pending; // وضعیت ثبت‌نام
+    public string? RejectionReason { get; set; } // دلیل رد ثبت‌نام (در صورت وجود)
+
+
 }
 
+public enum Gender
+{
+    Male = 1,   // مرد
+    Female = 2, // زن
+    Other = 3   // سایر
+}
 
+public enum EducationLevel
+{
+    None = 0,           // بدون تحصیلات
+    HighSchool = 1,     // دیپلم
+    Bachelor = 2,       // لیسانس
+    Master = 3,         // فوق لیسانس
+    Doctorate = 4,      // دکتری
+    Other = 5           // سایر
+}
+
+// وضعیت ثبت‌نام
+public enum RegistrationStatus
+{
+    Pending = 1,    // منتظر تأیید
+    Approved = 2,   // تأییدشده
+    Rejected = 3    // ردشده
+}

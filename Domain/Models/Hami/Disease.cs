@@ -1,6 +1,6 @@
 ﻿using Domain.Primitives;
 
-namespace Domain.Models.DiseaseAggregate;
+namespace Domain.Models.Hami;
 
 public class Disease : Entity
 {

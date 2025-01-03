@@ -1,7 +1,7 @@
 
 using Domain.Primitives;
 
-namespace Domain.Models.StageAggregate;
+namespace Domain.Models.Hami;
 
 public class Stage : Entity
 {
