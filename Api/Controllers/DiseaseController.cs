@@ -6,7 +6,7 @@ using Application.Diseases.Commands.AddDisease;
 using Application.Diseases.Commands.DeleteDisease;
 using Application.Diseases.Commands.EditDisease;
 using Application.Diseases.Queries.GetDiseases;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -7,7 +7,7 @@ using Application.Stages.Commands.AddStage;
 using Application.Stages.Commands.DeleteStage;
 using Application.Stages.Commands.EditStage;
 using Application.Stages.Queries.GetStages;
-using Domain.Models.StageAggregate;
+using Domain.Models.Hami;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

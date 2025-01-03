@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.Complaint;
+using Api.Contracts.Patient;
 using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
 using Application.Complaints.Commands.AddComplaintCommand;
@@ -7,11 +8,14 @@ using Application.Complaints.Commands.ReplyComplaintCitizenCommand;
 using Application.Complaints.Common;
 using Application.Complaints.Queries.GetComplaintCitizenQuery;
 using Application.Complaints.Queries.GetComplaintListQuery;
+using Application.Users.Commands.RegisterPatient;
 using Infrastructure.Options;
+using MassTransit.Mediator;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Serilog;
 
 namespace Api.Controllers;
 
@@ -23,18 +27,51 @@ public class CitizenController : ApiController
         _storageOptions = storageOptions.Value;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddComplaint([FromForm] ComplaintCreateDto createDto)
+    //[HttpPost]
+    //public async Task<IActionResult> AddComplaint([FromForm] ComplaintCreateDto createDto)
+    //{
+    //    var command = new AddComplaintCommand(
+    //        null,
+    //        createDto.Title,
+    //        createDto.Text,
+    //        createDto.CategoryId,
+    //        createDto.Medias.GetMedia(_storageOptions),
+    //        createDto.Captcha,
+    //        createDto.Complaining,
+    //        createDto.OrganizationId);
+    //    var result = await Sender.Send(command);
+
+    //    return result.Match(
+    //        s => Ok(s),
+    //        f => Problem(f));
+    //}
+
+
+    [HttpPost("RegisterPatient")]
+    public async Task<IActionResult> RegisterPatient([FromForm] RegisterPatientDto patientDto)
     {
-        var command = new AddComplaintCommand(
-            null,
-            createDto.Title,
-            createDto.Text,
-            createDto.CategoryId,
-            createDto.Medias.GetMedia(_storageOptions),
-            createDto.Captcha,
-            createDto.Complaining,
-            createDto.OrganizationId);
+        var command = new RegisterPatientCommand(
+            patientDto.Username,
+            patientDto.Password,
+            patientDto.PhoneNumber,
+            patientDto.NationalId,
+            patientDto.FirstName,
+            patientDto.LastName,
+            patientDto.DateOfBirth,
+            patientDto.Gender,
+            patientDto.Education,
+            patientDto.City,
+            patientDto.Organ,
+            patientDto.DiseaseType,
+            patientDto.PatientStatus,
+            patientDto.Stage,
+            patientDto.PathologyDiagnosis,
+            patientDto.InitialWeight,
+            patientDto.SleepDuration,
+            patientDto.AppetiteLevel,
+            patientDto.GADScore,
+            patientDto.MDDScore);
+
         var result = await Sender.Send(command);
 
         return result.Match(
