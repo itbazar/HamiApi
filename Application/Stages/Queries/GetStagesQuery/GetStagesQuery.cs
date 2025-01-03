@@ -1,6 +1,6 @@
 
 using Application.Stages.Common;
-using Domain.Models.StageAggregate;
+using Domain.Models.Hami;
 
 namespace Application.Stages.Queries.GetStages;
 

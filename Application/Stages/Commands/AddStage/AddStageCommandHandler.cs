@@ -1,6 +1,6 @@
 
 using Application.Common.Interfaces.Persistence;
-using Domain.Models.StageAggregate;
+using Domain.Models.Hami;
 using MediatR;
 
 namespace Application.Stages.Commands.AddStage;

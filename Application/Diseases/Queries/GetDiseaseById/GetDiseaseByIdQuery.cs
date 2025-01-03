@@ -1,5 +1,5 @@
 ﻿using Domain.Models.ComplaintAggregate;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 using MediatR;
 
 namespace Application.ComplaintCategories.Queries.GetComplaintCategoryByIdQuery;

@@ -1,6 +1,6 @@
 
 using Application.Common.Interfaces.Persistence;
-using Domain.Models.StageAggregate;
+using Domain.Models.Hami;
 
 namespace Application.Stages.Queries.GetStagesAdminQuery;
 
@@ -14,6 +14,6 @@ internal class GetStagesAdminQueryHandler(
         var result = await stageRepository.GetAsync();
         
         // Return as a result list
-        return Result.Ok(result.ToList());
+        return result.ToList();
     }
 }

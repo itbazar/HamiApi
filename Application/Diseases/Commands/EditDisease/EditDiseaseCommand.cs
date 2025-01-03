@@ -2,7 +2,7 @@
 
 using MediatR;
 using FluentResults;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 
 public record EditDiseaseCommand(Guid Id, string Title, string Description) : IRequest<Result<Disease>>;
 

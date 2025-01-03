@@ -1,6 +1,6 @@
 ﻿
 using Application.Common.Interfaces.Persistence;
-using Domain.Models.StageAggregate;
+using Domain.Models.Hami;
 using MediatR;
 using FluentResults;
 
@@ -23,6 +23,6 @@ internal class DeleteStageCommandHandler(IStageRepository diseaseRepository, IUn
         diseaseRepository.Update(disease);
         await unitOfWork.SaveAsync();
 
-        return Result.Ok(disease);
+        return disease;
     }
 }

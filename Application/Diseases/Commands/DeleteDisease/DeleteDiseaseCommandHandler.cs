@@ -1,5 +1,5 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 using MediatR;
 using FluentResults;
 
@@ -22,6 +22,6 @@ internal class DeleteDiseaseCommandHandler(IDiseaseRepository diseaseRepository,
         diseaseRepository.Update(disease);
         await unitOfWork.SaveAsync();
 
-        return Result.Ok(disease);
+        return disease;
     }
 }

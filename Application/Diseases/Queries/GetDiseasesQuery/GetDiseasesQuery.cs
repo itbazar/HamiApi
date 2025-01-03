@@ -1,5 +1,5 @@
 ﻿using Application.Diseases.Common;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 
 namespace Application.Diseases.Queries.GetDiseases;
 

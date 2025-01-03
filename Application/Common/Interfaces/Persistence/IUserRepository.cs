@@ -28,4 +28,8 @@ public interface IUserRepository
     public Task<PagedList<ApplicationUser>> GetPagedAsync(
         PagingInfo paging,
         Expression<Func<ApplicationUser, bool>>? filter = null);
+
+    public Task<PagedList<ApplicationUser>> GetPagedPatientsAsync(
+       PagingInfo paging,
+       Expression<Func<ApplicationUser, bool>>? filter = null);
 }

@@ -1,5 +1,5 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 using MediatR;
 
 namespace Application.Diseases.Commands.AddDisease;
