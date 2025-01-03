@@ -87,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<ICounselingSessionRepository, CounselingSessionRepository>();
         services.AddScoped<IUserGroupMembershipRepository, UserGroupMembershipRepository>();
         services.AddScoped<IUserMedicalInfoRepository, UserMedicalInfoRepository>();
+        services.AddScoped<IQuestionRepository, QuestionRepository>();
 
         return services;
     }
