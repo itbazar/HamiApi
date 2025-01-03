@@ -15,6 +15,7 @@ public static class AuthenticationErrors
     public static readonly Error UserNotFound = new Error("کاربر یافت نشد.");
     public static readonly Error UserCreationFailed = new Error("ایجاد کاربر با خطا مواجه شد.");
     public static readonly Error TooManyRequestsForOtp = new Error("درخواست رمز یکبارمصرف بیشتر از حد مجاز است.");
+    public static readonly Error UserAlreadyExists = new Error("کاربری دیگری با شماره همراه شما ثبت شده است");
 
 }
 public static class CommunicationErrors
@@ -45,6 +46,8 @@ public static class UserErrors
     public static readonly Error UserNotExsists = new Error("کاربر یافت نشد.");
     public static readonly Error PasswordUpdateFailed = new Error("بروزرسانی رمز عبور با خطا مواجه شد.");
     public static readonly Error RoleUpdateFailed = new Error("بروزرسانی نقش با خطا مواجه شد.");
+    public static readonly Error UserIsNotPending = new Error("وضعیت ثبت نام کاربر در انتظار تایید نیست");
+    public static readonly Error UserGroupNotAssigned = new Error("لطفا گروه کاربر را مشخص نمایید");
 }
 
 public static class ComplaintErrors
@@ -53,6 +56,11 @@ public static class ComplaintErrors
     public static readonly Error InvalidOperation = new Error("عملیات نامعتبر است.");
     public static readonly Error NotFound = new Error("درخواست یافت نشد.");
     public static readonly Error PublicKeyNotFound = new Error("کلید یافت نشد.");
+}
+
+public static class TestPeriodErrors
+{
+    public static readonly Error NotFound = new Error("آزمون یافت نشد.");
 }
 
 public static class PublicKeyErrors
