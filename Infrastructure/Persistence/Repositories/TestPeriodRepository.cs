@@ -10,28 +10,17 @@ using System.Linq;
 
 namespace Infrastructure.Persistence.Repositories;
 
-public class TestPeriodRepository(
-    ApplicationDbContext context) : ITestPeriodRepository
+public class TestPeriodRepository : GenericRepository<TestPeriod>, ITestPeriodRepository
 {
-    public async Task<Result<bool>> Insert(TestPeriod info)
+    private readonly ApplicationDbContext _context;
+
+    public TestPeriodRepository(ApplicationDbContext context) : base(context) // ارسال context به کلاس پدر
     {
-        context.Add(info);
-
-        await context.SaveChangesAsync();
-        return true;
+        _context = context; // نگهداری یک کپی از context در این کلاس
     }
-
-    public async Task<Result<bool>> Update(TestPeriod info)
-    {
-        context.Update(info);
-
-        await context.SaveChangesAsync();
-        return true;
-    }
-
     public async Task<Result<TestPeriod>> GetAsyncByCode(int code)
     {
-        var test = await context.TestPeriod
+        var test = await _context.TestPeriod
             .Where(c => c.Code == code)
             .SingleOrDefaultAsync();
         if (test is null)
