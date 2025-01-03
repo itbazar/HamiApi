@@ -1,7 +1,7 @@
 ﻿namespace Infrastructure.Persistence.Repositories;
 
 using Application.Common.Interfaces.Persistence;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 
 public class DiseaseRepository : GenericRepository<Disease>, IDiseaseRepository
 {

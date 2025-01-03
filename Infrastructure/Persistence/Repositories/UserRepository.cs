@@ -201,4 +201,24 @@ public class UserRepository(
         
         return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);
     }
+
+    public async Task<PagedList<ApplicationUser>> GetPagedPatientsAsync(
+    PagingInfo paging,
+    Expression<Func<ApplicationUser, bool>>? filter = null)
+    {
+        // ابتدا کاربران با نقش Patient را فیلتر می‌کنیم
+        var query = from user in dbContext.Users
+                    join userRole in dbContext.UserRoles on user.Id equals userRole.UserId
+                    join role in dbContext.Roles on userRole.RoleId equals role.Id
+                    where role.Name == "Patient" // نقش Patient
+                    select user;
+
+        // اگر فیلتری وجود داشت، آن را اعمال می‌کنیم
+        if (filter is not null)
+            query = query.Where(filter);
+
+        // بازگشت لیست صفحه‌بندی‌شده
+        return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);
+    }
+
 }

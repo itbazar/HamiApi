@@ -81,6 +81,12 @@ public static class DependencyInjection
         services.AddScoped<IMaintenanceService, MaintenanceService>();
         services.AddScoped<IDiseaseRepository, DiseaseRepository>();
         services.AddScoped<IStageRepository, StageRepository>();
+        services.AddScoped<IPatientGroupRepository, PatientGroupRepository>();
+        services.AddScoped<ITestPeriodRepository, TestPeriodRepository>();
+        services.AddScoped<ITestPeriodResultRepository, TestPeriodResultRepository>();
+        services.AddScoped<ICounselingSessionRepository, CounselingSessionRepository>();
+        services.AddScoped<IUserGroupMembershipRepository, UserGroupMembershipRepository>();
+        services.AddScoped<IUserMedicalInfoRepository, UserMedicalInfoRepository>();
 
         return services;
     }

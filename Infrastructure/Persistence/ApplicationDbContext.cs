@@ -1,17 +1,18 @@
 ﻿using Domain.Models.ChartAggregate;
 using Domain.Models.Common;
 using Domain.Models.ComplaintAggregate;
-using Domain.Models.DiseaseAggregate;
+using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
 using Domain.Models.News;
 using Domain.Models.PublicKeys;
 using Domain.Models.Sliders;
-using Domain.Models.StageAggregate;
 using Domain.Models.WebContents;
 using Domain.Primitives;
+using Infrastructure.Persistence.Data.Seed;
 using MediatR;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 
 namespace Infrastructure.Persistence;
 
@@ -29,6 +30,31 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         base.OnModelCreating(builder);
+
+       QuestionSeeder.SeedQuestions(builder);
+
+        builder.Entity<TestPeriod>().HasData(
+        new
+        {
+            Id = new Guid("11111111-1111-1111-1111-111111111111"),
+            TestType = TestType.GAD,
+            PeriodName = "ارزیابی اولیه GAD هنگام ثبت نام",
+            StartDate = new DateTime(2025, 1, 1),
+            EndDate = new DateTime(2099, 12, 31),
+            Code = 101, // کد یکتا برای GAD
+            IsDeleted = false
+        },
+        new
+        {
+            Id = new Guid("22222222-2222-2222-2222-222222222222"),
+            TestType = TestType.MDD,
+            PeriodName = "ارزیابی اولیه MDD هنگام ثبت نام",
+            StartDate = new DateTime(2025, 1, 1),
+            EndDate = new DateTime(2099, 12, 31),
+            Code = 102, // کد یکتا برای MDD
+            IsDeleted = false
+        }
+    );
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -59,4 +85,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<News> News { get; set; }
     public DbSet<Disease> Diseases { get; set; }
     public DbSet<Stage> Stages { get; set; }
+    public DbSet<TestPeriod> TestPeriod { get; set; }
+    public DbSet<Question> Question { get; set; }
+    public DbSet<Answer> Answer { get; set; }
+    public DbSet<TestPeriodResult> TestPeriodResult { get; set; }
+    public DbSet<UserMedicalInfo> UserMedicalInfo { get; set; }
+    public DbSet<UserGroupMembership> UserGroupMembership { get; set; }
+    public DbSet<CounselingSession> CounselingSession { get; set; }
+
 }
