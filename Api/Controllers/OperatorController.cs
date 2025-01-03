@@ -4,6 +4,8 @@ using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
 using Application.Users.Commands.ApprovedRegisterPatient;
 using Application.Users.Queries.GetPatients;
+using Application.Users.Queries.GetUserMedicalInfoById;
+using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
 using MassTransit.Mediator;
 using MediatR;
@@ -43,6 +45,31 @@ public class OperatorController : ApiController
         return result.Match(
             s => Ok(s),
             f => Problem(f));
+    }
+
+    [Authorize(Roles = "Operator")]
+    [HttpGet("patients/{userId}/medical-info")]
+    public async Task<ActionResult<UserMedicalInfo>> GetUserMedicalInfoById(string userId)
+    {
+        // ایجاد Query
+        var query = new GetUserMedicalInfoByIdQuery(userId);
+        //if (userMedicalInfo == null)
+        //    return NotFound();
+
+        //var dto = new UserMedicalInfoDto
+        //{
+        //    UserId = userMedicalInfo.UserId,
+        //    Organ = userMedicalInfo.Organ.ToString(), // یا به صورت رشته ثابت
+        //    DiseaseType = userMedicalInfo.DiseaseType.GetDescription(),
+        //    PatientStatus = userMedicalInfo.PatientStatus.GetDescription()
+        //};
+        // ارسال Query به MediatR
+        var result = await Sender.Send(query);
+
+        // مدیریت نتیجه
+        return result.Match(
+            s => Ok(s),        // در صورت موفقیت، اطلاعات را برمی‌گرداند
+            f => Problem(f));  // در صورت شکست، خطا را برمی‌گرداند
     }
 
     //public async Task<ActionResult<List<CounselingSessionListItemDto>>> GetCounselingSessionList([FromQuery] PagingInfo pagingInfo)

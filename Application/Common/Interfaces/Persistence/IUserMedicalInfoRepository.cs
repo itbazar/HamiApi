@@ -3,9 +3,6 @@ using Domain.Models.Hami;
 
 namespace Application.Common.Interfaces.Persistence;
 
-public interface IUserMedicalInfoRepository 
+public interface IUserMedicalInfoRepository : IGenericRepository<UserMedicalInfo>
 {
-    public Task<Result<bool>> Insert(UserMedicalInfo info);
-
-    public Task<Result<bool>> Update(UserMedicalInfo info);
 }

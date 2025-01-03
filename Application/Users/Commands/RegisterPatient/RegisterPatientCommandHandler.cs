@@ -70,12 +70,8 @@ public class RegisterPatientCommandHandler(
            request.PhoneNumber
        );
 
-        if (userMedicalInfoResult.IsFailed)
-        {
-            return userMedicalInfoResult.ToResult();
-        }
-        var temp = userMedicalInfoResult.Value;
-        await userMedicalInfoRepository.Insert(temp);
+        userMedicalInfoRepository.Insert(userMedicalInfoResult);
+        await unitOfWork.SaveAsync();
 
         var gadTestPeriod = await testPeriodRepository.GetAsyncByCode(101);
         var testResult = TestPeriodResult.Create(

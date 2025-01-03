@@ -55,7 +55,7 @@ public class UserMedicalInfo : Entity
     public ICollection<MedicalEntry> MedicalEntries { get; set; } = new List<MedicalEntry>();
 
 
-    public static Result<UserMedicalInfo> Register(
+    public static UserMedicalInfo Register(
        string userId,
         Organ organ,
         DiseaseType diseaseType,
