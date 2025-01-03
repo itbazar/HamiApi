@@ -18,7 +18,8 @@ public class RegisterPatientCommandHandler(
     IUserRepository userRepository,
     IUserMedicalInfoRepository userMedicalInfoRepository,
     ITestPeriodRepository testPeriodRepository,
-    ITestPeriodResultRepository testPeriodResultRepository) : IRequestHandler<RegisterPatientCommand, Result<AddPatientResult>>
+    ITestPeriodResultRepository testPeriodResultRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<RegisterPatientCommand, Result<AddPatientResult>>
 {
     public async Task<Result<AddPatientResult>> Handle(
         RegisterPatientCommand request,
@@ -82,7 +83,7 @@ public class RegisterPatientCommandHandler(
            TestType.GAD,
            request.GADScore,
            gadTestPeriod.Value.Id);
-        await testPeriodResultRepository.Insert(testResult);
+        testPeriodResultRepository.Insert(testResult);
 
         var mddTestPeriod = await testPeriodRepository.GetAsyncByCode(102);
         var testResult2 = TestPeriodResult.Create(
@@ -91,7 +92,8 @@ public class RegisterPatientCommandHandler(
            request.MDDScore,
            mddTestPeriod.Value.Id);
 
-        await testPeriodResultRepository.Insert(testResult2);
+        testPeriodResultRepository.Insert(testResult2);
+        await unitOfWork.SaveAsync();
 
         return new AddPatientResult(user.UserName, user.PhoneNumber);
     }
