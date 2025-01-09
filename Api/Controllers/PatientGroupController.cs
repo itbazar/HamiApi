@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Inspector")]
 public class PatientGroupController : ApiController
 {
     public PatientGroupController(ISender sender) : base(sender)

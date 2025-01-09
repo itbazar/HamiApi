@@ -204,6 +204,7 @@ public class UserRepository(
 
     public async Task<PagedList<ApplicationUser>> GetPagedPatientsAsync(
     PagingInfo paging,
+    RegistrationStatus? Status,
     Expression<Func<ApplicationUser, bool>>? filter = null)
     {
         // ابتدا کاربران با نقش Patient را فیلتر می‌کنیم
@@ -216,6 +217,9 @@ public class UserRepository(
         // اگر فیلتری وجود داشت، آن را اعمال می‌کنیم
         if (filter is not null)
             query = query.Where(filter);
+
+        if (Status is not null)
+            query = query.Where(user => user.RegistrationStatus == Status.Value);
 
         // بازگشت لیست صفحه‌بندی‌شده
         return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);

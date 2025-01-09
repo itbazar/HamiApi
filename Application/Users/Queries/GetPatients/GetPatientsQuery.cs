@@ -4,5 +4,5 @@ using MediatR;
 
 namespace Application.Users.Queries.GetPatients;
 
-public record GetPatientsQuery(PagingInfo PagingInfo, int? InstanceId = null) 
+public record GetPatientsQuery(PagingInfo PagingInfo, RegistrationStatus? Status) 
     : IRequest<Result<PagedList<ApplicationUser>>>;

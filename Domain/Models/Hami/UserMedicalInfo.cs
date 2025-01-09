@@ -6,6 +6,7 @@ using Domain.Primitives;
 using FluentResults;
 using SharedKernel.Errors;
 using Domain.Models.Hami.Events;
+using System.ComponentModel;
 
 namespace Domain.Models.Hami;
 
@@ -90,29 +91,50 @@ public class UserMedicalInfo : Entity
 
 }
 
-
 public enum Organ
 {
-    Breast = 1,        // پستان
-    Prostate = 2,      // پروستات
-    Ovary = 3          // تخمدان
+    [Description("تخمدان")]
+    Ovary = 1,
+
+    [Description("پستان")]
+    Breast = 2,
+
+    [Description("پروستات")]
+    Prostate = 3,
 }
 
 public enum DiseaseType
 {
-    Malignant = 1,     // بدخیم
-    Benign = 2         // خوش‌خیم
+    [Description("خوش‌خیم")]
+    Benign = 1,
+
+    [Description("بدخیم")]
+    Malignant = 2,
 }
+
 public enum PatientStatus
 {
-    NewlyDiagnosed = 1, // تازه تشخیص
-    UnderTreatment = 2, // تحت درمان
-    TreatmentCompleted = 3, // تکمیل درمان
-    Relapsed = 4        // عود بیماری
+    [Description("تازه تشخیص")]
+    NewlyDiagnosed = 1,
+
+    [Description("تحت درمان")]
+    UnderTreatment = 2,
+
+    [Description("تکمیل درمان")]
+    TreatmentCompleted = 3,
+
+    [Description("عود بیماری")]
+    Relapsed = 4,
 }
+
 public enum AppetiteLevel
 {
-    High = 1,           // زیاد
-    Normal = 2,         // معمولی
-    Low = 3             // بی‌اشتها
+    [Description("زیاد")]
+    High = 1,
+
+    [Description("معمولی")]
+    Normal = 2,
+
+    [Description("بی‌اشتها")]
+    Low = 3,
 }

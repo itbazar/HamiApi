@@ -1,32 +1,31 @@
-﻿using Domain.Models.Hami;
+﻿using Application.Common.Interfaces.Security;
+using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
+using System.ComponentModel.DataAnnotations;
 
 namespace Api.Contracts.Patient
 {
-    public class RegisterPatientDto
-    {
-        // اطلاعات مربوط به ApplicationUser
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string PhoneNumber { get; set; } = string.Empty;
-        public string NationalId { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
-        public DateTime DateOfBirth { get; set; }
-        public Gender Gender { get; set; }
-        public EducationLevel? Education { get; set; }
-        public string? City { get; set; }
-
-        // اطلاعات مربوط به UserMedicalInfo
-        public Organ Organ { get; set; }
-        public DiseaseType DiseaseType { get; set; }
-        public PatientStatus PatientStatus { get; set; }
-        public int? Stage { get; set; }
-        public string? PathologyDiagnosis { get; set; }
-        public float? InitialWeight { get; set; }
-        public int? SleepDuration { get; set; }
-        public AppetiteLevel AppetiteLevel { get; set; }
-        public int GADScore { get; set; }
-        public int MDDScore { get; set; }
-    }
+    public record RegisterPatientDto(
+    //[Required] [RegularExpression(@"^09[0-9]{9}$")]
+    string? PhoneNumber,
+    string? Username,
+    string? GroupName,
+    string? Password,
+    string? NationalId,
+    string? FirstName,
+    string? LastName,
+    DateTime DateOfBirth,
+    Gender Gender,
+    EducationLevel? Education,
+    string? City,
+    Organ Organ,
+    DiseaseType DiseaseType,
+    PatientStatus PatientStatus,
+    int? Stage,
+    string? PathologyDiagnosis,
+    float? InitialWeight,
+    int? SleepDuration,
+    AppetiteLevel AppetiteLevel,
+    int GADScore,
+    int MDDScore);
 }

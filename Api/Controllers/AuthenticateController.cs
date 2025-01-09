@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.Authenticate;
+using Api.Contracts.Patient;
 using Api.ExtensionMethods;
 using Application.Authentication.Commands.ChangePasswordCommand;
 using Application.Authentication.Commands.ChangePhoneNumberCommand;
@@ -9,8 +10,12 @@ using Application.Authentication.Commands.RefreshCommand;
 using Application.Authentication.Commands.RevokeCommand;
 using Application.Authentication.Queries.ChangePhoneNumberQuery;
 using Application.Common.Interfaces.Security;
+using Application.Users.Commands.RegisterPatient;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
+using Domain.Models.ComplaintAggregate;
+using Domain.Models.Hami;
+using Domain.Models.IdentityAggregate;
 using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -60,6 +65,49 @@ public class AuthenticateController : ApiController
             s => Ok(s.Adapt<LoginResultDto>()), 
             f => Problem(f));
     }
+
+    [HttpPost("RegisterPatient")]
+    public async Task<IActionResult> RegisterPatient([FromBody] RegisterPatientDto dto)
+    {
+        if (!ModelState.IsValid)
+        {
+            // لاگ خطاها
+            var errors = ModelState.Values.SelectMany(v => v.Errors)
+                                           .Select(e => e.ErrorMessage)
+                                           .ToList();
+            return BadRequest(new { Errors = errors });
+        }
+
+        var command = new RegisterPatientCommand(
+
+            dto.Username,
+    dto.Password,
+    dto.PhoneNumber,
+    dto.NationalId,
+    dto.FirstName,
+    dto.LastName,
+    dto.DateOfBirth,
+    dto.Gender,
+    dto.Education,
+    dto.City,
+    dto.Organ,
+    dto.DiseaseType,
+    dto.PatientStatus,
+    dto.Stage,
+    dto.PathologyDiagnosis,
+    dto.InitialWeight,
+    dto.SleepDuration,
+    dto.AppetiteLevel,
+    dto.GADScore,
+   dto.MDDScore);
+
+        var result = await Sender.Send(command);
+
+        return result.Match(
+            s => Ok(s),
+            f => Problem(f));
+    }
+
 
     [Authorize]
     [HttpPost("Revoke")]

@@ -47,38 +47,7 @@ public class CitizenController : ApiController
     //}
 
 
-    [HttpPost("RegisterPatient")]
-    public async Task<IActionResult> RegisterPatient([FromForm] RegisterPatientDto patientDto)
-    {
-        var command = new RegisterPatientCommand(
-            patientDto.Username,
-            patientDto.Password,
-            patientDto.PhoneNumber,
-            patientDto.NationalId,
-            patientDto.FirstName,
-            patientDto.LastName,
-            patientDto.DateOfBirth,
-            patientDto.Gender,
-            patientDto.Education,
-            patientDto.City,
-            patientDto.Organ,
-            patientDto.DiseaseType,
-            patientDto.PatientStatus,
-            patientDto.Stage,
-            patientDto.PathologyDiagnosis,
-            patientDto.InitialWeight,
-            patientDto.SleepDuration,
-            patientDto.AppetiteLevel,
-            patientDto.GADScore,
-            patientDto.MDDScore);
-
-        var result = await Sender.Send(command);
-
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
-    }
-
+    
     [Authorize]
     [HttpPost("Authorized")]
     public async Task<IActionResult> AddComplaintAuthorized([FromForm] ComplaintCreateDto createDto)

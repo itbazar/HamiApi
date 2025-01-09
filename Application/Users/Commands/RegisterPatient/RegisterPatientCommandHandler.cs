@@ -49,7 +49,7 @@ public class RegisterPatientCommandHandler(
 
 
         // ذخیره اطلاعات کاربر
-        var result = await userRepository.CreateAsync(user, "pP@" + user.PhoneNumber); // ایجاد رمز عبور
+        var result = await userRepository.CreateAsync(user, request.Password + user.PhoneNumber); // ایجاد رمز عبور
 
         if (!result.Succeeded)
         {

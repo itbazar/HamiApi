@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces.Persistence;
+using Application.Complaints.Common;
 using Domain.Models.IdentityAggregate;
 using MediatR;
 
@@ -8,7 +9,19 @@ internal class GetPatientsQueryHandler(IUserRepository userRepository) : IReques
 {
     public async Task<Result<PagedList<ApplicationUser>>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
-        var result = await userRepository.GetPagedPatientsAsync(request.PagingInfo);
+        var result = await userRepository.GetPagedPatientsAsync(request.PagingInfo, request.Status);
         return result;
     }
 }
+
+//var complaintList = await _complaintRepository.GetListInspectorAsync(
+//            request.pagingInfo,
+//            request.Filters);
+//        if (complaintList.IsFailed)
+//            return complaintList.ToResult();
+//        var result = complaintList.Value.Adapt<List<ComplaintListInspectorResponse>>();
+//        return new PagedList<ComplaintListInspectorResponse>(
+//            result,
+//            complaintList.Value.TotalCount,
+//            complaintList.Value.CurrentPage,
+//            complaintList.Value.PageSize);

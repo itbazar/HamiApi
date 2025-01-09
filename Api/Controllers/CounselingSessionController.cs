@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.CounselingSessionContract;
+using Api.Contracts.TestPeriodResultContract;
 using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
 using Application.CounselingSessionApp.Queries.GetCounselingSessionByIdQuery;
@@ -12,10 +13,11 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "Admin,Inspector")]
 public class CounselingSessionController : ApiController
 {
     public CounselingSessionController(ISender sender) : base(sender)
@@ -31,7 +33,21 @@ public class CounselingSessionController : ApiController
             return Problem(result.ToResult());
 
         Response.AddPaginationHeaders(result.Value.Meta);
-        return Ok(result.Value.Adapt<List<CounselingSessionListItemDto>>());
+
+        // مپ کردن مقادیر به TestPeriodResultListItemDto
+        var dtoList = result.Value.Select(x => new CounselingSessionListItemDto(
+            x.Id,
+            x.PatientGroupId,
+            x.PatientGroup.Description ?? "نامشخص",
+            x.MentorId,
+            x.Mentor.FirstName + " " + x.Mentor.LastName ?? "نامشخص", // نام کاربر
+            x.ScheduledDate,
+            x.Topic,
+            x.MeetingLink,
+            x.MentorNote
+        )).ToList();
+
+        return Ok(dtoList);
     }
 
     [HttpGet("{id:guid}")]

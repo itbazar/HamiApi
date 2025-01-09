@@ -18,7 +18,9 @@ internal class GetCounselingSessionQueryHandler : IRequestHandler<GetCounselingS
             request.PagingInfo,
             s => s.IsDeleted == false,
             false,
-            s => s.OrderByDescending(o => o.ScheduledDate));
+            s => s.OrderByDescending(o => o.ScheduledDate),
+            includeProperties: "Mentor,PatientGroup" // بارگذاری Mentor 
+         );
         return counselingSession;
     }
 }

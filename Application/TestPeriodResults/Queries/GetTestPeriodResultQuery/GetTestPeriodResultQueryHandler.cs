@@ -15,10 +15,14 @@ internal class GetTestPeriodResultQueryHandler : IRequestHandler<GetTestPeriodRe
     public async Task<Result<PagedList<TestPeriodResult>>> Handle(GetTestPeriodResultQuery request, CancellationToken cancellationToken)
     {
         var testPeriodResult = await _testPeriodResultRepository.GetPagedAsync(
-            request.PagingInfo,
-            s => s.IsDeleted == false,
-            false,
-            s => s.OrderByDescending(o => o.CreatedAt));
+         request.PagingInfo,
+         filter: s => !s.IsDeleted,
+         trackChanges: false,
+         orderBy: s => s.OrderByDescending(o => o.CreatedAt),
+         includeProperties: "User,TestPeriod" // بارگذاری User و TestPeriod
+         );
+
         return testPeriodResult;
     }
+
 }

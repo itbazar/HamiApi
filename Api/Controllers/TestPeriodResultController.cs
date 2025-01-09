@@ -31,7 +31,21 @@ public class TestPeriodResultController : ApiController
             return Problem(result.ToResult());
 
         Response.AddPaginationHeaders(result.Value.Meta);
-        return Ok(result.Value.Adapt<List<TestPeriodResultListItemDto>>());
+        //return Ok(result.Value.Adapt<List<TestPeriodResultListItemDto>>());
+
+        // مپ کردن مقادیر به TestPeriodResultListItemDto
+        var dtoList = result.Value.Select(x => new TestPeriodResultListItemDto(
+            x.Id,
+            x.UserId,
+            x.User?.UserName ?? "نامشخص", // نام کاربر
+            x.TestType,
+            x.TotalScore,
+            x.TestPeriodId,
+            x.TestPeriod?.PeriodName ?? "نامشخص", // نام دوره تست
+            x.CreatedAt
+        )).ToList();
+
+        return Ok(dtoList);
     }
 
     [HttpGet("{id:guid}")]

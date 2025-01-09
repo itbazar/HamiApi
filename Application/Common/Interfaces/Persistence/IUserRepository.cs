@@ -31,5 +31,6 @@ public interface IUserRepository
 
     public Task<PagedList<ApplicationUser>> GetPagedPatientsAsync(
        PagingInfo paging,
+       RegistrationStatus? Status,
        Expression<Func<ApplicationUser, bool>>? filter = null);
 }
