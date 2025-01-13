@@ -12,16 +12,22 @@ using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Infrastructure.Persistence;
+using System.Security.Claims;
+using MassTransit.Internals.GraphValidation;
+using Microsoft.IdentityModel.Tokens;
+using IpPanelSmsApi;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = "Admin")]
+
 public class TestPeriodResultController : ApiController
 {
     public TestPeriodResultController(ISender sender) : base(sender)
     {
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<List<TestPeriodResultListItemDto>>> GetTestPeriodResultList([FromQuery] PagingInfo pagingInfo)
     {
@@ -48,6 +54,7 @@ public class TestPeriodResultController : ApiController
         return Ok(dtoList);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<TestPeriodResult>> GetTestPeriodResult(Guid id)
     {
@@ -58,21 +65,58 @@ public class TestPeriodResultController : ApiController
             f => Problem(f));
     }
 
+    [Authorize(Roles = "Admin,Patient,Mentor")]
     [HttpPost]
     public async Task<ActionResult> AddTestPeriodResult([FromForm] AddTestPeriodResultDto testPeriodResultDto)
     {
+        // اگر UserId در ورودی خالی باشد، از User.GetUserId() مقدار بگیر
+        var userId = string.IsNullOrEmpty(testPeriodResultDto.UserId)
+            ? User.GetUserId()
+            : testPeriodResultDto.UserId;
+
+        if (string.IsNullOrEmpty(userId)) // بررسی اینکه آیا UserId معتبر است
+            return Unauthorized("UserId is required.");
+
+        // ایجاد Command با UserId مناسب
         var command = new AddTestPeriodResultCommand(
-            testPeriodResultDto.UserId,
+            userId,
             testPeriodResultDto.TestType,
             testPeriodResultDto.TotalScore,
             testPeriodResultDto.TestPeriodId);
 
+        // ارسال Command به Handler
         var result = await Sender.Send(command);
+
+        // بررسی نتیجه
         return result.Match(
             s => CreatedAtAction(nameof(GetTestPeriodResult), new { id = s.Id }, s),
             f => Problem(f));
     }
 
+
+    [Authorize(Roles = "Admin,Patient,Mentor")]
+    [HttpPost("mood")]
+    public async Task<ActionResult> SubmitDailyMood([FromForm] int mood)
+    {
+        var userId = User.GetUserId();
+        
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized("کاربر وارد نشده است.");
+
+        var command = new AddTestPeriodResultCommand(
+            userId,
+            TestType.MOOD,
+            mood,
+            new Guid());
+
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => CreatedAtAction(nameof(GetTestPeriodResult), new { id = s.Id }, s),
+            f => Problem(f));
+
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> UpdateTestPeriodResult(Guid id, [FromForm] UpdateTestPeriodResultDto testPeriodResultDto)
     {
@@ -86,6 +130,7 @@ public class TestPeriodResultController : ApiController
             f => Problem(f));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteTestPeriodResult(Guid id)
     {

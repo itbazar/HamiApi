@@ -9,4 +9,5 @@ public record PatientGroupListItemDto(
     DiseaseType DiseaseType,
     int Stage,
     string Description,
-    string MentorId);
+    string MentorId,
+    string MentorName);

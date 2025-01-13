@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Domain.Models.Hami;
+using Microsoft.AspNetCore.Identity;
 
 namespace Domain.Models.IdentityAggregate;
 public class ApplicationUser : IdentityUser
@@ -20,6 +21,8 @@ public class ApplicationUser : IdentityUser
 
     public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.Pending; // وضعیت ثبت‌نام
     public string? RejectionReason { get; set; } // دلیل رد ثبت‌نام (در صورت وجود)
+
+    public ICollection<UserGroupMembership> UserGroupMemberships { get; set; } = new List<UserGroupMembership>(); // اعضای گروه
 
 
 }

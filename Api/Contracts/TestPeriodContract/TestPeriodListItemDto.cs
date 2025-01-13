@@ -6,7 +6,7 @@ namespace Api.Contracts.TestPeriodContract;
 public record TestPeriodListItemDto(
     Guid Id,
    TestType TestType,
-        string PeriodName,
-        DateTime StartDate,
-        DateTime EndDate,
-        int Code);
+   string PeriodName,
+   DateTime StartDate,
+   DateTime EndDate,
+   int Code);

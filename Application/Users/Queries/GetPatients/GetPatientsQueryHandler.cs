@@ -9,8 +9,11 @@ internal class GetPatientsQueryHandler(IUserRepository userRepository) : IReques
 {
     public async Task<Result<PagedList<ApplicationUser>>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
-        var result = await userRepository.GetPagedPatientsAsync(request.PagingInfo, request.Status);
+        var result = await userRepository
+            .GetPagedPatientsAsync(request.PagingInfo,
+             request.Status,request.CurrentUserId);
         return result;
+    
     }
 }
 

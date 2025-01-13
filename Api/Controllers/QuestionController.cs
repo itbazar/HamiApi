@@ -6,6 +6,7 @@ using Application.QuestionApp.Queries.GetQuestionByIdQuery;
 using Application.Questions.Commands.AddQuestionCommand;
 using Application.Questions.Commands.DeleteQuestionCommand;
 using Application.Questions.Commands.UpdateQuestionCommand;
+using Application.Questions.Queries.GetQuestionByTestPeriodIdQuery;
 using Application.Questions.Queries.GetQuestionQuery;
 using Domain.Models.Hami;
 using Mapster;
@@ -15,13 +16,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
 
-[Authorize(Roles = "Admin")]
+
 public class QuestionController : ApiController
 {
     public QuestionController(ISender sender) : base(sender)
     {
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<ActionResult<List<QuestionListItemDto>>> GetQuestionList([FromQuery] PagingInfo pagingInfo)
     {
@@ -34,6 +36,19 @@ public class QuestionController : ApiController
         return Ok(result.Value.Adapt<List<QuestionListItemDto>>());
     }
 
+    [Authorize(Roles = "Admin,Patient")]
+    [HttpGet("{testPeriodId:guid}/Questions")]
+    public async Task<ActionResult<List<QuestionListItemDto>>> GetTestQuestions(Guid testPeriodId)
+    {
+        var query = new GetQuestionByTestPeriodIdQuery(testPeriodId);
+        var result = await Sender.Send(query);
+        if (result.IsFailed)
+            return Problem(result.ToResult());
+
+        return Ok(result.Value.Adapt<List<QuestionListItemDto>>());
+    }
+
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Question>> GetQuestion(Guid id)
     {
@@ -44,6 +59,7 @@ public class QuestionController : ApiController
             f => Problem(f));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult> AddQuestion([FromForm] AddQuestionDto questionDto)
     {
@@ -58,6 +74,7 @@ public class QuestionController : ApiController
             f => Problem(f));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> UpdateQuestion(Guid id, [FromForm] UpdateQuestionDto questionDto)
     {
@@ -73,6 +90,7 @@ public class QuestionController : ApiController
             f => Problem(f));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteQuestion(Guid id)
     {

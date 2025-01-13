@@ -18,21 +18,38 @@ public class AuthenticationService(
     IAuthenticateRepository authenticateRepository) : IAuthenticationService
 {
     public async Task<Result<LoginResultModel>> Login(
-        string username,
-        string password,
-        bool twoFactorEnabled = false)
+    string username,
+    string password,
+    bool twoFactorEnabled = false)
     {
         var result = await GetUser(username);
         if (result.IsFailed)
             return result.ToResult();
 
         var user = result.Value;
+
+        // بررسی کلمه عبور
         if (await userManager.CheckPasswordAsync(user, password))
         {
+            // گرفتن نقش‌های کاربر
+            var roles = await userManager.GetRolesAsync(user);
+
+            // بررسی اینکه آیا کاربر نقش Patient دارد
+            if (roles.Contains("Patient"))
+            {
+                // چک کردن وضعیت ثبت‌نام
+                if (user.RegistrationStatus != RegistrationStatus.Approved)
+                {
+                    // اگر ثبت‌نام تأیید نشده باشد
+                    return AuthenticationErrors.RegistrationNotApproved;
+                }
+            }
+
+            // ادامه فرآیند لاگین در صورت تأیید نقش و وضعیت
             if (twoFactorEnabled)
             {
                 var verificationCodeResult = await GetVerificationCode(user);
-                if(verificationCodeResult.IsFailed) 
+                if (verificationCodeResult.IsFailed)
                     return result.ToResult();
                 return new LoginResultModel(null, verificationCodeResult.Value);
             }
@@ -46,6 +63,7 @@ public class AuthenticationService(
             return AuthenticationErrors.InvalidCredentials;
         }
     }
+
 
     public async Task<Result<AuthToken>> VerifyOtp(string otpToken, string code)
     {

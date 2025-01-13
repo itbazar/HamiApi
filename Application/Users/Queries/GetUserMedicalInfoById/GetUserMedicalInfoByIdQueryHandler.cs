@@ -27,6 +27,8 @@ internal class GetUserMedicalInfoByIdQueryHandler(IUserRepository userRepository
         var response = new UserMedicalInfoResponse
         {
             UserName = user.UserName,
+            //GroupName = user.UserGroupMemberships.Select(ugm => ugm.PatientGroup.Description) // گرفتن نام گروه از PatientGroup
+               //.FirstOrDefault() ?? "بدون گروه",
             Organ = GetDescription(userMedicalInfo.Organ),
             DiseaseType = GetDescription(userMedicalInfo.DiseaseType),
             PatientStatus = GetDescription(userMedicalInfo.PatientStatus),

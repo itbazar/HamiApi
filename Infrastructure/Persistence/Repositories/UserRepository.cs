@@ -202,24 +202,149 @@ public class UserRepository(
         return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);
     }
 
+    //public async Task<PagedList<ApplicationUser>> GetPagedPatientsAsync(
+    //    PagingInfo paging,
+    //    RegistrationStatus? status,
+    //    string currentUserId, // آی‌دی کاربر لاگین‌شده
+    //    Expression<Func<ApplicationUser, bool>>? filter = null,
+    //    string includeProperties = "")
+    //{
+    //    // ابتدا کاربران با نقش Patient را فیلتر می‌کنیم
+    //    var query = dbContext.Users
+    //        .Where(user =>
+    //            dbContext.UserRoles
+    //                .Where(ur => dbContext.Roles
+    //                    .Where(r => r.Name == "Patient")
+    //                    .Select(r => r.Id)
+    //                    .Contains(ur.RoleId))
+    //                .Select(ur => ur.UserId)
+    //                .Contains(user.Id)
+    //        );
+
+    //    // اگر فیلتری وجود داشت، آن را اعمال می‌کنیم
+    //    if (filter is not null)
+    //    {
+    //        query = query.Where(filter);
+    //    }
+
+    //    // اگر وضعیت ثبت‌نام مشخص شده بود، آن را اعمال می‌کنیم
+    //    if (status is not null)
+    //    {
+    //        query = query.Where(user => user.RegistrationStatus == status.Value);
+    //    }
+
+    //    // اعمال Include برای UserGroupMembership و PatientGroup
+    //    query = query.Include(u => u.UserGroupMemberships)
+    //                 .ThenInclude(ugm => ugm.PatientGroup);
+
+    //    // اعمال Includeهای اضافی به صورت داینامیک (در صورت نیاز)
+    //    foreach (var includeProperty in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+    //    {
+    //        query = query.Include(includeProperty);
+    //    }
+
+    //    // بازگشت لیست صفحه‌بندی‌شده
+    //    return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);
+    //}
+
     public async Task<PagedList<ApplicationUser>> GetPagedPatientsAsync(
     PagingInfo paging,
-    RegistrationStatus? Status,
-    Expression<Func<ApplicationUser, bool>>? filter = null)
+    RegistrationStatus? status,
+    string currentUserId, // آی‌دی کاربر لاگین‌شده
+    Expression<Func<ApplicationUser, bool>>? filter = null,
+    string includeProperties = "")
     {
         // ابتدا کاربران با نقش Patient را فیلتر می‌کنیم
-        var query = from user in dbContext.Users
-                    join userRole in dbContext.UserRoles on user.Id equals userRole.UserId
-                    join role in dbContext.Roles on userRole.RoleId equals role.Id
-                    where role.Name == "Patient" // نقش Patient
-                    select user;
+        var query = dbContext.Users
+            .Where(user =>
+                dbContext.UserRoles
+                    .Where(ur => dbContext.Roles
+                        .Where(r => r.Name == "Patient")
+                        .Select(r => r.Id)
+                        .Contains(ur.RoleId))
+                    .Select(ur => ur.UserId)
+                    .Contains(user.Id)
+            );
+
+        // گرفتن نقش‌های کاربر لاگین‌شده
+        var currentUserRoles = dbContext.UserRoles
+            .Where(ur => ur.UserId == currentUserId)
+            .Select(ur => dbContext.Roles.FirstOrDefault(r => r.Id == ur.RoleId).Name)
+            .ToList();
+
+        // اگر کاربر منتور باشد، کاربران گروه‌های مربوط به او را فیلتر کن
+        if (currentUserRoles.Contains("Mentor"))
+        {
+            query = query.Where(user =>
+                user.UserGroupMemberships.Any(ugm =>
+                    dbContext.PatientGroup.Any(pg =>
+                        pg.Id == ugm.PatientGroupId &&
+                        pg.MentorId == currentUserId // فیلتر گروه‌هایی که منتور آن‌ها همین کاربر است
+                    )
+                )
+            );
+        }
 
         // اگر فیلتری وجود داشت، آن را اعمال می‌کنیم
         if (filter is not null)
+        {
             query = query.Where(filter);
+        }
 
-        if (Status is not null)
-            query = query.Where(user => user.RegistrationStatus == Status.Value);
+        // اگر وضعیت ثبت‌نام مشخص شده بود، آن را اعمال می‌کنیم
+        if (status is not null)
+        {
+            query = query.Where(user => user.RegistrationStatus == status.Value);
+        }
+
+        // اعمال Include برای UserGroupMembership و PatientGroup
+        query = query.Include(u => u.UserGroupMemberships)
+                     .ThenInclude(ugm => ugm.PatientGroup);
+
+        // اعمال Includeهای اضافی به صورت داینامیک (در صورت نیاز)
+        foreach (var includeProperty in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
+
+        // بازگشت لیست صفحه‌بندی‌شده
+        return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);
+    }
+
+
+    public async Task<PagedList<ApplicationUser>> GetPagedMentorsAsync(
+        PagingInfo paging,
+        Expression<Func<ApplicationUser, bool>>? filter = null,
+        string includeProperties = "")
+    {
+        // ابتدا کاربران با نقش Mentor را فیلتر می‌کنیم
+        var query = dbContext.Users
+            .Where(user =>
+                dbContext.UserRoles
+                    .Where(ur => dbContext.Roles
+                        .Where(r => r.Name == "Mentor")
+                        .Select(r => r.Id)
+                        .Contains(ur.RoleId))
+                    .Select(ur => ur.UserId)
+                    .Contains(user.Id)
+            );
+
+        // اگر فیلتری وجود داشت، آن را اعمال می‌کنیم
+        if (filter is not null)
+        {
+            query = query.Where(filter);
+        }
+
+
+        // اعمال Include برای UserGroupMembership و PatientGroup
+        query = query.Include(u => u.UserGroupMemberships)
+                     .ThenInclude(ugm => ugm.PatientGroup);
+
+        // اعمال Includeهای اضافی به صورت داینامیک (در صورت نیاز)
+        foreach (var includeProperty in includeProperties.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            query = query.Include(includeProperty);
+        }
 
         // بازگشت لیست صفحه‌بندی‌شده
         return await PagedList<ApplicationUser>.ToPagedList(query, paging.PageNumber, paging.PageSize);

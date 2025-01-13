@@ -12,7 +12,7 @@ internal class DeletePatientGroupCommandHandler(
         var patientGroupr = await patientGrouprRepository.GetSingleAsync(s => s.Id == request.Id);
         if (patientGroupr is null)
             return GenericErrors.NotFound;
-        patientGroupr.Delete(request.IsDeleted.Value);
+        patientGroupr.Delete(!patientGroupr.IsDeleted);
         patientGrouprRepository.Update(patientGroupr);
         await unitOfWork.SaveAsync();
         return patientGroupr;

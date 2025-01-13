@@ -2,4 +2,4 @@
 
 namespace Application.Charts.Queries.GetInfoQuery;
 
-public record GetInfoQuery(int Code) : IRequest<Result<InfoModel>>;
+public record GetInfoQuery(int Code,string userId="",string userRole="") : IRequest<Result<InfoModel>>;

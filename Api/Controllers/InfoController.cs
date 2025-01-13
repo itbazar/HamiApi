@@ -31,10 +31,28 @@ public class InfoController : ApiController
     [HttpGet("{code:int}")]
     public async Task<ActionResult<InfoModel>> GetInfo(int code)
     {
-        var query = new GetInfoQuery(code);
+        var userId = User.GetUserId();
+        var userRole = User.IsInRole("Admin") ? "Admin" : "Mentor";
+
+        var query = new GetInfoQuery(code, userId, userRole);
         var result = await Sender.Send(query);
         return result.Match(
             s => Ok(s),
             f => Problem(f));
     }
+
+    [HttpPost("{code:int}")]
+    public async Task<ActionResult<InfoModel>> GetInfo(int code, [FromBody] string userId)
+    {
+        if(code == 5 && string.IsNullOrEmpty(userId))
+            userId = User.GetUserId();
+
+        var userRole = User.IsInRole("Admin") ? "Admin" : "Mentor";
+        var query = new GetInfoQuery(code, userId, userRole); // ارسال UserId به Query
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),
+            f => Problem(f));
+    }
+
 }

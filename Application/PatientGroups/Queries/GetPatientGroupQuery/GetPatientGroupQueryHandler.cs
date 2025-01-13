@@ -18,7 +18,8 @@ internal class GetPatientGroupQueryHandler : IRequestHandler<GetPatientGroupQuer
             request.PagingInfo,
             s => s.IsDeleted == false,
             false,
-            s => s.OrderByDescending(o => o.Stage));
+            s => s.OrderByDescending(o => o.Stage),
+            includeProperties: "Mentor");
         return patientGroup;
     }
 }

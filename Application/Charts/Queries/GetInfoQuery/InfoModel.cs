@@ -4,6 +4,8 @@ public class InfoModel
 {
     public List<InfoSingleton> Singletons { get; set; } = new List<InfoSingleton>();
     public List<InfoChart> Charts { get; set; } = new List<InfoChart>();
+    public Dictionary<string, object> ExtraData { get; set; } = new Dictionary<string, object>();
+
     public InfoModel Add(InfoSingleton singleton)
     {
         Singletons.Add(singleton);

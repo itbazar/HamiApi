@@ -4,4 +4,4 @@ using MediatR;
 namespace Application.Users.Queries.GetUserProfile;
 
 public sealed record GetUserProfileQuery(
-    string UserId) : IRequest<Result<ApplicationUser>>;
+    string UserId,string mode="Other") : IRequest<Result<ApplicationUser>>;

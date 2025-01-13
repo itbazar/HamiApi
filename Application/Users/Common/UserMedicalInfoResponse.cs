@@ -6,6 +6,7 @@ namespace Application.Users.Common;
 public class UserMedicalInfoResponse
 {
     public string UserName { get; set; }
+    public string GroupName { get; set; }
     public string Organ { get; set; }
     public string DiseaseType { get; set; }
     public string PatientStatus { get; set; }

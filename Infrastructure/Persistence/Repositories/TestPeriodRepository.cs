@@ -16,7 +16,7 @@ public class TestPeriodRepository : GenericRepository<TestPeriod>, ITestPeriodRe
 
     public TestPeriodRepository(ApplicationDbContext context) : base(context) // ارسال context به کلاس پدر
     {
-        _context = context; // نگهداری یک کپی از context در این کلاس
+        _context = context; // نگهداری یک کپی از context در این کلاس 
     }
     public async Task<Result<TestPeriod>> GetAsyncByCode(int code)
     {

@@ -161,19 +161,50 @@ public class AuthenticateController : ApiController
 
     [Authorize]
     [HttpGet("Profile")]
-    public async Task<ActionResult<GetProfileDto>> GetUserProfile()
+    public async Task<ActionResult<GetProfileDto>> GetUserProfile([FromQuery] string? Mode = null)
     {
         var userId = User.GetUserId();
         if (userId == null)
-        {
             return Unauthorized();
-        }
-        var query = new GetUserProfileQuery(userId);
+
+        var query = new GetUserProfileQuery(userId,Mode);
         var result = await Sender.Send(query);
-        return result.Match(
-            s => Ok(s.Adapt<GetProfileDto>()),
-            f => Problem(f));
+
+
+        if (Mode == "Patient")
+        {
+            return result.Match(
+           user =>
+           {
+               // استخراج گروه بیمار و منتور
+               var userGroup = user.UserGroupMemberships.FirstOrDefault();
+               var patientGroup = userGroup?.PatientGroup;
+               var mentor = patientGroup?.Mentor;
+
+               // مقداردهی MentorName و PatientGroupName
+               var dto = new GetProfileDto(
+                   UserName: user.UserName,
+                   FirstName: user.FirstName,
+                   LastName: user.LastName,
+                   NationalId: user.NationalId,
+                   Title: user.Title,
+                   PhoneNumber: user.PhoneNumber,
+                   MentorName: mentor != null ? $"{mentor.FirstName} {mentor.LastName}" : "نامشخص",
+                   PatientGroupName: patientGroup != null ? patientGroup.Description : "نامشخص"
+               );
+
+               return Ok(dto);
+           },
+           f => Problem(f));
+        }
+        else
+        {
+            return result.Match(
+                s => Ok(s.Adapt<GetProfileDto>()),
+                f => Problem(f));
+        }
     }
+
 
     [Authorize]
     [HttpPut("Profile")]

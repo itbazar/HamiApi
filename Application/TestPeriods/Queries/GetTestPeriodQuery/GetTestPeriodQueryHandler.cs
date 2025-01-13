@@ -16,9 +16,13 @@ internal class GetTestPeriodQueryHandler : IRequestHandler<GetTestPeriodQuery, R
     {
         var testPeriod = await _testPeriodRepository.GetPagedAsync(
             request.PagingInfo,
-            s => s.IsDeleted == false,
+            s => s.IsDeleted == false &&
+                 s.TestType != TestType.MOOD && // فیلتر برای عدم نمایش تست مود
+                 s.Code != 101 && s.Code != 102, // فیلتر برای عدم نمایش کدهای 101 و 102
             false,
-            s => s.OrderByDescending(o => o.StartDate));
+            s => s.OrderByDescending(o => o.StartDate)); // مرتب‌سازی بر اساس تاریخ شروع به صورت نزولی
+
         return testPeriod;
     }
+
 }

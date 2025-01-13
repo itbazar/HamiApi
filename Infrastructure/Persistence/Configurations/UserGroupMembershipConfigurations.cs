@@ -10,5 +10,16 @@ public class UserGroupMembershipConfigurations : IEntityTypeConfiguration<UserGr
     {
         builder.HasOne(ugm => ugm.User).WithMany().HasForeignKey(ugm => ugm.UserId);
         builder.HasOne(ugm => ugm.PatientGroup).WithMany(pg => pg.Members).HasForeignKey(ugm => ugm.PatientGroupId);
+       
+        builder.HasOne(ugm => ugm.User)
+       .WithMany(user => user.UserGroupMemberships)
+       .HasForeignKey(ugm => ugm.UserId)
+       .OnDelete(DeleteBehavior.Cascade); // ??? ???????? ?? ???? ??? ?????
+
+        // ?????? UserGroupMembership ?? PatientGroup
+        builder.HasOne(ugm => ugm.PatientGroup)
+            .WithMany(group => group.Members)
+            .HasForeignKey(ugm => ugm.PatientGroupId)
+            .OnDelete(DeleteBehavior.Cascade); // ??? ???????? ?? ???? ??? ????
     }
 }

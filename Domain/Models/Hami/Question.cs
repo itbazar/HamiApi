@@ -45,6 +45,7 @@ public class Question : Entity
 public enum TestType
 {
     GAD = 1, // Generalized Anxiety Disorder
-    MDD = 2  // Major Depressive Disorder
+    MDD = 2,  // Major Depressive Disorder
+    MOOD = 3  // Daily Mood
 }
 #endregion

@@ -92,5 +92,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<UserMedicalInfo> UserMedicalInfo { get; set; }
     public DbSet<UserGroupMembership> UserGroupMembership { get; set; }
     public DbSet<CounselingSession> CounselingSession { get; set; }
+    public DbSet<PatientGroup> PatientGroup { get; set; }
 
 }

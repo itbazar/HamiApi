@@ -6,4 +6,6 @@ public record GetProfileDto(
     string LastName,
     string NationalId,
     string Title,
-    string PhoneNumber);
+    string PhoneNumber,
+    string MentorName,
+    string PatientGroupName);

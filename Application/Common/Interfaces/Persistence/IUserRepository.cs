@@ -32,5 +32,12 @@ public interface IUserRepository
     public Task<PagedList<ApplicationUser>> GetPagedPatientsAsync(
        PagingInfo paging,
        RegistrationStatus? Status,
-       Expression<Func<ApplicationUser, bool>>? filter = null);
+       string currentUserId,
+       Expression<Func<ApplicationUser, bool>>? filter = null,
+       string includeProperties = "");
+
+    public Task<PagedList<ApplicationUser>> GetPagedMentorsAsync(
+        PagingInfo paging,
+         Expression<Func<ApplicationUser, bool>>? filter = null,
+     string includeProperties = "");
 }
