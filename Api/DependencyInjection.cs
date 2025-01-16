@@ -16,6 +16,12 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddControllers();
+        //   services.AddControllers()
+        //.AddJsonOptions(options =>
+        //{
+        //    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+        //});
+
         services.AddSwagger();
         services.AddCors(configuration);
         services.AddIdentification(configuration);

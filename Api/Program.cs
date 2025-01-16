@@ -50,7 +50,19 @@ app.UseAuthorization();
 //app.UseAccessControlMiddleware();
 app.UseMiddleware<RequestLogContextMiddleware>();
 app.UseSerilogRequestLogging();
-app.UseExceptionHandler();
+Console.WriteLine($"Environment: {app.Environment.EnvironmentName}");
+
+if (app.Environment.IsDevelopment())
+{
+    Console.WriteLine("Running in Development environment");
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    Console.WriteLine("Running in Non-Development environment");
+    app.UseExceptionHandler();
+}
+//app.UseExceptionHandler();
 app.UseStaticFiles();
 app.MapControllers();
 

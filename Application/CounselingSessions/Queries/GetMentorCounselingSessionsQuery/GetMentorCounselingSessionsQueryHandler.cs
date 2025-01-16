@@ -7,9 +7,13 @@ internal class GetMentorCounselingSessionsQueryHandler(ICounselingSessionReposit
 {
     public async Task<Result<List<CounselingSession>>> Handle(GetMentorCounselingSessionsQuery request, CancellationToken cancellationToken)
     {
-        var groups = await patientGroupRepository
-            .GetAsync(q => q.MentorId == request.MentorId && q.PatientGroupId == request.PatientGroupId && !q.IsDeleted,
-            includeProperties: "Mentor,PatientGroup");
-        return groups.ToList();
+        var sessions = await patientGroupRepository.GetAsync(
+       filter: q => q.MentorId == request.MentorId &&
+                    q.PatientGroupId == request.PatientGroupId &&
+                    !q.IsDeleted,
+       orderBy: q => q.OrderByDescending(s => s.ScheduledDate), // مرتب‌سازی نزولی بر اساس ScheduledDate
+       includeProperties: "Mentor,PatientGroup"
+   );
+        return sessions.ToList();
     }
 }

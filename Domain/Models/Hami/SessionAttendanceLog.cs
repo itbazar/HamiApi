@@ -1,13 +1,10 @@
-﻿using Domain.Primitives;
-using Domain.Models.IdentityAggregate;
-
-namespace Domain.Models.Hami;
+﻿using Domain.Models.IdentityAggregate;
+using Domain.Primitives;
 
 public class SessionAttendanceLog : Entity
 {
     private SessionAttendanceLog(Guid id) : base(id) { }
 
-    // متد ایجاد
     public static SessionAttendanceLog Create(Guid counselingSessionId, string userId, bool attended, string? mentorNote)
     {
         return new SessionAttendanceLog(Guid.NewGuid())
@@ -25,12 +22,17 @@ public class SessionAttendanceLog : Entity
         MentorNote = mentorNote ?? MentorNote;
     }
 
-    public Guid CounselingSessionId { get; set; } 
-    public CounselingSession CounselingSession { get; set; } = null!; 
+    public Guid CounselingSessionId { get; set; }
+
+    // جلوگیری از چرخه مرجع
+    [System.Text.Json.Serialization.JsonIgnore]
+    public CounselingSession CounselingSession { get; set; } = null!;
 
     public string? UserId { get; set; }
-    public ApplicationUser User { get; set; } = null!; 
 
-    public bool Attended { get; set; } // آیا شرکت کرده است؟
-    public string? MentorNote { get; set; } // یادداشت منتور
+    [System.Text.Json.Serialization.JsonIgnore] // جلوگیری از چرخه مرجع
+    public ApplicationUser User { get; set; } = null!;
+
+    public bool Attended { get; set; }
+    public string? MentorNote { get; set; }
 }

@@ -12,10 +12,11 @@ public record CounselingSessionListItemDto(
     DateTime ScheduledDate,
     string Topic,
     string MeetingLink,
+    bool IsConfirmed,
     string MentorNote,
     bool? AttendanceStatus);
 
 
-public record SubmitAttendanceLogsDto(Guid SessionId, List<SessionAttendanceLog> AttendanceLogs);
+public record SubmitAttendanceLogsDto(Guid SessionId, List<AttendanceLogDto> AttendanceLogs);
 
-public record AttendanceLogDto(string UserId,string UserName,string FirstName, string LastName, bool Attended, string? MentorNote);
+public record AttendanceLogDto(string UserId,string? UserName,string? FirstName, string? LastName, bool Attended, string? MentorNote);

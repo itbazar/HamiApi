@@ -50,6 +50,7 @@ public class CounselingSessionController : ApiController
             x.ScheduledDate,
             x.Topic,
             x.MeetingLink,
+            x.IsConfirmed,
             x.MentorNote,
             false
         )).ToList();
@@ -78,6 +79,7 @@ public class CounselingSessionController : ApiController
             x.ScheduledDate,
             x.Topic,
             x.MeetingLink,
+            x.IsConfirmed,
             x.MentorNote,
             false
         )).ToList();
@@ -110,8 +112,13 @@ public class CounselingSessionController : ApiController
     [HttpPost("SubmitAttendanceLogs")]
     public async Task<IActionResult> SubmitAttendanceLogs([FromBody] SubmitAttendanceLogsDto dto)
     {
-        var command = new SubmitAttendanceLogsCommand(dto.SessionId, dto.AttendanceLogs);
+        // تبدیل AttendanceLogDto به SessionAttendanceLog
+        var attendanceLogs = dto.AttendanceLogs.Select(log =>
+            SessionAttendanceLog.Create(dto.SessionId, log.UserId, log.Attended, log.MentorNote)).ToList();
+
+        var command = new SubmitAttendanceLogsCommand(dto.SessionId, attendanceLogs);
         var result = await Sender.Send(command);
+
         return result.Match(
             s => Ok(s),
             f => Problem(f));

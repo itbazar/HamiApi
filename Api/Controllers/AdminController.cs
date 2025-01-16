@@ -105,7 +105,7 @@ public class AdminController : ApiController
                     .FirstOrDefault(al => al.UserId == userId);
 
                 // بررسی وضعیت برگزاری جلسه
-                bool isSessionHeld = cs.ScheduledDate <= DateTime.UtcNow;
+                //bool isSessionHeld = cs.ScheduledDate <= DateTime.UtcNow;
 
                 return new CounselingSessionListItemDto(
                     cs.Id,
@@ -116,10 +116,11 @@ public class AdminController : ApiController
                     cs.ScheduledDate,
                     cs.Topic,
                     cs.MeetingLink,
-                    isSessionHeld
+                    cs.IsConfirmed,
+                    cs.IsConfirmed
                         ? attendanceLog?.MentorNote ?? "" // اگر جلسه برگزار شده، نوت منتور یا مقدار خالی
                         : "جلسه هنوز برگزار نشده", // اگر جلسه برگزار نشده باشد
-                    isSessionHeld ? attendanceLog?.Attended : null // اگر جلسه برگزار نشده باشد، وضعیت حضور نال است
+                    cs.IsConfirmed ? attendanceLog?.Attended : null // اگر جلسه برگزار نشده باشد، وضعیت حضور نال است
                 );
             })
             .ToList();
