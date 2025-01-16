@@ -1,51 +1,48 @@
-name: build
+name: Build and Push Docker Image
 
 on:
-    push:
-        tags:
-            - "v*.*.*"
+  push:
+    tags:
+      - "v*.*.*" # اجرا فقط در صورت وجود تگ با الگوی نسخه
 
 jobs:
-    docker:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v4
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-            - name: Docker meta
-              id: meta
-              uses: docker/metadata-action@v5
-              with:
-                  # list of Docker images to use as base name for tags
-                  images: |
-                      ${{ secrets.DOCKER_REGISTRY }}sootzani_api
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            razava/hamiapi # نام مخزن Docker Hub
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{major}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}}
+            type=sha
 
-                  # generate Docker tags based on the following events/attributes
-                  tags: |
-                      type=ref,event=branch
-                      type=semver,pattern={{major}}
-                      type=semver,pattern={{major}}.{{minor}}
-                      type=semver,pattern={{version}}
-                      type=sha
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
-            - name: Set up QEMU
-              uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: https://index.docker.io/v1/
+          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
 
-            - name: Login to Docker Hub
-              uses: docker/login-action@v3
-              with:
-                  registry: ${{ secrets.DOCKER_REGISTRY }}
-                  username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
-                  password: ${{ secrets.DOCKER_REGISTRY_PASSWORD }}
-
-            - name: Build and push
-              uses: docker/build-push-action@v5
-              with:
-                  push: true
-                  context: "{{defaultContext}}"
-                  file: "./Api/Dockerfile"
-                  tags: ${{ steps.meta.outputs.tags }}
-                  labels: ${{ steps.meta.outputs.labels }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: "./Api/Dockerfile"
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
