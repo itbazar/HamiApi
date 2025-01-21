@@ -16,7 +16,8 @@ public static class AuthenticationErrors
     public static readonly Error UserCreationFailed = new Error("ایجاد کاربر با خطا مواجه شد.");
     public static readonly Error TooManyRequestsForOtp = new Error("درخواست رمز یکبارمصرف بیشتر از حد مجاز است.");
     public static readonly Error UserAlreadyExists = new Error("کاربری دیگری با شماره همراه شما ثبت شده است");
-    public static readonly Error RegistrationNotApproved = new Error("وضعیت ثبت‌نام شما هنوز تأیید نشده است.");
+    public static readonly Error RegistrationNotApproved = new Error("وضعیت ثبت‌نام شما هنوز تأیید نشده و در انتظار تایید است.");
+    public static readonly Error RegistrationRejected = new Error("وضعیت ثبت‌نام شما رد شده است.");
 
 
 }
@@ -66,6 +67,12 @@ public static class TestPeriodErrors
     public static readonly Error MoodExist = new Error("مود امروز خود را ثبت کرده اید.");
     public static readonly Error OutOfRangeDate = new Error("اجازه ثبت آزمون را ندارید به دلیل زمان نامناسب");
     public static readonly Error TestAlreadySubmitted = new Error("آزمون را ثبت کرده اید.");
+}
+
+public static class SessionErrors
+{
+    public static readonly Error NotFound = new Error("جلسه یافت نشد.");
+    public static readonly Error ISConfirmed = new Error("برگزاری جلسه قبلا تایید شده است و امکان ثبت مجدد حضور غیاب وجود ندارد.");
 }
 
 public static class PublicKeyErrors

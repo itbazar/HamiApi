@@ -1,6 +1,8 @@
 ﻿using Domain.Models.Hami;
+using Domain.Models.Hami.Events;
 using Domain.Models.IdentityAggregate;
 using Domain.Primitives;
+using System.Text.Json.Serialization;
 
 public class CounselingSession : Entity
 {
@@ -8,16 +10,21 @@ public class CounselingSession : Entity
 
     public static CounselingSession Create(Guid patientGroupId, string mentorId, DateTime scheduledDate, string topic, string meetingLink, string? mentorNote = null, bool isConfirmed = false)
     {
-        return new CounselingSession(Guid.NewGuid())
-        {
-            PatientGroupId = patientGroupId,
-            MentorId = mentorId,
-            ScheduledDate = scheduledDate,
-            Topic = topic,
-            MeetingLink = meetingLink,
-            MentorNote = mentorNote,
-            IsConfirmed = isConfirmed // مقدار پیش‌فرض
-        };
+        CounselingSession info = new(Guid.NewGuid());
+        info.PatientGroupId = patientGroupId;
+        info.MentorId = mentorId;
+        info.ScheduledDate = scheduledDate;
+        info.Topic = topic;
+        info.MeetingLink = meetingLink;
+        info.MentorNote = mentorNote;
+        info.IsConfirmed = isConfirmed;
+        info.Raise(new AddCounselingSessionDomainEvent(
+            patientGroupId,
+            mentorId,
+            scheduledDate,
+            topic,
+            meetingLink));
+        return info;
     }
 
     public void Update(DateTime? scheduledDate, string? topic, string? meetingLink, string? mentorNote, bool? isConfirmed = null)
@@ -35,11 +42,13 @@ public class CounselingSession : Entity
     }
 
     public Guid PatientGroupId { get; set; } // کلید خارجی به گروه بیماران
+    [JsonIgnore]
     public PatientGroup PatientGroup { get; set; } = null!; // ارتباط با گروه
     public DateTime ScheduledDate { get; set; } // تاریخ و زمان جلسه
     public string Topic { get; set; } = string.Empty; // موضوع جلسه مشاوره
     public string MeetingLink { get; set; } = string.Empty; // لینک جلسه آنلاین
     public string? MentorId { get; set; } // شناسه منتور
+    [JsonIgnore]
     public ApplicationUser? Mentor { get; set; } // ارتباط با منتور
     public string? MentorNote { get; set; } // یادداشت‌های جلسه
     public bool IsConfirmed { get; set; } = false; // تایید برگزاری جلسه

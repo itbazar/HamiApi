@@ -17,10 +17,11 @@ internal class SubmitAttendanceLogsCommandHandler(
            .GetAsync(q => q.Id == request.SessionId && !q.IsDeleted);
 
         var updateSession = session.FirstOrDefault();
-        //if (updateSession == null)
-        //{
-        //    return Result.Fail<CounselingSession>("Session not found.");
-        //}
+        if (updateSession is null)
+            return SessionErrors.NotFound;
+
+        if(updateSession.IsConfirmed)
+            return SessionErrors.ISConfirmed;
 
         // ثبت حضور و غیاب
         foreach (var log in request.AttendanceLogs)

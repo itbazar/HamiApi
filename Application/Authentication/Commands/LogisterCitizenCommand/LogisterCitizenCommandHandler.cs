@@ -16,20 +16,21 @@ internal class LogisterCitizenCommandHandler(IAuthenticationService authenticati
             }
         }
 
-        var tokenResult = await authenticationService.LogisterCitizen(request.PhoneNumber);
-        if (tokenResult.IsFailed)
-            return tokenResult.ToResult();
-        var result = tokenResult.Value;
-        try
-        {
-            await communicationService.SendVerificationAsync(
-                result.PhoneNumber, result.Code);
-        }
-        catch
-        {
-            return CommunicationErrors.SmsError;
-        }
+        //var tokenResult = await authenticationService.LogisterCitizen(request.PhoneNumber);
+        return await authenticationService.PreRegisterPatient(request.PhoneNumber);
+        //if (tokenResult.IsFailed)
+        //    return tokenResult.ToResult();
+        //var result = tokenResult.Value;
+        //try
+        //{
+        //    await communicationService.SendVerificationAsync(
+        //        result.PhoneNumber, result.Code);
+        //}
+        //catch
+        //{
+        //    return CommunicationErrors.SmsError;
+        //}
 
-        return result.Token;
+        //return result;
     }
 }

@@ -5,13 +5,17 @@ namespace Application.CounselingSessions.Commands.AddCounselingSessionCommand;
 
 internal class AddCounselingSessionCommandHandler(
     ICounselingSessionRepository counselingSessionRepository,
+    IPatientGroupRepository patientGroupRepository,
     IUnitOfWork unitOfWork) : IRequestHandler<AddCounselingSessionCommand, Result<CounselingSession>>
 {
     public async Task<Result<CounselingSession>> Handle(AddCounselingSessionCommand request, CancellationToken cancellationToken)
     {
+        var group = await patientGroupRepository.GetFirstAsync(q => q.Id == request.PatientGroupId);
+        if (group is null)
+            return UserErrors.UserGroupNotAssigned;
         var counselingSession = CounselingSession.Create(
             request.PatientGroupId,
-            request.MentorId,
+            group.MentorId,
             request.ScheduledDate,
             request.Topic,
             request.MeetingLink

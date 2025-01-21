@@ -16,6 +16,14 @@ internal sealed class PatientApprovedDomainEventHandler(
        
         string message = $"کاربری شما با شماره همراه  {notification.PhoneNumber} در سامانه توسط اپراتور تایید شد.";
         string message2 = $"  اکنون میتوانید با نام کاربری {notification.PhoneNumber} و رمز عبور    pP@{notification.PhoneNumber}   وارد سامانه شوید";
+        
         await communicationService.SendAsync(notification.PhoneNumber, message+message2);
+        //await communicationService.SendNotification(
+        //    notification.UserId,
+        //    "Created",
+        //    message,
+        //    notification.ComplaintId);
     }
 }
+
+

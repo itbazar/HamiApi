@@ -16,11 +16,13 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddControllers();
-        //   services.AddControllers()
-        //.AddJsonOptions(options =>
-        //{
-        //    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-        //});
+        //services.AddControllers()
+        //    .AddJsonOptions(options =>
+        //        {
+        //             options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+        //             options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        //        });
+
 
         services.AddSwagger();
         services.AddCors(configuration);

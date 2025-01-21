@@ -32,7 +32,7 @@ public static class DependencyInjection
         services.AddStorage(configuration);
         services.AddCommunication(configuration);
 
-        services.AddHostedService<ChangeInspectorKeyBackgroundService>();
+        //services.AddHostedService<ChangeInspectorKeyBackgroundService>();
         return services;
     }
 

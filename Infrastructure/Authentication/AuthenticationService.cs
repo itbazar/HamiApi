@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using SharedKernel.Statics;
 using FluentResults;
 using SharedKernel.Errors;
+using Microsoft.AspNetCore.Mvc;
 namespace Infrastructure.Authentication;
 
 public class AuthenticationService(
@@ -89,10 +90,19 @@ public class AuthenticationService(
         Regex regex = new Regex(@"^09[0-9]{9}$");
         if (!regex.IsMatch(phoneNumber))
         {
-            return AuthenticationErrors.InvalidUsername;
+            return AuthenticationErrors.InvalidPhoneNumber;
         }
         var user = await userManager.FindByNameAsync(phoneNumber);
         var isNew = user is null;
+        if (user is not null && user.RegistrationStatus == RegistrationStatus.Approved)
+            return AuthenticationErrors.UserAlreadyExists;
+
+        if (user is not null && user.RegistrationStatus == RegistrationStatus.Pending)
+            return AuthenticationErrors.RegistrationNotApproved;
+
+        if (user is not null && user.RegistrationStatus == RegistrationStatus.Rejected)
+            return AuthenticationErrors.RegistrationRejected;
+
         if (user is null)
             user = new ApplicationUser()
             {
@@ -101,11 +111,58 @@ public class AuthenticationService(
                 PhoneNumber = phoneNumber,
                 PhoneNumberConfirmed = false
             };
+
         var verificationCodeResult = await GetVerificationCode(user, isNew);
         if(verificationCodeResult.IsFailed)
             return verificationCodeResult.ToResult();
         return verificationCodeResult.Value;
     }
+
+
+    public async Task<Result<string>> PreRegisterPatient(string phoneNumber)
+    {
+        Regex regex = new Regex(@"^09[0-9]{9}$");
+        if (!regex.IsMatch(phoneNumber))
+        {
+            return AuthenticationErrors.InvalidPhoneNumber;
+        }
+        var user = await userManager.FindByNameAsync(phoneNumber);
+        var isNew = user is null;
+        if (user is not null && user.RegistrationStatus == RegistrationStatus.Approved)
+            return AuthenticationErrors.UserAlreadyExists;
+
+        if (user is not null && user.RegistrationStatus == RegistrationStatus.Pending)
+            return AuthenticationErrors.RegistrationNotApproved;
+
+        if (user is not null && user.RegistrationStatus == RegistrationStatus.Rejected)
+            return AuthenticationErrors.RegistrationRejected;
+
+        return "true";
+    }
+
+
+    //public async Task<Result<VerificationToken>> LogisterCitizen(string phoneNumber)
+    //{
+    //    Regex regex = new Regex(@"^09[0-9]{9}$");
+    //    if (!regex.IsMatch(phoneNumber))
+    //    {
+    //        return AuthenticationErrors.InvalidPhoneNumber;
+    //    }
+    //    var user = await userManager.FindByNameAsync(phoneNumber);
+    //    var isNew = user is null;
+    //    if (user is null)
+    //        user = new ApplicationUser()
+    //        {
+    //            SecurityStamp = Guid.NewGuid().ToString(),
+    //            UserName = phoneNumber,
+    //            PhoneNumber = phoneNumber,
+    //            PhoneNumberConfirmed = false
+    //        };
+    //    var verificationCodeResult = await GetVerificationCode(user, isNew);
+    //    if (verificationCodeResult.IsFailed)
+    //        return verificationCodeResult.ToResult();
+    //    return verificationCodeResult.Value;
+    //}
 
     public async Task<Result<AuthToken>> Refresh(string token, string refreshToken)
     {

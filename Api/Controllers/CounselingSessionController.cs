@@ -11,6 +11,8 @@ using Application.CounselingSessions.Commands.SubmitAttendanceLogsCommand;
 using Application.CounselingSessions.Commands.UpdateCounselingSessionCommand;
 using Application.CounselingSessions.Queries.GetCounselingSessionQuery;
 using Application.CounselingSessions.Queries.GetMentorCounselingSessionsQuery;
+using Application.CounselingSessions.Queries.GetSessionAttendanceLogsQuery;
+using Application.CounselingSessions.Queries.GetSessionUsersQuery;
 using Application.Questions.Queries.GetMentorPatientGroupsQuery;
 using Application.Users.Common;
 using Domain.Models.Hami;
@@ -103,6 +105,27 @@ public class CounselingSessionController : ApiController
             x.LastName,
             true,
             " "
+        )).ToList();
+
+        return Ok(dtoList);
+    }
+
+
+    [HttpGet("attendance-logs/{sessionId}")]
+    public async Task<ActionResult<List<AttendanceLogDto>>> GetSessionAttendanceLogs(Guid sessionId)
+    {
+        var query = new GetSessionAttendanceLogsQuery(sessionId);
+        var result = await Sender.Send(query);
+        if (result.IsFailed)
+            return Problem(result.ToResult());
+
+        var dtoList = result.Value.Select(x => new AttendanceLogDto(
+            x.UserId,
+            x.User.UserName,
+            x.User.FirstName,
+            x.User.LastName,
+            x.Attended,
+            x.MentorNote
         )).ToList();
 
         return Ok(dtoList);

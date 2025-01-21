@@ -28,7 +28,8 @@ public class ApprovedRegisterPatientCommandHandler(
             if (request.PatientGroupId.HasValue)
             {
                 await userRepository.Update(user);
-                var result = UserGroupMembership.Register(user.Id, request.PatientGroupId.Value, user.PhoneNumber);
+                var result = UserGroupMembership
+                    .Register(user.Id, request.PatientGroupId.Value, user.PhoneNumber);
                 if (result.IsFailed)
                 {
                     return result.ToResult();

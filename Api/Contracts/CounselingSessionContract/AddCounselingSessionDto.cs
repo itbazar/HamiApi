@@ -2,8 +2,8 @@
 
 public record AddCounselingSessionDto(
     Guid PatientGroupId,
-    string MentorId,
     DateTime ScheduledDate,
-    string Topic="",
+    string MentorId = "",
+    string Topic ="",
     string MeetingLink = "",
     string MentorNote = "");

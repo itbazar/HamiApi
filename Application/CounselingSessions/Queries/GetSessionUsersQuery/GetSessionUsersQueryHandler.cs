@@ -2,7 +2,7 @@
 using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
 
-namespace Application.CounselingSessions.Queries.GetMentorCounselingSessionsQuery;
+namespace Application.CounselingSessions.Queries.GetSessionUsersQuery;
 
 internal class GetSessionUsersQueryHandler(ICounselingSessionRepository counselingSessionRepository,
     IUserGroupMembershipRepository userGroupMembershipRepository) : IRequestHandler<GetSessionUsersQuery, Result<List<ApplicationUser>>>

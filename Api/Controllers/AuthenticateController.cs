@@ -86,6 +86,7 @@ public class AuthenticateController : ApiController
     dto.NationalId,
     dto.FirstName,
     dto.LastName,
+    dto.Title,
     dto.DateOfBirth,
     dto.Gender,
     dto.Education,

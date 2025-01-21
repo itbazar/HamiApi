@@ -27,9 +27,14 @@ public class RegisterPatientCommandHandler(
     {
         // بررسی وجود کاربر با شماره تلفن
         var existingUser = await userRepository.FindByNameAsync(request.PhoneNumber);
-        if (existingUser != null)
+        if (existingUser is not null && existingUser.RegistrationStatus == RegistrationStatus.Approved)
         {
             return AuthenticationErrors.UserAlreadyExists;
+        }
+
+        if (existingUser is not null && existingUser.RegistrationStatus == RegistrationStatus.Pending)
+        {
+            return AuthenticationErrors.RegistrationNotApproved;
         }
 
 
@@ -40,6 +45,7 @@ public class RegisterPatientCommandHandler(
             NationalId = request.NationalId,
             FirstName = request.FirstName,
             LastName = request.LastName,
+            Title = request.Title,
             DateOfBirth = request.DateOfBirth,
             Gender = request.Gender,
             Education = request.Education,
@@ -49,7 +55,7 @@ public class RegisterPatientCommandHandler(
 
 
         // ذخیره اطلاعات کاربر
-        var result = await userRepository.CreateAsync(user, request.Password + user.PhoneNumber); // ایجاد رمز عبور
+        var result = await userRepository.CreateAsync(user, request.Password); // ایجاد رمز عبور
 
         if (!result.Succeeded)
         {

@@ -14,6 +14,7 @@ namespace Api.Contracts.Patient
     string? NationalId,
     string? FirstName,
     string? LastName,
+    string? Title,
     DateTime DateOfBirth,
     Gender Gender,
     EducationLevel? Education,

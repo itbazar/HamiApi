@@ -2,6 +2,7 @@
 using Domain.Models.IdentityAggregate;
 using Domain.Models.Hami.Events;
 using FluentResults;
+using System.Text.Json.Serialization;
 
 namespace Domain.Models.Hami;
 
@@ -41,8 +42,10 @@ public class UserGroupMembership : Entity
     }
 
     public string UserId { get; set; } = string.Empty; // شناسه کاربر
+    [JsonIgnore]
     public ApplicationUser User { get; set; } = null!; // ارتباط با کاربر
     public Guid PatientGroupId { get; set; } // شناسه گروه
+    [JsonIgnore]
     public PatientGroup PatientGroup { get; set; } = null!; // ارتباط با گروه
     public bool IsDeleted { get; set; } = false; // وضعیت حذف
 }
