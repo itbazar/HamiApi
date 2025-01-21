@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BUILDCONFIGURATION: Release
+    image: hamiapi:latest
+    container_name: hamiapi
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal;Database=HamiDB;User Id=shetab;Password=123456;TrustServerCertificate=True;
+      - MessageBroker__Host=amqp://host.docker.internal:5672
+      - Redis__Host=host.docker.internal
+      - Redis__Port=6379
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    networks:
+      - hami_network
+
+networks:
+  hami_network:
+    driver: bridge
