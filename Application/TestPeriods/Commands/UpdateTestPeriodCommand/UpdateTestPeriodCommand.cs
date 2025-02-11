@@ -10,4 +10,5 @@ public record UpdateTestPeriodCommand(
    string? PeriodName,
         DateTime? StartDate,
         DateTime? EndDate,
-        int? Code) : IRequest<Result<TestPeriod>>;
+        int? Code,
+        RecurrenceType Recurrence) : IRequest<Result<TestPeriod>>;

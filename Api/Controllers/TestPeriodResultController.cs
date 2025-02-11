@@ -82,7 +82,8 @@ public class TestPeriodResultController : ApiController
             userId,
             testPeriodResultDto.TestType,
             testPeriodResultDto.TotalScore,
-            testPeriodResultDto.TestPeriodId);
+            testPeriodResultDto.TestPeriodId,
+            1);
 
         // ارسال Command به Handler
         var result = await Sender.Send(command);
@@ -107,7 +108,7 @@ public class TestPeriodResultController : ApiController
             userId,
             TestType.MOOD,
             mood,
-            new Guid());
+            new Guid(),1);
 
         var result = await Sender.Send(command);
         return result.Match(

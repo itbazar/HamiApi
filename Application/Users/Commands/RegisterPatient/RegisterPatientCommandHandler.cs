@@ -84,7 +84,7 @@ public class RegisterPatientCommandHandler(
            user.Id,
            TestType.GAD,
            request.GADScore,
-           gadTestPeriod.Value.Id);
+           gadTestPeriod.Value.Id,1);
         testPeriodResultRepository.Insert(testResult);
 
         var mddTestPeriod = await testPeriodRepository.GetAsyncByCode(102);
@@ -92,7 +92,7 @@ public class RegisterPatientCommandHandler(
            user.Id,
            TestType.MDD,
            request.MDDScore,
-           mddTestPeriod.Value.Id);
+           mddTestPeriod.Value.Id,1);
 
         testPeriodResultRepository.Insert(testResult2);
         await unitOfWork.SaveAsync();

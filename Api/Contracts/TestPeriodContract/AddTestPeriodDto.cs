@@ -7,4 +7,5 @@ public record AddTestPeriodDto(
         string PeriodName,
         DateTime StartDate,
         DateTime EndDate,
-        int Code);
+        int Code,
+        RecurrenceType Recurrence);

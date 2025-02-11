@@ -42,7 +42,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             StartDate = new DateTime(2025, 1, 1),
             EndDate = new DateTime(2099, 12, 31),
             Code = 101, // کد یکتا برای GAD
-            IsDeleted = false
+            IsDeleted = false,
+            Recurrence = RecurrenceType.None // مقدار پیش‌فرض
         },
         new
         {
@@ -52,7 +53,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             StartDate = new DateTime(2025, 1, 1),
             EndDate = new DateTime(2099, 12, 31),
             Code = 102, // کد یکتا برای MDD
-            IsDeleted = false
+            IsDeleted = false,
+            Recurrence = RecurrenceType.None // مقدار پیش‌فرض
         }
     );
     }

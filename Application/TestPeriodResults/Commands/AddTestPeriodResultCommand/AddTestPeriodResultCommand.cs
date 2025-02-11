@@ -8,4 +8,5 @@ public record AddTestPeriodResultCommand(
     string UserId,
     TestType TestType,
     int TotalScore,
-    Guid TestPeriodId) : IRequest<Result<TestPeriodResult>>;
+    Guid TestPeriodId,
+    int TestInstance) : IRequest<Result<TestPeriodResult>>;

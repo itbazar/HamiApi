@@ -1,8 +1,7 @@
 ﻿using Application.Common.Interfaces.Persistence;
+using Application.TestPeriodResults.Commands.AddTestPeriodResultCommand;
 using Domain.Models.Hami;
 using Microsoft.EntityFrameworkCore;
-
-namespace Application.TestPeriodResults.Commands.AddTestPeriodResultCommand;
 
 internal class AddTestPeriodResultCommandHandler(
     ITestPeriodResultRepository testPeriodResultRepository,
@@ -13,14 +12,14 @@ internal class AddTestPeriodResultCommandHandler(
     {
         // بررسی نوع تست
         return request.TestType == TestType.MOOD
-            ? await HandleMoodTest(request)
-            : await HandleOtherTests(request);
+            ? await HandleMoodTest(request, cancellationToken)
+            : await HandleOtherTests(request, cancellationToken);
     }
 
     /// <summary>
     /// مدیریت ثبت مود روزانه
     /// </summary>
-    private async Task<Result<TestPeriodResult>> HandleMoodTest(AddTestPeriodResultCommand request)
+    private async Task<Result<TestPeriodResult>> HandleMoodTest(AddTestPeriodResultCommand request, CancellationToken cancellationToken)
     {
         var today = DateTime.UtcNow.Date;
 
@@ -29,24 +28,28 @@ internal class AddTestPeriodResultCommandHandler(
             .FirstOrDefaultAsync(t => t.UserId == request.UserId &&
                                       t.TestType == TestType.MOOD &&
                                       t.CreatedAt.Date == today &&
-                                      !t.IsDeleted);
+                                      !t.IsDeleted, cancellationToken);
 
         if (existingMood is not null)
             return TestPeriodErrors.MoodExist;
 
-        var testPeriod = await testPeriodRepository
-            .GetSingleAsync(tp => tp.TestType == TestType.MOOD && !tp.IsDeleted);
+        // گرفتن دوره آزمون
+        var testPeriod = await GetTestPeriod(TestType.MOOD);
+        if (testPeriod is null) return TestPeriodErrors.NotFound;
 
-        if (testPeriod == null || testPeriod.Id == Guid.Empty)
-            return TestPeriodErrors.NotFound;
+        // مقداردهی instance
+        var testInstance = await GetNextTestInstance(request.UserId, testPeriod.Id);
 
+        // ایجاد نتیجه تست
         var testPeriodResult = TestPeriodResult.Create(
             request.UserId,
             request.TestType,
             request.TotalScore,
-            testPeriod.Id
+            testPeriod.Id,
+            testInstance
         );
 
+        testPeriod.UpdateNextOccurrence();
         testPeriodResultRepository.Insert(testPeriodResult);
         await unitOfWork.SaveAsync();
 
@@ -56,51 +59,147 @@ internal class AddTestPeriodResultCommandHandler(
     /// <summary>
     /// مدیریت ثبت سایر تست‌ها
     /// </summary>
-    private async Task<Result<TestPeriodResult>> HandleOtherTests(AddTestPeriodResultCommand request)
+    private async Task<Result<TestPeriodResult>> HandleOtherTests(AddTestPeriodResultCommand request, CancellationToken cancellationToken)
     {
-        // گرفتن اطلاعات دوره آزمون از دیتابیس
-        var testPeriod = await unitOfWork.DbContext.Set<TestPeriod>()
-            .FirstOrDefaultAsync(tp => tp.Id == request.TestPeriodId && !tp.IsDeleted);
+        // گرفتن دوره آزمون
+        var testPeriod = await GetTestPeriodById(request.TestPeriodId);
+        if (testPeriod is null) return TestPeriodErrors.NotFound;
 
-        // اگر دوره آزمون پیدا نشد
-        if (testPeriod is null)
+        // بررسی بازه زمانی
+        if (!IsInValidDateRange(testPeriod))
         {
-            return TestPeriodErrors.NotFound; // خطا: دوره آزمون پیدا نشد
+            return TestPeriodErrors.OutOfRangeDate; // خارج از بازه زمانی مجاز
         }
 
-        // چک کردن اینکه آیا در محدوده تاریخ مجاز دوره هستیم
-        var now = DateTime.UtcNow;
-        if (now < testPeriod.StartDate || now > testPeriod.EndDate)
+        // بررسی شرکت کاربر در این بازه
+        if (await HasUserParticipatedInCurrentRecurrence(request.UserId, testPeriod))
         {
-            return TestPeriodErrors.OutOfRangeDate; // خطا: خارج از محدوده زمانی مجاز
-        }
-
-        // بررسی اینکه آیا کاربر در این دوره قبلاً آزمون ثبت کرده است
-        var existingResult = await unitOfWork.DbContext.Set<TestPeriodResult>()
-            .FirstOrDefaultAsync(t => t.UserId == request.UserId &&
-                                      t.TestPeriodId == request.TestPeriodId &&
-                                      !t.IsDeleted);
-
-        if (existingResult is not null)
-        {
-            // برگرداندن خطا اگر قبلاً نتیجه ثبت شده باشد
             return TestPeriodErrors.TestAlreadySubmitted;
         }
 
-        // ایجاد نتیجه تست برای سایر تست‌ها
+        // مقداردهی instance
+        var testInstance = await GetNextTestInstance(request.UserId, testPeriod.Id);
+
+        // ایجاد نتیجه تست
         var testPeriodResult = TestPeriodResult.Create(
             request.UserId,
             request.TestType,
             request.TotalScore,
-            request.TestPeriodId
+            request.TestPeriodId,
+            testInstance
         );
 
-        // درج نتیجه جدید در دیتابیس
+        testPeriod.UpdateNextOccurrence();
         testPeriodResultRepository.Insert(testPeriodResult);
-
-        // ذخیره تغییرات
         await unitOfWork.SaveAsync();
 
         return testPeriodResult;
+    }
+
+    /// <summary>
+    /// گرفتن دوره آزمون براساس نوع
+    /// </summary>
+    private async Task<TestPeriod?> GetTestPeriod(TestType testType)
+    {
+        return await testPeriodRepository.GetSingleAsync(tp => tp.TestType == testType && !tp.IsDeleted);
+    }
+
+    /// <summary>
+    /// گرفتن دوره آزمون براساس شناسه
+    /// </summary>
+    private async Task<TestPeriod?> GetTestPeriodById(Guid testPeriodId)
+    {
+        return await unitOfWork.DbContext.Set<TestPeriod>()
+            .FirstOrDefaultAsync(tp => tp.Id == testPeriodId && !tp.IsDeleted);
+    }
+
+    /// <summary>
+    /// بررسی بازه زمانی مجاز
+    /// </summary>
+    private bool IsInValidDateRange(TestPeriod testPeriod)
+    {
+        var now = DateTime.UtcNow;
+        return testPeriod.Recurrence switch
+        {
+            RecurrenceType.None => now >= testPeriod.StartDate && now <= testPeriod.EndDate,
+            RecurrenceType.Daily => now.Date >= testPeriod.StartDate.Date && now.Date <= testPeriod.EndDate.Date,
+            RecurrenceType.Weekly => now <= testPeriod.EndDate,
+            RecurrenceType.Monthly => now <= testPeriod.EndDate,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// بررسی شرکت در بازه فعلی
+    /// </summary>
+    /// 
+    private async Task<bool> HasUserParticipatedInCurrentRecurrence(string userId, TestPeriod testPeriod)
+    {
+        var persianCalendar = new System.Globalization.PersianCalendar();
+
+        // آخرین ثبت آزمون کاربر
+        var lastParticipation = await unitOfWork.DbContext.Set<TestPeriodResult>()
+            .Where(t => t.UserId == userId && t.TestPeriodId == testPeriod.Id && !t.IsDeleted)
+            .OrderByDescending(t => t.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (lastParticipation is null) return false; // اگر کاربر هیچ ثبت نتیجه‌ای نداشته باشد
+
+        var now = DateTime.UtcNow;
+
+        // تاریخ شمسی فعلی
+        var nowPersianYear = persianCalendar.GetYear(now);
+        var nowPersianMonth = persianCalendar.GetMonth(now);
+        var nowPersianDayOfWeek = (int)persianCalendar.GetDayOfWeek(now);
+
+        // تاریخ شمسی آخرین شرکت
+        var lastPersianYear = persianCalendar.GetYear(lastParticipation.CreatedAt);
+        var lastPersianMonth = persianCalendar.GetMonth(lastParticipation.CreatedAt);
+        var lastPersianDayOfWeek = (int)persianCalendar.GetDayOfWeek(lastParticipation.CreatedAt);
+
+        // بررسی براساس نوع تکرار
+        return testPeriod.Recurrence switch
+        {
+            RecurrenceType.None => true, // آزمون غیرتکرارشونده
+            RecurrenceType.Daily => persianCalendar.GetDayOfYear(lastParticipation.CreatedAt) == persianCalendar.GetDayOfYear(now), // روزانه
+            RecurrenceType.Weekly => nowPersianYear == lastPersianYear && // هفتگی شمسی
+                                     Math.Abs(nowPersianDayOfWeek - lastPersianDayOfWeek) < 7,
+            RecurrenceType.Monthly => nowPersianYear == lastPersianYear && // ماهانه شمسی
+                                      nowPersianMonth == lastPersianMonth,
+            _ => false
+        };
+    }
+
+    //private async Task<bool> HasUserParticipatedInCurrentRecurrence(string userId, TestPeriod testPeriod)
+    //{
+    //    var lastParticipation = await unitOfWork.DbContext.Set<TestPeriodResult>()
+    //        .Where(t => t.UserId == userId && t.TestPeriodId == testPeriod.Id && !t.IsDeleted)
+    //        .OrderByDescending(t => t.CreatedAt)
+    //        .FirstOrDefaultAsync();
+
+    //    if (lastParticipation is null) return false;
+
+    //    var now = DateTime.UtcNow;
+    //    return testPeriod.Recurrence switch
+    //    {
+    //        RecurrenceType.None => true,
+    //        RecurrenceType.Daily => lastParticipation.CreatedAt.Date == now.Date,
+    //        RecurrenceType.Weekly => lastParticipation.CreatedAt > now.AddDays(-7),
+    //        RecurrenceType.Monthly => lastParticipation.CreatedAt > now.AddMonths(-1),
+    //        _ => false
+    //    };
+    //}
+
+    /// <summary>
+    /// گرفتن شماره تکرار بعدی
+    /// </summary>
+    private async Task<int> GetNextTestInstance(string userId, Guid testPeriodId)
+    {
+        var previousTestsCount = await unitOfWork.DbContext.Set<TestPeriodResult>()
+            .CountAsync(t => t.TestPeriodId == testPeriodId &&
+                             t.UserId == userId &&
+                             !t.IsDeleted);
+
+        return previousTestsCount + 1;
     }
 }

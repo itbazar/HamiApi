@@ -19,7 +19,8 @@ internal class UpdateTestPeriodCommandHandler(
             request.PeriodName,
             request.StartDate,
             request.EndDate,
-            request.Code);
+            request.Code,
+            request.Recurrence);
 
         testPeriodRepository.Update(testPeriod);
         await unitOfWork.SaveAsync();
