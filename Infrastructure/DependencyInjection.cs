@@ -90,6 +90,7 @@ public static class DependencyInjection
         services.AddScoped<IQuestionRepository, QuestionRepository>();
         services.AddScoped<IAnswerRepository, AnswerRepository>();
         services.AddScoped<ISessionAttendanceLogRepository, SessionAttendanceLogRepository>();
+        services.AddScoped<IPatientLabTestRepository, PatientLabTestRepository>();
 
         return services;
     }

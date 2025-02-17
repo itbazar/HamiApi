@@ -8,4 +8,5 @@ public record GetProfileDto(
     string Title,
     string PhoneNumber,
     string MentorName,
-    string PatientGroupName);
+    string PatientGroupName,
+    Guid PatientGroupId);

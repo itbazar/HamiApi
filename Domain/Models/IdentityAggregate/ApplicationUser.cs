@@ -17,8 +17,11 @@ public class ApplicationUser : IdentityUser
 
     public DateTime DateOfBirth { get; set; } // تاریخ تولد
     public Gender Gender { get; set; } // جنسیت (Male, Female, Other)
+    public RoleType RoleType { get; set; } 
     public EducationLevel? Education { get; set; } // تحصیلات
     public string? City { get; set; } // شهر محل سکونت
+    public bool IsSmoker { get; set; }
+    
 
     public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.Pending; // وضعیت ثبت‌نام
     public string? RejectionReason { get; set; } // دلیل رد ثبت‌نام (در صورت وجود)
@@ -52,4 +55,10 @@ public enum RegistrationStatus
     Pending = 1,    // منتظر تأیید
     Approved = 2,   // تأییدشده
     Rejected = 3    // ردشده
+}
+
+public enum RoleType
+{
+    Patient = 1,   // بیمار
+    Caregiver = 2, // مراقب بیمار
 }

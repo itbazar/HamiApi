@@ -14,6 +14,8 @@ builder.Services
     .AddInfrastructure(builder.Configuration)
     .AddApi(builder.Configuration);
 
+builder.Services.AddHttpClient();
+
 var maxFileSize = builder.Configuration.GetSection("Storage")
             .GetSection("MaxFileSize")
             .Get<long>();

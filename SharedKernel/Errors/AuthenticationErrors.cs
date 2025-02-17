@@ -69,6 +69,11 @@ public static class TestPeriodErrors
     public static readonly Error TestAlreadySubmitted = new Error("آزمون را ثبت کرده اید.");
 }
 
+public static class PatientLabTestErrors
+{
+    public static readonly Error NotFound = new Error("نوع تست یافت نشد.");
+}
+
 public static class SessionErrors
 {
     public static readonly Error NotFound = new Error("جلسه یافت نشد.");

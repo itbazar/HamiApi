@@ -4,4 +4,5 @@ namespace Application.Authentication.Commands.LogisterCitizenCommand;
 
 public sealed record LogisterCitizenCommand(
     string PhoneNumber,
-    CaptchaValidateModel? CaptchaValidateModel = null) : IRequest<Result<string>>;
+//string RecaptchaToken) : IRequest<Result<string>>;
+CaptchaValidateModel? CaptchaValidateModel = null) : IRequest<Result<string>>;

@@ -6,4 +6,5 @@ namespace Api.Contracts.Authenticate;
 public record LogisterCitizenDto(
     [Required] [RegularExpression(@"^09[0-9]{9}$")]
     string PhoneNumber,
-    CaptchaValidateModel Captcha);
+   CaptchaValidateModel Captcha);
+//string RecaptchaToken);

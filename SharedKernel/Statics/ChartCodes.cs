@@ -9,4 +9,6 @@ public static class ChartCodes
     
     public const int PatientMentalScores = 4;
     public const int PatientDailyMood = 5;
+    public const int PatientTumorMarkers = 6;
+    public const int PatientTumorMarkersByAdmin = 7;
 }

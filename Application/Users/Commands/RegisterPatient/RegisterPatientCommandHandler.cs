@@ -50,7 +50,9 @@ public class RegisterPatientCommandHandler(
             Gender = request.Gender,
             Education = request.Education,
             City = request.City,
-            RegistrationStatus = RegistrationStatus.Pending // وضعیت ثبت‌نام: در انتظار تأیید
+            RegistrationStatus = RegistrationStatus.Pending, // وضعیت ثبت‌نام: در انتظار تأیید
+            RoleType = request.RoleType,
+            IsSmoker = request.isSmoker
         };
 
 

@@ -25,4 +25,6 @@ public record RegisterPatientCommand(
     int? SleepDuration,
     AppetiteLevel AppetiteLevel,
     int GADScore,
-    int MDDScore) : IRequest<Result<AddPatientResult>>;
+    int MDDScore,
+    RoleType RoleType,
+    bool isSmoker) : IRequest<Result<AddPatientResult>>;

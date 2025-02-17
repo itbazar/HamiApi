@@ -8,6 +8,7 @@ using System.Linq.Expressions;
 using SharedKernel.ExtensionMethods;
 using Domain.Models.Hami;
 using System.Security.Claims;
+using System.Data;
 
 namespace Application.Charts.Queries.GetInfoQuery;
 
@@ -51,6 +52,12 @@ internal class GetInfoQueryHandler(IUnitOfWork unitOfWork, IUserRepository userR
 
             case ChartCodes.PatientDailyMood:
                 result = await GetPatientDailyMoodReportByUserId(request.userId);
+                break;
+            case ChartCodes.PatientTumorMarkers:
+                result = await GetPatientLabTestsReportByUserId(request.userId, "Patient");
+                break;
+            case ChartCodes.PatientTumorMarkersByAdmin:
+                result = await GetPatientLabTestsReportByUserId(request.userId,"Admin");
                 break;
             default:
                 throw new Exception();
@@ -653,5 +660,121 @@ internal class GetInfoQueryHandler(IUnitOfWork unitOfWork, IUserRepository userR
 
         return result;
     }
+    private async Task<InfoModel> GetPatientLabTestsReportByUserId(string userId,string role)
+    {
+        var result = new InfoModel();
+
+        // دریافت اطلاعات کاربر (تاریخ تولد و وضعیت سیگاری بودن)
+        var patient = await unitOfWork.DbContext.Set<ApplicationUser>()
+            .Where(u => u.Id == userId)
+            .Select(u => new { u.FirstName, u.LastName, u.UserName, u.DateOfBirth, u.IsSmoker })
+            .SingleOrDefaultAsync();
+
+        if (patient == null)
+        {
+            result.Add(new InfoSingleton("0", "کاربر یافت نشد", ""));
+            return result;
+        }
+
+        string patientFullName = $"{patient.FirstName} {patient.LastName} - {patient.UserName}";
+
+        // محاسبه سن از تاریخ تولد
+        int age = CalculateAge(patient.DateOfBirth);
+
+        // دریافت تعداد تست‌های ثبت‌شده برای هر نوع تست
+        foreach (LabTestType testType in Enum.GetValues(typeof(LabTestType)))
+        {
+            var testCount = await unitOfWork.DbContext.Set<PatientLabTest>()
+                .CountAsync(r => r.UserId == userId && r.TestType == testType && !r.IsDeleted);
+
+            result.Add(new InfoSingleton(testCount.ToString(), $"تعداد تست‌های {testType}", ""));
+        }
+
+        // گرفتن ۲۰ نتیجه آخر برای نمودار
+        var testResults = await unitOfWork.DbContext.Set<PatientLabTest>()
+            .Where(r => r.UserId == userId && !r.IsDeleted)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(20)
+            .ToListAsync();
+
+        if (!testResults.Any())
+        {
+            result.Add(new InfoSingleton("0", "هیچ تستی ثبت نشده است", ""));
+            return result;
+        }
+
+        // دسته‌بندی نتایج برای هر نوع تست
+        var testSeries = new List<InfoSerie>();
+
+        foreach (LabTestType testType in Enum.GetValues(typeof(LabTestType)))
+        {
+            var testData = testResults
+                .Where(r => r.TestType == testType)
+                .OrderBy(r => r.CreatedAt) // مرتب‌سازی صعودی برای نمایش در نمودار
+                .Select(r =>
+                {
+                    decimal normalThreshold = GetNormalThreshold(r.TestType, age, patient.IsSmoker);
+                    bool isNormal = r.TestValue <= normalThreshold;
+                    string status = isNormal ? "نرمال" : "غیر نرمال";
+                    string displayValue = role == "Patient"
+                             ? r.TestValue.ToString() // بیمار فقط مقدار را می‌بیند
+                             : $"{r.TestValue} ({status}) {r.Unit}"; // منتور / ادمین مقدار، وضعیت و واحد را می‌بینند
+
+
+                    return new DataItem(
+                        r.CreatedAt.ToString("yyyy/MM/dd"),
+                        r.TestValue.ToString(),
+                        displayValue, // توضیح وضعیت تست
+                        null
+                    );
+                })
+                .ToList();
+
+            if (testData.Any())
+            {
+                testSeries.Add(new InfoSerie(testType.ToString(), "").Add(testData));
+            }
+        }
+
+        // افزودن نمودار تست‌های آزمایشگاهی
+        if (testSeries.Any())
+        {
+            var labTestChart = new InfoChart("نتایج تست‌های آزمایشگاهی", "", false, false);
+            foreach (var serie in testSeries)
+            {
+                labTestChart.Add(serie);
+            }
+            result.Add(labTestChart);
+        }
+
+        return result;
+    }
+    private int CalculateAge(DateTime birthDate)
+    {
+        var today = DateTime.Today;
+        int age = today.Year - birthDate.Year;
+        if (birthDate.Date > today.AddYears(-age)) age--;
+        return age;
+    }
+    private decimal GetNormalThreshold(LabTestType testType, int age, bool isSmoker)
+    {
+        return testType switch
+        {
+            LabTestType.PSA => age switch
+            {
+                >= 40 and <= 49 => 2.5m,
+                >= 50 and <= 59 => 3.5m,
+                >= 60 and <= 69 => 4.5m,
+                >= 70 and <= 79 => 6.5m,
+                _ => 9999m
+            },
+            LabTestType.CEA => isSmoker ? 5.5m : 3.8m,
+            LabTestType.CA125 => 35m,
+            LabTestType.CA15_3 => 30m,
+            LabTestType.CA27_29 => 38m,
+            _ => 9999m
+        };
+    }
+
 
 }

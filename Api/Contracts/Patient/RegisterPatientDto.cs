@@ -28,5 +28,7 @@ namespace Api.Contracts.Patient
     int? SleepDuration,
     AppetiteLevel AppetiteLevel,
     int GADScore,
-    int MDDScore);
+    int MDDScore,
+    RoleType RoleType,
+    bool IsSmoker);
 }

@@ -100,7 +100,9 @@ public class AuthenticateController : ApiController
     dto.SleepDuration,
     dto.AppetiteLevel,
     dto.GADScore,
-   dto.MDDScore);
+   dto.MDDScore,
+   dto.RoleType,
+   dto.IsSmoker);
 
         var result = await Sender.Send(command);
 
@@ -191,7 +193,8 @@ public class AuthenticateController : ApiController
                    Title: user.Title,
                    PhoneNumber: user.PhoneNumber,
                    MentorName: mentor != null ? $"{mentor.FirstName} {mentor.LastName}" : "نامشخص",
-                   PatientGroupName: patientGroup != null ? patientGroup.Description : "نامشخص"
+                   PatientGroupName: patientGroup != null ? patientGroup.Description : "نامشخص",
+                   PatientGroupId: patientGroup.Id 
                );
 
                return Ok(dto);

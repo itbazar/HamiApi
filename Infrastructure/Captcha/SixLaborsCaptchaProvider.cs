@@ -14,9 +14,10 @@ public class SixLaborsCaptchaProvider : ICaptchaProvider
     {
         captchaRandomImage = new SixLaborsCaptchaModule(new SixLaborsCaptchaOptions
         {
-            DrawLines = 7,
-            TextColor = new Color[] { Color.Blue, Color.Black },
-            FontFamilies = new string[] { "Marlboro", "Arial", "Verdana", "Times New Roman" }
+            DrawLines = 0,
+            NoiseRate = 0,
+            TextColor = new[] { Color.Blue, Color.Black },
+            FontFamilies = new[] { "Arial", "Verdana" }
         });
         //keyValuePairs = new HashSet<Tuple<Guid, string, DateTime>>();
     }
