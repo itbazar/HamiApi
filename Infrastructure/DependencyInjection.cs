@@ -66,16 +66,9 @@ public static class DependencyInjection
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IComplaintRepository, ComplaintRepository>();
-        services.AddScoped<IComplaintCategoryRepository, ComplaintCategoryRepository>();
-        services.AddScoped<IComplaintOrganizationRepository, ComplaintOrganizationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICommunicationService, CommunicationServiceUsingMessageBroker>();
-        services.AddScoped<IPublicKeyRepository, PublicKeyRepository>();
         services.AddScoped<IChartRepository, ChartRepository>();
-        services.AddScoped<ISliderRepository, SliderRepository>();
-        services.AddScoped<INewsRepository, NewsRepository>();
-        services.AddScoped<IWebContentRepository, WebContentRepository>();
         services.AddSingleton<ICaptchaProvider, SixLaborsCaptchaProvider>();
         services.AddScoped<IAuthenticateRepository, AuthenticateRepository>();
         services.AddScoped<IMaintenanceService, MaintenanceService>();

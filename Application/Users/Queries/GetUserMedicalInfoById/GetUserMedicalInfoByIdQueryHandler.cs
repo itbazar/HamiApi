@@ -17,12 +17,12 @@ internal class GetUserMedicalInfoByIdQueryHandler(IUserRepository userRepository
         if (user is null)
             return UserErrors.UserNotExsists;
 
-        var userMedicalInfo = await userMedicalInfoRepository.GetSingleAsync(cc => cc.UserId == request.UserId);
+        var userMedicalInfo = await userMedicalInfoRepository.GetFirstAsync(cc => cc.UserId == request.UserId);
         if (userMedicalInfo is null)
             return UserErrors.UserNotExsists;
 
-        var testResultG = await testPeriodResultRepository.GetSingleAsync(q => q.UserId == request.UserId && q.TestType == TestType.GAD);
-        var testResultM = await testPeriodResultRepository.GetSingleAsync(q => q.UserId == request.UserId && q.TestType == TestType.MDD);
+        var testResultG = await testPeriodResultRepository.GetFirstAsync(q => q.UserId == request.UserId && q.TestType == TestType.GAD);
+        var testResultM = await testPeriodResultRepository.GetFirstAsync(q => q.UserId == request.UserId && q.TestType == TestType.MDD);
 
         var response = new UserMedicalInfoResponse
         {

@@ -1,16 +1,11 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.CounselingSessionContract;
-using Api.Contracts.KeyManagement;
 using Api.Contracts.Patient;
 using Api.Contracts.TestPeriodContract;
 using Api.ExtensionMethods;
 using Application.Common.Interfaces.Persistence;
-using Application.Setup.Commands.AddPublicKey;
-using Application.Setup.Commands.ChangeInspectorKey;
 using Application.Setup.Commands.EditChartNames;
-using Application.Setup.Commands.GenerateKeyPair;
 using Application.Setup.Commands.Init;
-using Application.Setup.Queries.GetPublicKeys;
 using Application.Users.Commands.ApprovedRegisterPatient;
 using Application.Users.Common;
 using Application.Users.Queries.GetMentors;
@@ -18,7 +13,6 @@ using Application.Users.Queries.GetPatients;
 using Application.Users.Queries.GetPatientsSessionReport;
 using Application.Users.Queries.GetPatientTestPeriodsReport;
 using Application.Users.Queries.GetUserMedicalInfoById;
-using Domain.Models.ComplaintAggregate.Encryption;
 using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
 using IpPanelSmsApi;
@@ -239,65 +233,5 @@ public class AdminController : ApiController
 
     //    return Ok(response);
     //}
-
-
-
-    [Authorize(Roles = "Admin")]
-    [HttpGet("GenerateKeyPair")]
-    public async Task<ActionResult<AsymmetricKey>> GenerateKeyPair()
-    {
-        var command = new GenerateKeyPairCommand();
-        var result = await Sender.Send(command);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
-    }
-
-    [Authorize(Roles = "Admin")]
-    [HttpGet("GetKeys")]
-    public async Task<ActionResult<List<PublicKeyResponse>>> GetKeys()
-    {
-        var command = new GetPublicKeysQuery();
-        var result = await Sender.Send(command);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
-    }
-
-    [Authorize(Roles = "Admin")]
-    [HttpPost("AddKey")]
-    public async Task<ActionResult<bool>> AddKey([FromBody] AddPublicKeyDto addKeyDto)
-    {
-        var command = new AddPublicKeyCommand(addKeyDto.Title, addKeyDto.PublicKey);
-        var result = await Sender.Send(command);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
-    }
-
-    [Authorize(Roles = "Admin")]
-    [HttpPost("ChangeKey")]
-    public async Task<ActionResult<ChangeInspectorKeyResponse>> ChangeKey([FromBody] ChangeInspectorKeyDto changeKeyDto)
-    {
-        var command = new ChangeInspectorKeyCommand(
-            changeKeyDto.PrivateKey,
-            changeKeyDto.PublicKeyId,
-            changeKeyDto.IsPolling);
-        var result = await Sender.Send(command);
-        return result.Match(
-            s => Ok(s), 
-            f => Problem(f));
-    }
-
-    [Authorize(Roles = "PowerUser")]
-    [HttpPost("EditChartNames")]
-    public async Task<ActionResult> EditChartNames()
-    {
-        var command = new EditChartNamesCommand();
-        var result = await Sender.Send(command);
-        return result.Match(
-            s => Ok(s),
-            f => Problem(f));
-    }
 
 }

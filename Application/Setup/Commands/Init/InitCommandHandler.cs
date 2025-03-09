@@ -1,75 +1,20 @@
 ﻿using Application.Common.Interfaces.Persistence;
 using Domain.Models.ChartAggregate;
-using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
-using Domain.Models.PublicKeys;
-using Domain.Models.WebContents;
 using SharedKernel.Statics;
 
 namespace Application.Setup.Commands.Init;
 
 internal class InitCommandHandler(
-    IComplaintCategoryRepository categoryRepository,
     IUserRepository userRepository,
     IUnitOfWork unitOfWork,
-    IPublicKeyRepository publicKeyRepository,
-    IComplaintOrganizationRepository organizationRepository,
-    IChartRepository chartRepository,
-    IWebContentRepository webContentRepository) : IRequestHandler<InitCommand, Result<string>>
+    IChartRepository chartRepository) : IRequestHandler<InitCommand, Result<string>>
 {
 public async Task<Result<string>> Handle(InitCommand request, CancellationToken cancellationToken)
     {
-        await initCategories();
-        await initOrganizations();
         await initRolesAndUsers();
         await initCharts();
-        await initWebContents();
-        var privateKey = await initPublicKey();
-        return privateKey;
-    }
-
-    private async Task initCategories()
-    {
-        var complaintCategories = await categoryRepository.GetAsync();
-        if (complaintCategories is not null && complaintCategories.Count() > 0)
-        {
-            return;
-        }
-        var titles = new List<string>()
-        {
-            "رشاء",
-            "ارتشاء",
-            "سایر"
-        };
-
-        foreach (var title in titles)
-        {
-            categoryRepository.Insert(ComplaintCategory.Create(title, ""));
-        }
-
-        await unitOfWork.SaveAsync();
-    }
-
-    private async Task initOrganizations()
-    {
-        var complaintOrganizations = await organizationRepository.GetAsync();
-        if (complaintOrganizations is not null && complaintOrganizations.Count() > 0)
-        {
-            return;
-        }
-        var titles = new List<string>()
-        {
-            "شورای شهر",
-            "عمران",
-            "سایر"
-        };
-
-        foreach (var title in titles)
-        {
-            organizationRepository.Insert(ComplaintOrganization.Create(title, ""));
-        }
-
-        await unitOfWork.SaveAsync();
+        return "ok";
     }
 
     private async Task initRolesAndUsers()
@@ -125,23 +70,6 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
             }
         }
     }
-
-    
-    private async Task<string> initPublicKey()
-    {
-        if (unitOfWork.DbContext.Set<PublicKey>().Any())
-            return "Already initialized.";
-        var inspector = (await userRepository.GetUsersInRole("Inspector")).FirstOrDefault();
-        if(inspector is null)
-        {
-            throw new Exception("No inspector found.");
-        }
-        var keyPair = PublicKey.GenerateKeyPair();
-        var publicKey = PublicKey.Create("Initial", keyPair.PublicKey, inspector.Id, true);
-        await publicKeyRepository.Add(publicKey);
-        return keyPair.PrivateKey;
-    }
-    
     private async Task initCharts()
     {
         if (unitOfWork.DbContext.Set<Chart>().Any())
@@ -192,27 +120,6 @@ public async Task<Result<string>> Handle(InitCommand request, CancellationToken 
             users);
         chartRepository.Insert(chart);
 
-        await unitOfWork.SaveAsync();
-    }
-
-    private async Task initWebContents()
-    {
-        var initialWebContents = new List<WebContent>
-        {
-            WebContent.Create("About", "", "<H1>درباره ما</H1>"),
-            WebContent.Create("Contanct", "", "<H1>تماس با ما</H1>"),
-            WebContent.Create("PreRequest", "", "<H1>لطفاً گزارش خود را ثبت کنید.</H1>"),
-            WebContent.Create("PostRequest", "", "<H1>با تشکر از شما</H1>")
-        };
-        var webContents = await webContentRepository.GetAsync();
-        foreach (var webContent in initialWebContents)
-        {
-            if (!webContents.Any(wc => wc.Title == webContent.Title))
-            {
-                webContentRepository.Insert(webContent);
-            }
-        }
-        
         await unitOfWork.SaveAsync();
     }
 }

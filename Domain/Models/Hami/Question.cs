@@ -1,8 +1,6 @@
 ﻿using Domain.ExtensionMethods;
 using Domain.Models.Common;
-using Domain.Models.ComplaintAggregate.Encryption;
 using Domain.Models.IdentityAggregate;
-using Domain.Models.PublicKeys;
 using Domain.Primitives;
 using FluentResults;
 using SharedKernel.Errors;

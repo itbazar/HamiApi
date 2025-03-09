@@ -1,5 +1,4 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Microsoft.EntityFrameworkCore;
 using SharedKernel.Statics;
@@ -22,34 +21,25 @@ internal class GetInfoQueryHandler(IUnitOfWork unitOfWork, IUserRepository userR
             case ChartCodes.Dashboard:
                 result = await GetGeneralReport(request.userId,request.userRole);
                 break;
-            case ChartCodes.ComplaintCategoryHistogram:
-                var bins = await unitOfWork.DbContext.Set<ComplaintCategory>().Select(cc => new Bin<Guid>(cc.Id, cc.Title)).ToListAsync();
-                result = await GetHistogram(
-                    "فراوانی دسته بندی ها",
-                    bins,
-                    unitOfWork.DbContext.Set<Complaint>(),
-                    c => c.CategoryId); 
-                break;
-            case ChartCodes.ComplaintOrganizationHistogram:
-                var bins3 = await unitOfWork.DbContext.Set<ComplaintOrganization>().Select(co => new Bin<Guid?>(co.Id, co.Title)).ToListAsync();
-                result = await GetHistogram(
-                    "فراوانی سازمان ها",
-                    bins3,
-                    unitOfWork.DbContext.Set<Complaint>(),
-                    c => c.ComplaintOrganizationId);
-                break;
-            case ChartCodes.ComplaintStatusHistogram:
-                var bins2 = GetBins<ComplaintState>();
-                result = await GetHistogram(
-                    "فراوانی وضعیت ها",
-                    bins2,
-                    unitOfWork.DbContext.Set<Complaint>(),
-                    c => c.Status);
-                break;
+            //case ChartCodes.ComplaintCategoryHistogram:
+            //    var bins = await unitOfWork.DbContext.Set<ComplaintCategory>().Select(cc => new Bin<Guid>(cc.Id, cc.Title)).ToListAsync();
+            //    result = await GetHistogram(
+            //        "فراوانی دسته بندی ها",
+            //        bins,
+            //        unitOfWork.DbContext.Set<Complaint>(),
+            //        c => c.CategoryId); 
+            //    break;
+            //case ChartCodes.ComplaintOrganizationHistogram:
+            //    var bins3 = await unitOfWork.DbContext.Set<ComplaintOrganization>().Select(co => new Bin<Guid?>(co.Id, co.Title)).ToListAsync();
+            //    result = await GetHistogram(
+            //        "فراوانی سازمان ها",
+            //        bins3,
+            //        unitOfWork.DbContext.Set<Complaint>(),
+            //        c => c.ComplaintOrganizationId);
+            //    break;
             case ChartCodes.PatientMentalScores:
                 result = await GetPatientMentalReportByUserId(request.userId);
                 break;
-
             case ChartCodes.PatientDailyMood:
                 result = await GetPatientDailyMoodReportByUserId(request.userId);
                 break;
@@ -135,58 +125,6 @@ internal class GetInfoQueryHandler(IUnitOfWork unitOfWork, IUserRepository userR
         return bins;
     }
 
-    private async Task<InfoModel> GetSummary()
-    {
-        var result = new InfoModel();
-
-        var anonymousComplaintsCount = await unitOfWork.DbContext.Set<Complaint>()
-            .Where(c => c.UserId == null)
-            .CountAsync();
-        result.Add(new InfoSingleton(anonymousComplaintsCount.ToString(), "گزارش ناشناس", ""));
-
-        var knownComplaintsCount = await unitOfWork.DbContext.Set<Complaint>()
-            .Where(c => c.UserId != null)
-            .CountAsync();
-        result.Add(new InfoSingleton(knownComplaintsCount.ToString(), "گزارش شناس", ""));
-
-        var totalComplaintsCount = anonymousComplaintsCount + knownComplaintsCount;
-        result.Add(new InfoSingleton(totalComplaintsCount.ToString(), "گزارش", ""));
-
-        var totalUsers = await unitOfWork.DbContext.Set<ApplicationUser>().CountAsync();
-        result.Add(new InfoSingleton(totalUsers.ToString(), "کاربر", ""));
-
-        var now = DateTime.UtcNow;
-        var query = unitOfWork.DbContext.Set<Complaint>().Where(c => true);
-        var requestPerDay = await query.Where(p => p.RegisteredAt >= now.AddDays(-30))
-                .GroupBy(q => q.RegisteredAt.DayOfYear)
-                .Select(r => new { DayOfYear = r.Key, Count = r.Count() })
-                .ToListAsync();
-        requestPerDay.Sort((a, b) => a.DayOfYear.CompareTo(b.DayOfYear));
-        var rpd = requestPerDay.Select(p => new { Date = new DateTime(now.Year, 1, 1).AddDays(p.DayOfYear - 1), Count = p.Count }).ToList();
-        DateTime date;
-        string dateStr;
-        var pc = new PersianCalendar();
-        var prpd = new List<DataItem>();
-
-        for (int i = -30; i < 0; i++)
-        {
-            date = new DateTime(now.Year, 1, 1).AddDays(now.DayOfYear + i);
-            dateStr = $"{pc.GetYear(date)}/{pc.GetMonth(date)}/{pc.GetDayOfMonth(date)}";
-            var t = rpd.Where(a => a.Date == date).SingleOrDefault();
-            if (t != null)
-            {
-                prpd.Add(new DataItem(dateStr, t.Count.ToString(), t.Count.ToString(), null));
-            }
-            else
-            {
-                prpd.Add(new DataItem(dateStr, "0", "0", null));
-            }
-        }
-        result.Add(new InfoChart("تعداد گزارش ثبت شده در سی روز گذشته", "", false, false).Add(new InfoSerie("گزارش", "").Add(prpd)));
-
-
-        return result;
-    }
     private async Task<InfoModel> GetPatientMentalReportByUserId(string userId)
     {
         var result = new InfoModel();

@@ -1,11 +1,8 @@
 ﻿using Application.Common.Interfaces.Persistence;
 using Application.Common.Interfaces.Security;
-using Application.Complaints.Commands.AddComplaintCommand;
-using Application.Complaints.Commands.Common;
 using Application.Users.Commands.ApprovedRegisterPatient;
 using Application.Users.Common;
 using Domain.Models.Common;
-using Domain.Models.ComplaintAggregate;
 using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
 using MediatR;

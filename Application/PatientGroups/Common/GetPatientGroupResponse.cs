@@ -1,5 +1,4 @@
-﻿using Application.Complaints.Common;
-using Domain.Models.Hami;
+﻿using Domain.Models.Hami;
 using SharedKernel.ExtensionMethods;
 
 namespace Application.PatientGroups.Common;

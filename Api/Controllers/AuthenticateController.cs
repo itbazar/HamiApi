@@ -13,7 +13,6 @@ using Application.Common.Interfaces.Security;
 using Application.Users.Commands.RegisterPatient;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
-using Domain.Models.ComplaintAggregate;
 using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
 using Mapster;
@@ -194,7 +193,8 @@ public class AuthenticateController : ApiController
                    PhoneNumber: user.PhoneNumber,
                    MentorName: mentor != null ? $"{mentor.FirstName} {mentor.LastName}" : "نامشخص",
                    PatientGroupName: patientGroup != null ? patientGroup.Description : "نامشخص",
-                   PatientGroupId: patientGroup.Id 
+                   PatientGroupId: patientGroup.Id,
+                   Organ: patientGroup.Organ
                );
 
                return Ok(dto);

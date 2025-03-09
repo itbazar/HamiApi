@@ -9,5 +9,6 @@ public record PatientLabTestListItemDto(
     LabTestType TestType, // نوع آزمایش
     decimal TestValue,   // مقدار عددی آزمایش
     string Unit,         // واحد آزمایش
-    DateTime CreatedAt   // زمان ثبت آزمایش
+    DateTime CreatedAt,   // زمان ثبت آزمایش
+    DateTime TestDate   // زمان انجام آزمایش
 );

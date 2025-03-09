@@ -1,6 +1,4 @@
 ﻿using Domain.Models.Common;
-using Domain.Models.ComplaintAggregate.Events;
-using Domain.Models.ComplaintAggregate;
 using Domain.Models.IdentityAggregate;
 using Domain.Primitives;
 using FluentResults;
@@ -101,6 +99,9 @@ public enum Organ
 
     [Description("پروستات")]
     Prostate = 3,
+
+    [Description("مراقب ")]
+    Caregiver = 4,
 }
 
 public enum DiseaseType

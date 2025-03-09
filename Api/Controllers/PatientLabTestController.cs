@@ -44,7 +44,9 @@ public class PatientLabTestController : ApiController
             x.TestType, // نوع آزمایش
             x.TestValue, // مقدار آزمایش
             x.Unit, // واحد آزمایش
-            x.CreatedAt
+            x.CreatedAt,
+            x.TestDate
+
         )).ToList();
 
         return Ok(dtoList);

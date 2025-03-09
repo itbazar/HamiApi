@@ -1,12 +1,7 @@
 ﻿using Domain.Models.ChartAggregate;
 using Domain.Models.Common;
-using Domain.Models.ComplaintAggregate;
 using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
-using Domain.Models.News;
-using Domain.Models.PublicKeys;
-using Domain.Models.Sliders;
-using Domain.Models.WebContents;
 using Domain.Primitives;
 using Infrastructure.Persistence.Data.Seed;
 using MediatR;
@@ -76,15 +71,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     }
     //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //    => optionsBuilder.LogTo(Console.WriteLine);
-    public DbSet<Complaint> Complaint { get; set; }
-    public DbSet<ComplaintCategory> ComplaintCategory { get; set; }
-    public DbSet<ComplaintOrganization> ComplaintOrganization { get; set; }
     public DbSet<Media> Media { get; set; }
     public DbSet<Chart> Chart { get; set; }
-    public DbSet<PublicKey> PublicKey { get; set; }
-    public DbSet<Slider> Slider { get; set; }
-    public DbSet<WebContent> WebContent { get; set; }
-    public DbSet<News> News { get; set; }
     public DbSet<Disease> Diseases { get; set; }
     public DbSet<Stage> Stages { get; set; }
     public DbSet<TestPeriod> TestPeriod { get; set; }

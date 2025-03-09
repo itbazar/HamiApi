@@ -40,6 +40,7 @@ public class PatientLabTest : Entity
     public LabTestType TestType { get; set; } // نوع آزمایش
     public decimal TestValue { get; set; } // مقدار آزمایش
     public string Unit { get; set; } = null!; // واحد آزمایش (مثلاً ng/ml)
+    public DateTime TestDate { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool IsDeleted { get; set; } = false;
 }

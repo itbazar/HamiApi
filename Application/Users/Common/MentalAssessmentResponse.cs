@@ -1,5 +1,4 @@
-﻿using Application.Complaints.Common;
-using SharedKernel.ExtensionMethods;
+﻿using SharedKernel.ExtensionMethods;
 
 namespace Application.Users.Common;
 

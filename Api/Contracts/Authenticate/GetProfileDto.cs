@@ -1,4 +1,6 @@
-﻿namespace Api.Contracts.Authenticate;
+﻿using Domain.Models.Hami;
+
+namespace Api.Contracts.Authenticate;
 
 public record GetProfileDto(
     string UserName,
@@ -9,4 +11,5 @@ public record GetProfileDto(
     string PhoneNumber,
     string MentorName,
     string PatientGroupName,
-    Guid PatientGroupId);
+    Guid PatientGroupId,
+    Organ Organ);

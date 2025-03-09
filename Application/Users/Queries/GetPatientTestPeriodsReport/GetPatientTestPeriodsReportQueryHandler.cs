@@ -1,5 +1,4 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Application.Complaints.Common;
 using Application.Users.Common;
 using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
@@ -34,14 +33,12 @@ internal class GetPatientTestPeriodsReportQueryHandler(IUserRepository userRepos
         // مشخص کردن وضعیت شرکت کاربر در آزمون‌ها
         var testWithParticipationStatus = testPeriods.Select(tp =>
         {
-            // گرفتن آخرین نتیجه کاربر برای این آزمون
             var lastResult = userTestResults
                 .Where(utr => utr.TestPeriodId == tp.Id)
                 .OrderByDescending(utr => utr.CreatedAt)
                 .FirstOrDefault();
 
-            // بررسی بازه زمانی براساس RecurrenceType
-            var canParticipate = lastResult == null || IsAllowedToRetake(tp, lastResult.CreatedAt);
+            var canParticipate = lastResult == null || IsAllowedToRetake(tp, lastResult?.CreatedAt ?? DateTime.MinValue);
 
             return new TestPeriodResponse(
                 tp.Id,
@@ -50,9 +47,10 @@ internal class GetPatientTestPeriodsReportQueryHandler(IUserRepository userRepos
                 tp.StartDate,
                 tp.EndDate,
                 tp.Code,
-                !canParticipate // اگر نمی‌تواند شرکت کند، یعنی شرکت کرده است
+                !canParticipate
             );
         }).ToList();
+
 
         return testWithParticipationStatus;
     }

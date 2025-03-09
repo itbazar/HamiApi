@@ -1,5 +1,4 @@
 ﻿using Application.Common.Interfaces.Persistence;
-using Application.Complaints.Common;
 using Domain.Models.IdentityAggregate;
 using MediatR;
 
