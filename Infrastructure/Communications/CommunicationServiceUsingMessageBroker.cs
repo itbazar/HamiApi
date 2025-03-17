@@ -30,7 +30,7 @@ public class CommunicationServiceUsingMessageBroker : ICommunicationService
 
     public async Task<int> SendVerificationAsync(string receptor, string message)
     {
-        //await _publishEndpoint.Publish(new MessageBrokerMessage { Message = message, PhoneNumber = receptor, IsVerification = true });
+        await _publishEndpoint.Publish(new MessageBrokerMessage { Message = message, PhoneNumber = receptor, IsVerification = true });
         return 0;
     }
 
