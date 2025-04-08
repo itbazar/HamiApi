@@ -18,6 +18,8 @@ public static class AuthenticationErrors
     public static readonly Error UserAlreadyExists = new Error("کاربری دیگری با شماره همراه شما ثبت شده است");
     public static readonly Error RegistrationNotApproved = new Error("وضعیت ثبت‌نام شما هنوز تأیید نشده و در انتظار تایید است.");
     public static readonly Error RegistrationRejected = new Error("وضعیت ثبت‌نام شما رد شده است.");
+    public static readonly Error ResetPasswordFailed = new Error("بازیابی رمز عبور با مشکل مواجه شد.");
+
 
 
 }

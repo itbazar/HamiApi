@@ -75,4 +75,28 @@ public class AuthenticateRepository : IAuthenticateRepository
             token.Expiry);
         return true;
     }
+
+    public async Task<ResetPasswordToken?> GetResetPasswordTokenAsync(string userId)
+    {
+        string? serialized = await _database.StringGetAsync($"res:{userId}");
+        if (serialized is null)
+            return null;
+        var token = JsonSerializer.Deserialize<ResetPasswordToken>(serialized);
+        return token;
+    }
+
+    public async Task<bool> InsertResetPasswordTokenAsync(ResetPasswordToken resetPasswordToken)
+    {
+        await _database.StringSetAsync(
+            $"res:{resetPasswordToken.UserId}",
+            JsonSerializer.Serialize(resetPasswordToken),
+            TimeSpan.FromMinutes(15));
+        return true;
+    }
+
+    public async Task<bool> DeleteResetPasswordTokenAsync(string userId)
+    {
+        await _database.KeyDeleteAsync($"res:{userId}");
+        return false;
+    }
 }

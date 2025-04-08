@@ -7,8 +7,11 @@ using Application.Authentication.Commands.ChangePhoneNumberCommand;
 using Application.Authentication.Commands.LoginCommand;
 using Application.Authentication.Commands.LogisterCitizenCommand;
 using Application.Authentication.Commands.RefreshCommand;
+using Application.Authentication.Commands.ResetPasswordCommand;
 using Application.Authentication.Commands.RevokeCommand;
 using Application.Authentication.Queries.ChangePhoneNumberQuery;
+using Application.Authentication.Queries.ForgotPasswordQuery;
+using Application.Authentication.Queries.ResendOtp;
 using Application.Common.Interfaces.Security;
 using Application.Users.Commands.RegisterPatient;
 using Application.Users.Commands.UpdateUserProfile;
@@ -159,6 +162,45 @@ public class AuthenticateController : ApiController
             s => NoContent(), 
             f => Problem(f));
     }
+
+    [HttpPost("ForgotPassword")]
+    public async Task<ActionResult<LoginResultDto>> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
+    {
+        var mappedCaptcha = forgotPasswordDto.Captcha.Adapt<CaptchaValidateModel>();
+        var query = new ForgotPasswordQuery(forgotPasswordDto.PhoneNumber, mappedCaptcha);
+        var result = await Sender.Send(query);
+
+        return result.Match(
+            s => Ok(s.Adapt<ForgetPasswordResultDto>()),
+            f => Problem(f));
+
+        //return result.Match(
+        //    s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
+        //    f => Problem(f));
+    }
+
+    [HttpPost("ResetPassword")]
+    public async Task<ActionResult> ResetPassword([FromBody] ResetForgetPasswordDto resetPasswordDto)
+    {
+        var command = new ResetPasswordCommand(resetPasswordDto.OtpToken, resetPasswordDto.VerificationCode, resetPasswordDto.NewPassword);
+        var result = await Sender.Send(command);
+
+        return result.Match(
+            s => Ok(s),
+            f => Problem(f));
+    }
+
+    [HttpPost("ResendOtp")]
+    public async Task<ActionResult> ResendOtp([FromBody] ResendOtpDto resendOtpDto)
+    {
+        var query = new ResendOtpQuery(resendOtpDto.OtpToken, null);
+        var result = await Sender.Send(query);
+
+        return result.Match(
+            s => StatusCode(StatusCodes.Status428PreconditionRequired, s),
+            f => Problem(f));
+    }
+
 
 
     [Authorize]

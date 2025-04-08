@@ -10,11 +10,13 @@ using SharedKernel.Statics;
 using FluentResults;
 using SharedKernel.Errors;
 using Microsoft.AspNetCore.Mvc;
+using Application.Common.Interfaces.Communication;
 namespace Infrastructure.Authentication;
 
 public class AuthenticationService(
     UserManager<ApplicationUser> userManager,
     JwtInfo jwtInfo,
+    ICommunicationService communicationService,
     TokenValidationParameters tokenValidationParameters,
     IAuthenticateRepository authenticateRepository) : IAuthenticationService
 {
@@ -303,8 +305,122 @@ public class AuthenticationService(
 
         return true;
     }
+
+
+    private bool IsPhoneNumberValid(string? phoneNumber)
+    {
+        if (phoneNumber is null)
+            return false;
+        Regex regex = new Regex(@"^09[0-9]{9}$");
+        return regex.IsMatch(phoneNumber);
+    }
+    public async Task<Result<VerificationToken>> GetResetPasswordToken(string username)
+    {
+        var user = await GetUser(username);
+        if (user.IsFailed)
+            return user.ToResult();
+
+        if (!IsPhoneNumberValid(user.Value.PhoneNumber))
+            return AuthenticationErrors.InvalidPhoneNumber;
+
+        var passwordResetToken = await userManager.GeneratePasswordResetTokenAsync(user.Value);
+        if (passwordResetToken is null)
+        {
+            return AuthenticationErrors.ResetPasswordFailed;
+        }
+
+        var tokenResult = await sendVerificationCode(user.Value, false);
+        if (tokenResult.IsFailed)
+            return tokenResult.ToResult();
+
+        await authenticateRepository.InsertResetPasswordTokenAsync(
+            new ResetPasswordToken(user.Value.Id, passwordResetToken));
+
+        return tokenResult;
+    }
+
+    public async Task<Result<bool>> ResetPassword(string otpToken, string code, string newPassword)
+    {
+        var storedOtp = await authenticateRepository.GetOtpAsync(otpToken);
+        if (storedOtp is null)
+            return AuthenticationErrors.InvalidOtp;
+
+        if (await ValidateOtp(storedOtp.User, code))
+        {
+            await authenticateRepository.DeleteOtpAsync(otpToken);
+        }
+        else
+        {
+            return AuthenticationErrors.InvalidOtp;
+        }
+
+        var resetPasswordToken = await authenticateRepository
+            .GetResetPasswordTokenAsync(storedOtp.User.Id);
+        if (resetPasswordToken is null)
+            return AuthenticationErrors.ResetPasswordFailed;
+        await authenticateRepository.DeleteResetPasswordTokenAsync(storedOtp.User.Id);
+        var user = await GetUser(storedOtp.User.UserName!);
+        await userManager.ResetPasswordAsync(user.Value, resetPasswordToken.Token, newPassword);
+        return true;
+    }
+
+    public async Task<Result<VerificationToken>> ResendVerificationCode(
+        string otpToken)
+    {
+        var storedOtp = await authenticateRepository.GetOtpAsync(otpToken);
+        if (storedOtp is null)
+            return AuthenticationErrors.InvalidOtp;
+
+        var user = storedOtp.User;
+        if (await authenticateRepository.IsSentAsync(user.UserName!))
+            return AuthenticationErrors.TooManyRequestsForOtp;
+
+        await authenticateRepository.DeleteOtpAsync(otpToken);
+
+        var otp = new Otp(Guid.NewGuid().ToString(), user, storedOtp.IsNew, storedOtp.LoginAs);
+        await authenticateRepository.InsertOtpAsync(otp);
+        await authenticateRepository.InsertSentAsync(user.UserName!);
+
+        try
+        {
+            await communicationService.SendVerificationAsync(user.PhoneNumber!, await GenerateOtp(user));
+        }
+        catch
+        {
+            return CommunicationErrors.SmsError;
+        }
+
+        return new VerificationToken(user.PhoneNumber!, otp.Token,"");
+    }
+
     /////////////////////////
     /// Private methods
+
+    private async Task<Result<VerificationToken>> sendVerificationCode(
+       ApplicationUser user,
+       bool isNew = false,
+       ApplicationUser? loginAs = null)
+    {
+        if (await authenticateRepository.IsSentAsync(user.UserName!))
+            return AuthenticationErrors.TooManyRequestsForOtp;
+
+        var otp = new Otp(Guid.NewGuid().ToString(), user, isNew, loginAs);
+        await authenticateRepository.InsertOtpAsync(otp);
+        await authenticateRepository.InsertSentAsync(user.UserName!);
+
+        if (!IsPhoneNumberValid(user.PhoneNumber))
+            return AuthenticationErrors.InvalidPhoneNumber;
+        try
+        {
+            await communicationService.SendVerificationAsync(user.PhoneNumber!, await GenerateOtp(user));
+        }
+        catch
+        {
+            return CommunicationErrors.SmsError;
+        }
+
+        return new VerificationToken(user.PhoneNumber!, otp.Token,"");
+    }
     private async Task<Result> CreateCitizen(ApplicationUser user)
     {
         try
@@ -445,7 +561,14 @@ public record RefreshToken(
     DateTime CreationDate,
     TimeSpan Expiry);
 
- public record Otp(
-     string Token,
-     ApplicationUser User,
-     bool IsNew);
+
+
+public record Otp(
+    string Token,
+    ApplicationUser User,
+    bool IsNew,
+    ApplicationUser? LoginAs = null);
+
+public record ResetPasswordToken(
+    string UserId,
+    string Token);

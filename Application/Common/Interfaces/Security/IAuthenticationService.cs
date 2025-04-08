@@ -15,6 +15,10 @@ public interface IAuthenticationService
         string userName, string newPhoneNumber);
     public Task<Result<bool>> ChangePhoneNumber(
         string userName, string otpToken1, string code1, string otpToken2, string code2);
+
+    public Task<Result<VerificationToken>> GetResetPasswordToken(string username);
+    public Task<Result<bool>> ResetPassword(string username, string resetPasswordToken, string newPassword);
+    public Task<Result<VerificationToken>> ResendVerificationCode(string otpToken);
 }
 
 public record LoginResultModel(
