@@ -1,5 +1,6 @@
 ﻿using Api.Abstractions;
 using Api.Contracts.Authenticate;
+using Api.Contracts.Mentors;
 using Api.Contracts.Patient;
 using Api.ExtensionMethods;
 using Application.Authentication.Commands.ChangePasswordCommand;
@@ -13,7 +14,9 @@ using Application.Authentication.Queries.ChangePhoneNumberQuery;
 using Application.Authentication.Queries.ForgotPasswordQuery;
 using Application.Authentication.Queries.ResendOtp;
 using Application.Common.Interfaces.Security;
+using Application.Users.Commands.CreateMentor;
 using Application.Users.Commands.RegisterPatient;
+using Application.Users.Commands.UpdateMentor;
 using Application.Users.Commands.UpdateUserProfile;
 using Application.Users.Queries.GetUserProfile;
 using Domain.Models.Hami;
@@ -110,6 +113,64 @@ public class AuthenticateController : ApiController
 
         return result.Match(
             s => Ok(s),
+            f => Problem(f));
+    }
+
+    [Authorize]
+    [HttpPut("CreateMentor")]
+    public async Task<ActionResult> CreateMentor([FromBody] CreateMentorDto updateDto)
+    {
+        if (updateDto == null)
+        {
+            return BadRequest("Invalid data.");
+        }
+
+        var userId = User.GetUserId();
+        if (userId == null)
+            return Unauthorized();
+
+        var command = new CreateMentorCommand(
+            updateDto.Username,
+            updateDto.Password,
+            updateDto.PhoneNumber,
+            updateDto.FirstName,
+            updateDto.LastName,
+            updateDto.Title,
+            updateDto.Email,
+            //updateDto.DateOfBirth,
+            updateDto.Gender,
+            updateDto.Education,
+            updateDto.City);
+
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
+            f => Problem(f));
+    }
+
+
+    [Authorize]
+    [HttpPut("UpdateMentor")]
+    public async Task<ActionResult> UpdateMentor(UpdateMentorDto updateDto)
+    {
+        var userId = User.GetUserId();
+        if (updateDto.MentorId == null)
+            return Unauthorized();
+
+        var command = new UpdateMentorCommand(
+            updateDto.MentorId,
+            updateDto.FirstName,
+            updateDto.LastName,
+            updateDto.Title,
+            updateDto.Email,
+            //updateDto.DateOfBirth,
+            updateDto.Gender,
+            updateDto.Education,
+            updateDto.City);
+
+        var result = await Sender.Send(command);
+        return result.Match(
+            s => NoContent(),
             f => Problem(f));
     }
 

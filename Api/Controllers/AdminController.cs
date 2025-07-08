@@ -12,6 +12,7 @@ using Application.Users.Queries.GetMentors;
 using Application.Users.Queries.GetPatients;
 using Application.Users.Queries.GetPatientsSessionReport;
 using Application.Users.Queries.GetPatientTestPeriodsReport;
+using Application.Users.Queries.GetUserById;
 using Application.Users.Queries.GetUserMedicalInfoById;
 using Domain.Models.Hami;
 using Domain.Models.IdentityAggregate;
@@ -58,17 +59,16 @@ public class AdminController : ApiController
 
         Response.AddPaginationHeaders(result.Value.Meta);
 
-        var dtoList = result.Value.Select(user => new PatientResponse(
+        var dtoList = result.Value.Select(user => new MentorResponse(
            user.Id,
            user.FirstName,
            user.LastName,
            user.UserName,
-           user.DateOfBirth,
-           user.UserGroupMemberships
-               .Select(ugm => ugm.PatientGroup.Description) // گرفتن نام گروه از PatientGroup
-               .FirstOrDefault() ?? "بدون گروه", // مدیریت کاربرانی که گروهی ندارند
+           user.Email,
+           user.PhoneNumber,
            user.City,
-           user.RegistrationStatus
+           user.Gender,
+           user.Education
        )).ToList();
 
         return Ok(dtoList);
@@ -123,7 +123,7 @@ public class AdminController : ApiController
     }
 
 
-    [Authorize(Roles = "Admin,Patient,Mento")]
+    [Authorize(Roles = "Admin,Patient,Mentor")]
     [HttpPost("MyTests")]
     public async Task<ActionResult<List<TestPeriodResponse>>> PatientTestPeriodsReport([FromBody] string userId)
     {
@@ -203,6 +203,17 @@ public class AdminController : ApiController
         return result.Match(
             s => Ok(s),        // در صورت موفقیت، اطلاعات را برمی‌گرداند
             f => Problem(f));  // در صورت شکست، خطا را برمی‌گرداند
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("users/{userId}")]
+    public async Task<ActionResult<ApplicationUser>> GetUserById(string userId)
+    {
+        var query = new GetUserByIdQuery(userId);
+        var result = await Sender.Send(query);
+        return result.Match(
+            s => Ok(s),       
+            f => Problem(f));
     }
 
     //[HttpGet("MentalAssessment")]
