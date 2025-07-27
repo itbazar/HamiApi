@@ -24,7 +24,7 @@ public class CommunicationServiceUsingMessageBroker : ICommunicationService
 
     public async Task<int> SendAsync(string receptor, string message)
     {
-        //await _publishEndpoint.Publish(new MessageBrokerMessage { Message = message, PhoneNumber = receptor });
+        await _publishEndpoint.Publish(new MessageBrokerMessage { Message = message, PhoneNumber = receptor });
         return 0;
     }
 
