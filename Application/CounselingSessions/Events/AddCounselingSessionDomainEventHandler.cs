@@ -19,9 +19,9 @@ internal sealed class AddCounselingSessionDomainEventHandler(
             return;
 
         // تبدیل تاریخ میلادی به تاریخ شمسی به همراه ساعت
-        string formattedDateTime = ConvertToPersianDateTime(notification.ScheduledDate);
+        //string formattedDateTime = ConvertToPersianDateTime(notification.ScheduledDate);
 
-        string message = $"جلسه گروهی در تاریخ {notification.ScheduledDate} برای شما برگزار خواهد شد.";
+        //string message = $"جلسه گروهی در تاریخ {notification.ScheduledDate} برای شما برگزار خواهد شد.";
         string message2 = $" لطفا در زمان اعلام شده از طریق لینک  {notification.MeetingLink} وارد جلسه شوید";
 
         var members = await userGroupMembershipRepository.GetAsync(q => q.PatientGroupId == notification.userGroupId);
@@ -31,7 +31,8 @@ internal sealed class AddCounselingSessionDomainEventHandler(
             if (user?.PhoneNumber is null)
                 continue;
 
-            await communicationService.SendAsync(user.PhoneNumber, message + message2);
+            //await communicationService.SendAsync(user.PhoneNumber, message + message2);
+            await communicationService.SendAsync(user.PhoneNumber,  message2);
         }
     }
 
