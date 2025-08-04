@@ -71,7 +71,7 @@ public class TestPeriodController : ApiController
             testPeriodDto.StartDate,
             testPeriodDto.EndDate,
             testPeriodDto.Code,
-            testPeriodDto.Recurrence.Value);
+            testPeriodDto.Recurrence);
 
         var result = await Sender.Send(command);
         return result.Match(

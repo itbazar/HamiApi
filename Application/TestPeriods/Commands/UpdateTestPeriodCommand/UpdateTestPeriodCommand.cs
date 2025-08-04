@@ -7,8 +7,8 @@ namespace Application.TestPeriods.Commands.UpdateTestPeriodCommand;
 public record UpdateTestPeriodCommand(
     Guid Id,
     TestType? TestType,
-   string? PeriodName,
-        DateTime? StartDate,
-        DateTime? EndDate,
-        int? Code,
-        RecurrenceType Recurrence) : IRequest<Result<TestPeriod>>;
+    string? PeriodName,
+    DateTime? StartDate,
+    DateTime? EndDate,
+    int? Code,
+    RecurrenceType? Recurrence) : IRequest<Result<TestPeriod>>;

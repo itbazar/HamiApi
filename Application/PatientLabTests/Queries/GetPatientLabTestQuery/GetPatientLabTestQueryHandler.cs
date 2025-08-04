@@ -16,7 +16,7 @@ internal class GetPatientLabTestQueryHandler : IRequestHandler<GetPatientLabTest
     {
         var PatientLabTest = await _PatientLabTestRepository.GetPagedAsync(
          request.PagingInfo,
-         filter: s => !s.IsDeleted,
+         filter:  !string.IsNullOrEmpty(request.UserId) ? s =>!s.IsDeleted && s.UserId==request.UserId : s => !s.IsDeleted,
          trackChanges: false,
          orderBy: s => s.OrderByDescending(o => o.CreatedAt),
          includeProperties: "User" // بارگذاری User

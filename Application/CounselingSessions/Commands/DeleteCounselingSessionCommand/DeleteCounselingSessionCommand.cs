@@ -5,4 +5,4 @@ namespace Application.CounselingSessions.Commands.DeleteCounselingSessionCommand
 
 public record DeleteCounselingSessionCommand(
     Guid Id,
-    bool? IsDeleted = null) : IRequest<Result<CounselingSession>>;
+    bool? IsDeleted = true) : IRequest<Result<CounselingSession>>;

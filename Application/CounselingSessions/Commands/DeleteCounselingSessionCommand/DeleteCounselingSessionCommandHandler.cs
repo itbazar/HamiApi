@@ -13,7 +13,7 @@ internal class DeleteCounselingSessionCommandHandler(
         if (counselingSessionr is null)
             return GenericErrors.NotFound;
         counselingSessionr.Delete(request.IsDeleted.Value);
-        counselingSessionrRepository.Update(counselingSessionr);
+        //counselingSessionrRepository.Update(counselingSessionr);
         await unitOfWork.SaveAsync();
         return counselingSessionr;
     }

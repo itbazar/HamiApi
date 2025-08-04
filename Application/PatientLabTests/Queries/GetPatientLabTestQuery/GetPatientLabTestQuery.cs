@@ -3,4 +3,4 @@ using Domain.Models.Hami;
 
 namespace Application.PatientLabTests.Queries.GetPatientLabTestQuery;
 
-public record GetPatientLabTestQuery(PagingInfo PagingInfo) : IRequest<Result<PagedList<PatientLabTest>>>;
+public record GetPatientLabTestQuery(PagingInfo PagingInfo,string UserId="") : IRequest<Result<PagedList<PatientLabTest>>>;

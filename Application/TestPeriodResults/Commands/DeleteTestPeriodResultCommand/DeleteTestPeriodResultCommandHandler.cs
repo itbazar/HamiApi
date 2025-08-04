@@ -13,7 +13,7 @@ internal class DeleteTestPeriodResultCommandHandler(
         if (testPeriodResultr is null)
             return GenericErrors.NotFound;
         testPeriodResultr.Delete(request.IsDeleted.Value);
-        testPeriodResultrRepository.Update(testPeriodResultr);
+        //testPeriodResultrRepository.Update(testPeriodResultr);
         await unitOfWork.SaveAsync();
         return testPeriodResultr;
     }

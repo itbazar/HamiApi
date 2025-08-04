@@ -222,7 +222,7 @@ internal class GetInfoQueryHandler(IUnitOfWork unitOfWork, IUserRepository userR
             // تعداد کل بیماران
             var totalPatients = await userRepository.GetPagedPatientsAsync(
                 new PagingInfo { PageNumber = 1, PageSize = int.MaxValue }, null, "");
-            result.Add(new InfoSingleton(totalPatients.Count.ToString(), "تعداد کل بیماران", ""));
+            result.Add(new InfoSingleton(totalPatients.Where(x=>x.RegistrationStatus == RegistrationStatus.Approved).ToList().Count.ToString(), "تعداد کل بیماران", ""));
 
             // تعداد کل منتورها
             var totalMentors = await userRepository.GetPagedMentorsAsync(

@@ -10,7 +10,7 @@ internal class GetPatientsQueryHandler(IUserRepository userRepository) : IReques
     {
         var result = await userRepository
             .GetPagedPatientsAsync(request.PagingInfo,
-             request.Status,request.CurrentUserId);
+             request.Status,request.CurrentUserId,request.UserName);
         return result;
     
     }

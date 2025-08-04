@@ -29,7 +29,9 @@ public class PatientLabTestController : ApiController
     [HttpGet]
     public async Task<ActionResult<List<PatientLabTestListItemDto>>> GetPatientLabTestList([FromQuery] PagingInfo pagingInfo)
     {
-        var query = new GetPatientLabTestQuery(pagingInfo);
+        var currentUserId = User.GetUserId(); // گرفتن آی‌دی کاربر لاگین‌شده
+
+        var query = new GetPatientLabTestQuery(pagingInfo, currentUserId);
         var result = await Sender.Send(query);
         if (result.IsFailed)
             return Problem(result.ToResult());

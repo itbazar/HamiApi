@@ -5,4 +5,4 @@ namespace Application.TestPeriodResults.Commands.DeleteTestPeriodResultCommand;
 
 public record DeleteTestPeriodResultCommand(
     Guid Id,
-    bool? IsDeleted = null) : IRequest<Result<TestPeriodResult>>;
+    bool? IsDeleted = true) : IRequest<Result<TestPeriodResult>>;

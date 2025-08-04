@@ -251,6 +251,7 @@ public class UserRepository(
     PagingInfo paging,
     RegistrationStatus? status,
     string currentUserId, // آی‌دی کاربر لاگین‌شده
+    string UserName="",
     Expression<Func<ApplicationUser, bool>>? filter = null,
     string includeProperties = "")
     {
@@ -295,6 +296,16 @@ public class UserRepository(
         if (status is not null)
         {
             query = query.Where(user => user.RegistrationStatus == status.Value);
+        }
+
+        if (!string.IsNullOrEmpty(UserName))
+        {
+            query = query.Where(user =>
+                user.UserName.Contains(UserName) ||
+                user.FirstName.Contains(UserName) ||
+                user.LastName.Contains(UserName) ||
+                user.Title.Contains(UserName)
+            );
         }
 
         // اعمال Include برای UserGroupMembership و PatientGroup

@@ -148,10 +148,11 @@ public class AdminController : ApiController
 
     [Authorize(Roles = "Admin,Mentor")]
     [HttpGet("Patients")]
-    public async Task<ActionResult<List<PatientResponse>>> GetPatientList([FromQuery] PagingInfo pagingInfo, [FromQuery] RegistrationStatus? Status)
+    public async Task<ActionResult<List<PatientResponse>>> GetPatientList([FromQuery] PagingInfo pagingInfo,
+        [FromQuery] RegistrationStatus? Status,[FromQuery] string? UserName)
     {
         var currentUserId = User.GetUserId(); // گرفتن آی‌دی کاربر لاگین‌شده
-        var command = new GetPatientsQuery(pagingInfo, Status, currentUserId);
+        var command = new GetPatientsQuery(pagingInfo, Status, currentUserId, UserName);
 
         var result = await Sender.Send(command);
         if (result.IsFailed)

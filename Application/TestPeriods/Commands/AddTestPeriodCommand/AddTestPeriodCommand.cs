@@ -10,4 +10,4 @@ public record AddTestPeriodCommand(
         DateTime StartDate,
         DateTime EndDate,
         int Code,
-        RecurrenceType Recurrence) : IRequest<Result<TestPeriod>>;
+        RecurrenceType Recurrence= RecurrenceType.None) : IRequest<Result<TestPeriod>>;

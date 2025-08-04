@@ -33,6 +33,7 @@ public interface IUserRepository
        PagingInfo paging,
        RegistrationStatus? Status,
        string currentUserId,
+       string UserName="",
        Expression<Func<ApplicationUser, bool>>? filter = null,
        string includeProperties = "");
 
